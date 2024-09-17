@@ -9,11 +9,11 @@
 
 |                     |                   |
 |---------------------|-------------------|
-|Project Title:       | xxxxxx            |
-|Student 1 Name:      | xxxxxx            |
-|Student 1 ID:        | xxxxxx            |
-|Student 2 Name:      | xxxxxx            |
-|Student 2 ID:        | xxxxxx            |
+|Project Title:       | FarmaTech         |
+|Student 1 Name:      | Abhijit Mahal     |
+|Student 1 ID:        | 21375106          |
+|Student 2 Name:      | Faizan Ali Shah   |
+|Student 2 ID:        | 21319901          |
 |Project Supervisor:  | xxxxxx            |
 
 > Ensure that the Supervisor formally agrees to supervise your project; this is only recognised once the
@@ -33,19 +33,25 @@
 
 ### Introduction
 
-> Describe the general area covered by the project.
+> FarmaTech is a blockchain based application to help drug companies and their consumers to ensure that only the genuine medicines
+> made by the companies reach their consumers.
 
 ### Outline
 
-> Outline the proposed project.
+> This web based application is going to make an interface that will allow the drug companies to register their medicines on our app   > that will then generate them a unique key and will be displayed on the packaging as encrypted QR-code. The QR-code can be scanned by > registered personnel along the supply chain to confirm that the medicines are still not tampered with and update the blockchain. The > end consumer then can scan QR-code to check the legitamacy of the medicines or if any flags were raised along the way.
 
 ### Background
 
-> Where did the ideas come from?
+> We intially wanted to build a securtiy based app around the healthcare industry, especially using blockchain because it allows an end to end connection between two users. As we know the healthcare industry carry a lot of sensitive information that can be misused and can be potentially deadly for some people, we agreed on a medicine counterfeit app that will make sure that only the original and safe medicine made by the drug companies are delivered to the user.
 
 ### Achievements
 
-> What functions will the project provide? Who will the users be?
+> FarmaTech is going to be a web application that will have three end users:
+    - The certified drug companies that will have the permission to make new entries to the blockchain for their medicines that will    carry general information about that specific medicine like the name, date of manufacturing, date of expiration, location of manufacturing and the a reference to the package that it is going to be shipped in. This will then generate QR-codes for each medicine and their package.
+
+    - The qualified personnel along the supply chain will have the ability to update the blockchain with information about the condition of the package. A few use cases could be a package with a broken seal, medicines that may not be kept in desireable condition or maybe a damaged package. They can then remove the package and send it back if the issue is severe or flag the package that can then be investigated or be handled with caution. In any case the blockchain is updated with the relevant information along with location at which it was scanned.
+
+    - Finally the user with the final medicine can scan the QR-code on their personal device which will then give them all the relevant information regarding the medicine and also if any flags were raised along their journey. If the medicine is expired, counterfeit or any major flags were raised that deemed the medicine unfit for consumtion the app will alert the user that it is not reccomended to use the medicine.  
 
 ### Justification
 

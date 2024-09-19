@@ -55,16 +55,21 @@
 
 ### Justification
 
+FarmaTech provides a critical solution to the counterfeit drug problem by utilizing blockchain technology for secure and transparent tracking of medicines. Counterfeit drugs pose serious health risks and undermine consumer trust in the pharmaceutical industry. Existing systems are often insufficient in addressing these challenges. FarmaTech addresses this by generating unique QR codes for each medicine, ensuring that only genuine products are tracked from manufacturing to the end consumer, offering real-time verification along the entire supply chain.
+
+The use of blockchain guarantees immutable transparency, allowing every transaction and interaction to be securely recorded and visible to all authorized participants. This fosters trust among manufacturers, distributors, and consumers. The system's QR code functionality allows easy verification of medicine authenticity, ensuring that both supply chain personnel and end users can quickly confirm that a medicine is legitimate and safe. Additionally, real-time monitoring flags any issues, such as tampered packaging or improper handling, ensuring only safe medicines reach consumers. Overall, FarmaTech ensures security, transparency, and trust in the pharmaceutical supply chain.
 
 ### Programming language(s)
 
-> Node.js (JavaScript): Used for backend development and interaction with Hyperledger Fabric through the Fabric SDK.
+Node.js (JavaScript): Used for backend development and interaction with Hyperledger Fabric through the  Fabric SDK.
+
 React.js (JavaScript): For frontend development, providing a dynamic and responsive user interface.
+
 Go/Node.js: For writing smart contract on the Hyperledger Fabric network.
 
 ### Programming tools / Tech stack
 
-> Backend:
+Backend:
   (1) Node.js with Express.js: Handles API requests and manages interactions with the Hyperledger Fabric      network through the Fabric SDK.
   
   (2) Hyperledger Fabric: A permissioned blockchain platform ensuring secure, scalable transactions within the supply chain.

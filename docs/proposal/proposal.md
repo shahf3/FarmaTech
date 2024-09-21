@@ -124,35 +124,45 @@ The use of blockchain guarantees immutable transparency, allowing every transact
 > It must be clear from the explanation of this breakdown of work both that each student is responsible for
 > separate, clearly-defined tasks, and that those responsibilities substantially cover all of the work required
 > for the project.
-| **Phase**                         | **Responsibilities**                           | **Student 1**                     | **Student 2**                     |
-|-----------------------------------|-----------------------------------------------|-----------------------------------|-----------------------------------|
-| **Phase 1: Initial Setup and Planning** | Collaborate on project planning and requirements gathering. | Both                              | Both                              |
-|                                   | Research best practices for implementing blockchain in healthcare. | Both                              | Both                              |
-| **Phase 2: Setting Up Hyperledger Fabric** | Set up the Hyperledger Fabric environment.       | Both                              | Both                              |
-|                                   | Configure the network and deploy the blockchain instance. | Both                              | Both                              |
-| **Phase 3: Backend Development**  | Develop API endpoints for registering drugs and generating QR codes. | Yes                               | No                                |
-|                                   | Implement user authentication and role management. | Yes                               | No                                |
-|                                   | Write smart contracts (chaincode) for medicine entries and updates. | No                                | Yes                               |
-|                                   | Implement interaction with the Fabric SDK.      | No                                | Yes                               |
-| **Phase 4: Frontend Development** | Design and develop the user interface using React.js. | Yes                               | No                                |
-|                                   | Implement QR code scanning functionality using instascan.js. | Yes                               | No                                |
-|                                   | Create dynamic components to display medicine information and alerts. | No                                | Yes                               |
-|                                   | Handle asynchronous requests to the backend.     | No                                | Yes                               |
-| **Phase 5: Location Tracking Integration** | Integrate Google Geolocation API for tracking and validating scans. | Both                              | Both                              |
-|                                   | Test location-based features for accuracy.       | Both                              | Both                              |
-| **Phase 6: Testing and Debugging** | Test backend functionality, including API endpoints and smart contracts. | Yes                               | No                                |
-|                                   | Focus on security best practices, including data encryption. | Yes                               | No                                |
-|                                   | Test frontend components for responsiveness and user experience. | No                                | Yes                               |
-|                                   | Debug issues related to QR code generation and scanning. | No                                | Yes                               |
-| **Phase 7: Deployment and Finalization** | Deploy the application to a cloud platform.       | Both                              | Both                              |
-|                                   | Conduct final testing to ensure seamless integration. | Both                              | Both                              |
-| **Phase 8: Documentation and Presentation** | Prepare technical documentation for backend development and APIs. | Yes                               | No                                |
-|                                   | Prepare documentation for frontend development and user interface guidelines. | No                                | Yes                               |
 
+| Phase                                       | Responsibilities                                       | Student 1 | Student 2 |
+|---------------------------------------------|-------------------------------------------------------|-----------|-----------|
+| **Initial Setup and Planning**    | Collaborate on project planning and requirements      | Both      | Both      |
+|                                             | Research best practices for blockchain in healthcare   | Both      | Both      |
+| **Setting Up Hyperledger Fabric**  | Set up Hyperledger Fabric environment                  | Both      | Both      |
+|                                             | Configure network and deploy blockchain instance       | Both      | Both      |
+| **Backend Development**            | Develop API endpoints for drug registration            | Yes       | No        |
+|                                             | Implement user authentication and role management      | Yes       | No        |
+|                                             | Write smart contracts (chaincode)                      | No        | Yes       |
+|                                             | Implement interaction with the Fabric SDK              | No        | Yes       |
+| **Frontend Development**           | Design user interface using React.js                   | Yes       | No        |
+|                                             | Implement QR code scanning with instascan.js           | Yes       | No        |
+|                                             | Create components to display medicine information       | No        | Yes       |
+|                                             | Handle asynchronous requests to the backend            | No        | Yes       |
+| **Location Tracking Integration**   | Integrate Google Geolocation API                        | Both      | Both      |
+|                                             | Test location-based features                            | Both      | Both      |
+| **Testing and Debugging**          | Test backend functionality                              | Yes       | No        |
+|                                             | Focus on security best practices                        | Yes       | No        |
+|                                             | Test frontend components                                | No        | Yes       |
+|                                             | Debug QR code generation and scanning                  | No        | Yes       |
+| **Deployment and Finalization**    | Deploy application to cloud platform                    | Both      | Both      |
+|                                             | Conduct final testing                                   | Both      | Both      |
+| **Documentation and Presentation**  | Prepare documentation for backend APIs                 | Yes       | No        |
+|                                             | Prepare frontend documentation                          | No        | Yes       |
 
 #### Student 1
 
 > *Student 1 should complete this section.*
+- Collaborate on project planning and requirements gathering.
+- Develop API endpoints for registering drugs and generating QR codes.
+- Implement user authentication and role management.
+- Design and develop the user interface using React.js.
+- Implement QR code scanning functionality using instascan.js.
+- Test backend functionality, including API endpoints.
+- Focus on security best practices, including data encryption.
+- Deploy the application to a cloud platform.
+- Conduct final testing to ensure seamless integration.
+- Prepare technical documentation for backend development and APIs.
 
 #### Student 2
 

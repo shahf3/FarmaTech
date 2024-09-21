@@ -61,51 +61,61 @@ The use of blockchain guarantees immutable transparency, allowing every transact
 
 ### Programming language(s)
 
-Node.js (JavaScript): Used for backend development and interaction with Hyperledger Fabric through the  Fabric SDK.
+**Node.js (JavaScript):** Used for backend development and interaction with Hyperledger Fabric through the  Fabric SDK.
 
-React.js (JavaScript): For frontend development, providing a dynamic and responsive user interface.
+**React.js (JavaScript):** For frontend development, providing a dynamic and responsive user interface.
 
-Go/Node.js: For writing smart contract on the Hyperledger Fabric network.
+**Go/Node.js:** For writing smart contract on the Hyperledger Fabric network.
 
 ### Programming tools / Tech stack
 
 **Backend:**
 
-(1) Node.js with Express.js: For backend development, handles API requests and manages interactions with the Hyperledger Fabric network through the Fabric SDK.
+- Node.js with Express.js: For backend development, handles API requests and manages interactions with the Hyperledger Fabric network through the Fabric SDK.
   
-(2) Hyperledger Fabric: A permissioned blockchain platform used to ensure secure, immutable, and scalable tracking of medicines through the supply chain.
+- Hyperledger Fabric: A permissioned blockchain platform used to ensure secure, immutable, and scalable tracking of medicines through the supply chain.
   
-(3) Fabric SDK (Node.js): Facilitates communication between the backend and the blockchain, allowing the system to interact with smart contracts (chaincode).
+- Fabric SDK (Node.js): Facilitates communication between the backend and the blockchain, allowing the system to interact with smart contracts (chaincode).
+
   
 **Frontend:**
 
-(1) React.js: A robust frontend framework used to build the user interface, handling asynchronous requests to the backend and displaying drug authentication information.
+- React.js: A robust frontend framework used to build the user interface, handling asynchronous requests to the backend and displaying drug authentication information.
   
-(2) instascan.js: Enables QR code scanning on the frontend, allowing users to verify drug authenticity by querying the blockchain.
+- instascan.js: Enables QR code scanning on the frontend, allowing users to verify drug authenticity by querying the blockchain.
 
-(3) qrcode.js (JavaScript): A library for generating QR codes containing drug-specific information.
+- qrcode.js (JavaScript): A library for generating QR codes containing drug-specific information.
+
 
 **Location Tracking:**
 
-Google Geolocation API: Integrated into the system for tracking the physical location of transactions and scans. This ensures the validity of scans at various points in the supply chain by verifying the location data.
+- Google Geolocation API: Integrated into the system for tracking the physical location of transactions and  scans. This ensures the validity of scans at various points in the supply chain by verifying the location data.
 
 **Development Tools:**
 
-(1) VS Code: IDE we are going to be using for development.
+- VS Code: IDE we are going to be using for development
+- Postman: A tool used for testing API endpoints
 
-(2) Postman: A tool used for testing API endpoints
 
-Version Control:
+**Version Control:**
 
-GitLab: Version control system for managing source code, collaborating, and tracking changes in the project.
+- GitLab: Version control system for managing source code, collaborating, and tracking changes in the project.
 
 ### Hardware
 
-> Describe any non-standard hardware components which will be required.
+- Smartphone cameras
+- qrcode scanner
 
 ### Learning Challenges
 
-> List the main new things (technologies, languages, tools, etc) that you will have to learn.
+- Hyperledger Fabric: Setting up a private blockchain, writing chaincode, interacting through Fabric SDK.
+- Node.js: Backend development, asynchronous programming.
+- React.js: Frontend integration with blockchain, dynamic interfaces.
+- QR Code Generation & Scanning: Secure QR code handling for tracking medicine.
+- Geolocation API: Implementing location-based validation.
+- Testing and Debugging: Ensuring smart contract and backend functionality.
+- Security Best Practices: Encrypting data and ensuring the integrity of transactions.
+
 
 ### Breakdown of work
 
@@ -114,6 +124,31 @@ GitLab: Version control system for managing source code, collaborating, and trac
 > It must be clear from the explanation of this breakdown of work both that each student is responsible for
 > separate, clearly-defined tasks, and that those responsibilities substantially cover all of the work required
 > for the project.
+| **Phase**                         | **Responsibilities**                           | **Student 1**                     | **Student 2**                     |
+|-----------------------------------|-----------------------------------------------|-----------------------------------|-----------------------------------|
+| **Phase 1: Initial Setup and Planning** | Collaborate on project planning and requirements gathering. | Both                              | Both                              |
+|                                   | Research best practices for implementing blockchain in healthcare. | Both                              | Both                              |
+| **Phase 2: Setting Up Hyperledger Fabric** | Set up the Hyperledger Fabric environment.       | Both                              | Both                              |
+|                                   | Configure the network and deploy the blockchain instance. | Both                              | Both                              |
+| **Phase 3: Backend Development**  | Develop API endpoints for registering drugs and generating QR codes. | Yes                               | No                                |
+|                                   | Implement user authentication and role management. | Yes                               | No                                |
+|                                   | Write smart contracts (chaincode) for medicine entries and updates. | No                                | Yes                               |
+|                                   | Implement interaction with the Fabric SDK.      | No                                | Yes                               |
+| **Phase 4: Frontend Development** | Design and develop the user interface using React.js. | Yes                               | No                                |
+|                                   | Implement QR code scanning functionality using instascan.js. | Yes                               | No                                |
+|                                   | Create dynamic components to display medicine information and alerts. | No                                | Yes                               |
+|                                   | Handle asynchronous requests to the backend.     | No                                | Yes                               |
+| **Phase 5: Location Tracking Integration** | Integrate Google Geolocation API for tracking and validating scans. | Both                              | Both                              |
+|                                   | Test location-based features for accuracy.       | Both                              | Both                              |
+| **Phase 6: Testing and Debugging** | Test backend functionality, including API endpoints and smart contracts. | Yes                               | No                                |
+|                                   | Focus on security best practices, including data encryption. | Yes                               | No                                |
+|                                   | Test frontend components for responsiveness and user experience. | No                                | Yes                               |
+|                                   | Debug issues related to QR code generation and scanning. | No                                | Yes                               |
+| **Phase 7: Deployment and Finalization** | Deploy the application to a cloud platform.       | Both                              | Both                              |
+|                                   | Conduct final testing to ensure seamless integration. | Both                              | Both                              |
+| **Phase 8: Documentation and Presentation** | Prepare technical documentation for backend development and APIs. | Yes                               | No                                |
+|                                   | Prepare documentation for frontend development and user interface guidelines. | No                                | Yes                               |
+
 
 #### Student 1
 

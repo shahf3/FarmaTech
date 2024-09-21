@@ -69,17 +69,35 @@ Go/Node.js: For writing smart contract on the Hyperledger Fabric network.
 
 ### Programming tools / Tech stack
 
-Backend:
-  (1) Node.js with Express.js: Handles API requests and manages interactions with the Hyperledger Fabric      network through the Fabric SDK.
+**Backend:**
+
+(1) Node.js with Express.js: For backend development, handles API requests and manages interactions with the Hyperledger Fabric network through the Fabric SDK.
   
-  (2) Hyperledger Fabric: A permissioned blockchain platform ensuring secure, scalable transactions within the supply chain.
+(2) Hyperledger Fabric: A permissioned blockchain platform used to ensure secure, immutable, and scalable tracking of medicines through the supply chain.
   
-  (3) Fabric SDK (Node.js): Facilitates communication between the backend and the blockchain, allowing the system to interact with smart contracts (chaincode).
+(3) Fabric SDK (Node.js): Facilitates communication between the backend and the blockchain, allowing the system to interact with smart contracts (chaincode).
   
-  Frontend:
-  (1) React.js: A robust frontend framework used to build the user interface, handling asynchronous requests to the backend and displaying drug authentication information.
+**Frontend:**
+
+(1) React.js: A robust frontend framework used to build the user interface, handling asynchronous requests to the backend and displaying drug authentication information.
   
-  (2) instascan.js: Enables QR code scanning on the frontend, allowing users to verify drug authenticity by querying the blockchain.
+(2) instascan.js: Enables QR code scanning on the frontend, allowing users to verify drug authenticity by querying the blockchain.
+
+(3) qrcode.js (JavaScript): A library for generating QR codes containing drug-specific information.
+
+**Location Tracking:**
+
+Google Geolocation API: Integrated into the system for tracking the physical location of transactions and scans. This ensures the validity of scans at various points in the supply chain by verifying the location data.
+
+**Development Tools:**
+
+(1) VS Code: IDE we are going to be using for development.
+
+(2) Postman: A tool used for testing API endpoints
+
+Version Control:
+
+GitLab: Version control system for managing source code, collaborating, and tracking changes in the project.
 
 ### Hardware
 

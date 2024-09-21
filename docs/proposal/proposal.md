@@ -14,7 +14,7 @@
 |Student 1 ID:        | 21375106          |
 |Student 2 Name:      | Faizan Ali Shah   |
 |Student 2 ID:        | 21319901          |
-|Project Supervisor:  | Irina            |
+|Project Supervisor:  | Irina Tal         |
 
 > Ensure that the Supervisor formally agrees to supervise your project; this is only recognised once the
 > Supervisor assigns herself/himself via the project Dashboard.
@@ -145,10 +145,7 @@ The use of blockchain guarantees immutable transparency, allowing every transact
 |                                             | Focus on security best practices                        | Yes       | No        |
 |                                             | Test frontend components                                | No        | Yes       |
 |                                             | Debug QR code generation and scanning                  | No        | Yes       |
-| **Deployment and Finalization**    | Deploy application to cloud platform                    | Both      | Both      |
-|                                             | Conduct final testing                                   | Both      | Both      |
-| **Documentation and Presentation**  | Prepare documentation for backend APIs                 | Yes       | No        |
-|                                             | Prepare frontend documentation                          | No        | Yes       |
+
 
 #### Student 1
 

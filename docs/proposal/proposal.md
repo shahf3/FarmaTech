@@ -14,7 +14,7 @@
 |Student 1 ID:        | 21375106          |
 |Student 2 Name:      | Faizan Ali Shah   |
 |Student 2 ID:        | 21319901          |
-|Project Supervisor:  | xxxxxx            |
+|Project Supervisor:  | Irina            |
 
 > Ensure that the Supervisor formally agrees to supervise your project; this is only recognised once the
 > Supervisor assigns herself/himself via the project Dashboard.
@@ -167,6 +167,18 @@ The use of blockchain guarantees immutable transparency, allowing every transact
 #### Student 2
 
 > *Student 2 should complete this section.*
+- Collaborate on project planning and requirements gathering.
+- Research best practices for implementing blockchain in healthcare.
+- Write smart contracts (chaincode) for medicine entries and updates.
+- Implement interaction with the Fabric SDK.
+- Create dynamic components to display medicine information and alerts.
+- Handle asynchronous requests to the backend.
+- Integrate Google Geolocation API for tracking and validating scans.
+- Test location-based features for accuracy.
+- Test frontend components for responsiveness and user experience.
+- Debug issues related to QR code generation and scanning.
+- Prepare documentation for frontend development and user interface guidelines.
+
 
 ## Example
 

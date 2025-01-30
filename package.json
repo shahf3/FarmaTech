@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "fabric-network": "^2.2.20",
+    "web-vitals": "^4.2.4"
+  }
+}

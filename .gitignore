@@ -20,3 +20,11 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log* 
+
+# Ignore node_modules
+node_modules/
+
+# Ignore wallet directory
+wallet/
+
+backend/msp/

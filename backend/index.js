@@ -4,9 +4,10 @@ const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 
+const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+app.use(cors({ origin: 'http://localhost:3000' }))
 app.use(express.json());
 app.use(bodyParser.json());
 
@@ -84,8 +85,9 @@ app.get('/api/assets', async (req, res) => {
       console.log('Evaluating transaction...');
       const result = await contract.evaluateTransaction('GetAllAssets');
       const assets = JSON.parse(result.toString());
-      console.log('Assets:', assets);
-      res.status(200).json(assets);
+      console.log('Assets:', assets);  // Log assets to verify the correct data
+      console.log("Assets before sending:", JSON.stringify(assets, null, 2));
+      res.status(200).json(assets);  // Return assets to the frontend
     } catch (error) {
       console.error('Error in /api/assets:', error);
       res.status(500).json({ error: error.toString() });
@@ -95,9 +97,7 @@ app.get('/api/assets', async (req, res) => {
         gateway.disconnect();
       }
     }
-  });
-// Similar pattern for other API endpoints (post '/api/assets', post '/transfer-asset') with 
-// gateway initialization, error handling, and disconnection in finally block
+});
 
 app.use(express.static(path.join(__dirname, '../frontend/my-react-app/build')));
 

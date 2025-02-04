@@ -25,6 +25,3 @@ yarn-error.log*
 node_modules/
 
 # Ignore wallet directory
-wallet/
-
-backend/msp/

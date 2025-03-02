@@ -45,6 +45,9 @@
             background-color: #f8f9fa;
             border-radius: 5px;
             white-space: pre-wrap;
+            display: block;
+            visibility: visible;
+            min-height: 100px;
         }
         .success {
             color: green;
@@ -121,15 +124,33 @@
         // Helper function to display results
         function displayResult(data, isError = false) {
             const resultEl = document.getElementById('result');
+            console.log("Displaying result:", data, "isError:", isError);
+            if (!resultEl) {
+                console.error("Result element not found!");
+                return;
+            }
             if (isError) {
                 resultEl.className = 'error';
                 resultEl.textContent = 'Error: ' + data;
             } else {
                 resultEl.className = 'success';
-                resultEl.textContent = typeof data === 'object' ? 
-                    JSON.stringify(data, null, 2) : data;
-            }
-        }
+                const formattedData = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+                console.log("Setting content to:", formattedData);
+                resultEl.innerHTML = `<pre style="color: red; font-size: 16px; background-color: yellow; padding: 10px; border: 2px solid black; position: absolute; top: 0; left: 0; width: 100%; z-index: 9999;">${formattedData}</pre>`;
+                resultEl.style.display = 'block';
+                resultEl.style.position = 'fixed';
+                resultEl.style.top = '0';
+                resultEl.style.left = '0';
+                resultEl.style.width = '100%';
+                resultEl.style.zIndex = '10000';
+                resultEl.style.backgroundColor = 'lime'; // Bright backup background
+                console.log("Result div styles after update:", resultEl.style.cssText);
+                console.log("Result div innerHTML:", resultEl.innerHTML);
+    }
+}
+
+
+
 
         // Handle API calls
         async function callApi(endpoint, method = 'GET', body = null) {
@@ -179,13 +200,16 @@
         }
 
         async function getAllAssets() {
-            try {
-                const result = await callApi('/api/assets');
-                displayResult(result);
-            } catch (error) {
-                // Error already displayed
-            }
-        }
+    console.log("Retrieve All Assets button clicked"); // Debug log
+    try {
+        const result = await callApi('/api/assets');
+        console.log("Assets retrieved:", result); // Debug log
+        displayResult(result);
+    } catch (error) {
+        console.error("Error in getAllAssets:", error); // Log the full error
+        displayResult(error.message, true); // Display error in UI
+    }
+}
 
         async function getAssetById() {
             const assetId = document.getElementById('getAssetId').value.trim();

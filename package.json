@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "fabric-ca-client": "^2.2.20",
+    "fabric-network": "^2.2.20"
   }
 }

@@ -10,7 +10,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Enable CORS for all origins (for development; adjust for production)
-app.use(cors());
+app.use(cors({
+    origin: [
+      'http://localhost:3000', 
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://172.27.231.107:3000',
+      'http://172.27.231.107:3001'
+    ],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
 
 // Middleware to parse JSON
 app.use(express.json());

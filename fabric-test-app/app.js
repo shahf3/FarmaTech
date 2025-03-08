@@ -169,6 +169,158 @@ app.get('/api/assets', async (req, res) => {
     }
 });
 
+// Create a new asset endpoint
+app.post('/api/assets', async (req, res) => {
+    try {
+        const { id, color, size, owner, value } = req.body;
+
+        // Validate input
+        if (!id || !color || !size || !owner || !value) {
+            return res.status(400).json({ error: 'All fields (id, color, size, owner, value) are required' });
+        }
+
+        // Load the connection profile
+        const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities
+        const walletPath = path.join(__dirname, 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+        // Check if we have the appUser identity
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            return res.status(400).json({ error: 'User "appUser" does not exist in the wallet' });
+        }
+
+        // Create a new gateway for connecting to the peer node
+        const gateway = new Gateway();
+        await gateway.connect(ccp, {
+            wallet,
+            identity: 'appUser',
+            discovery: { enabled: true, asLocalhost: true }
+        });
+
+        // Get the network (channel) our contract is deployed to
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network
+        const contract = network.getContract('basic');
+
+        // Submit the transaction to create an asset
+        await contract.submitTransaction('CreateAsset', id, color, size.toString(), owner, value.toString());
+
+        // Disconnect from the gateway
+        await gateway.disconnect();
+
+        res.json({ success: true, message: `Asset ${id} created successfully` });
+
+    } catch (error) {
+        console.error(`Failed to create asset: ${error}`);
+        res.status(500).json({ error: `Failed to create asset: ${error.message}` });
+    }
+});
+
+// Update an existing asset endpoint
+app.put('/api/assets/:id', async (req, res) => {
+    try {
+        const { id } = req.params; // Get the asset ID from the URL
+        const { color, size, owner, value } = req.body; // Get updated fields from the request body
+
+        // Validate input
+        if (!color || !size || !owner || !value) {
+            return res.status(400).json({ error: 'All fields (color, size, owner, value) are required to update an asset' });
+        }
+
+        // Load the connection profile
+        const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities
+        const walletPath = path.join(__dirname, 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+        // Check if we have the appUser identity
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            return res.status(400).json({ error: 'User "appUser" does not exist in the wallet' });
+        }
+
+        // Create a new gateway for connecting to the peer node
+        const gateway = new Gateway();
+        await gateway.connect(ccp, {
+            wallet,
+            identity: 'appUser',
+            discovery: { enabled: true, asLocalhost: true }
+        });
+
+        // Get the network (channel) our contract is deployed to
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network
+        const contract = network.getContract('basic');
+
+        // Submit the transaction to update the asset
+        await contract.submitTransaction('UpdateAsset', id, color, size.toString(), owner, value.toString());
+
+        // Disconnect from the gateway
+        await gateway.disconnect();
+
+        res.json({ success: true, message: `Asset ${id} updated successfully` });
+
+    } catch (error) {
+        console.error(`Failed to update asset: ${error}`);
+        res.status(500).json({ error: `Failed to update asset: ${error.message}` });
+    }
+});
+
+// Delete an existing asset endpoint
+app.delete('/api/assets/:id', async (req, res) => {
+    try {
+        const { id } = req.params; // Get the asset ID from the URL
+
+        // Load the connection profile
+        const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities
+        const walletPath = path.join(__dirname, 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+        // Check if we have the appUser identity
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            return res.status(400).json({ error: 'User "appUser" does not exist in the wallet' });
+        }
+
+        // Create a new gateway for connecting to the peer node
+        const gateway = new Gateway();
+        await gateway.connect(ccp, {
+            wallet,
+            identity: 'appUser',
+            discovery: { enabled: true, asLocalhost: true }
+        });
+
+        // Get the network (channel) our contract is deployed to
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network
+        const contract = network.getContract('basic');
+
+        // Submit the transaction to delete the asset
+        await contract.submitTransaction('DeleteAsset', id);
+
+        // Disconnect from the gateway
+        await gateway.disconnect();
+
+        res.json({ success: true, message: `Asset ${id} deleted successfully` });
+
+    } catch (error) {
+        console.error(`Failed to delete asset: ${error}`);
+        res.status(500).json({ error: `Failed to delete asset: ${error.message}` });
+    }
+});
+
 // Serve static files (React frontend build and public folder) after API routes
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, '..', 'react-frontend', 'build')));

@@ -4,7 +4,10 @@ const express = require('express');
 const { Gateway, Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
-const cors = require('cors'); // Import the cors package
+const cors = require('cors');
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,17 +15,184 @@ const PORT = process.env.PORT || 3000;
 // Enable CORS for all origins (for development; adjust for production)
 app.use(cors({
     origin: [
-      'http://localhost:3000', 
+      'http://localhost:3000',
       'http://localhost:3001',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001',
       'http://172.27.231.107:3000',
       'http://172.27.231.107:3001'
     ],
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'OPTIONS', 'DELETE', 'PUT'],
     allowedHeaders: ['Content-Type', 'Authorization']
-  }));
+}));
 
+// Middleware to parse JSON
+app.use(express.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/farmatech', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error('MongoDB connection error:', err));
+
+// Define User model schema
+const UserSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    role: {
+        type: String,
+        enum: ['manufacturer', 'distributor', 'regulator', 'enduser'],
+        required: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    organization: {
+        type: String,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Hash password before saving
+UserSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) return next();
+    
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
+const User = mongoose.model('User', UserSchema);
+
+// Authentication Routes
+// Register a new user
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, password, role, email, organization } = req.body;
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        // Create new user
+        const user = new User({
+            username,
+            password,
+            role,
+            email,
+            organization
+        });
+
+        // Save user to MongoDB
+        await user.save();
+
+        // Create JWT token
+        const token = jwt.sign(
+            { id: user._id, username: user.username, role: user.role },
+            process.env.JWT_SECRET || 'farmatechsecretkey2025',
+            { expiresIn: '24h' }
+        );
+
+        res.status(201).json({
+            message: 'User registered successfully',
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                role: user.role,
+                email: user.email,
+                organization: user.organization
+            }
+        });
+    } catch (error) {
+        console.error(`Registration error: ${error}`);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Login user
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        // Check if user exists
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
+        // Validate password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
+        // Create JWT token
+        const token = jwt.sign(
+            { id: user._id, username: user.username, role: user.role },
+            process.env.JWT_SECRET || 'farmatechsecretkey2025',
+            { expiresIn: '24h' }
+        );
+
+        res.json({
+            message: 'Login successful',
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                role: user.role,
+                email: user.email,
+                organization: user.organization
+            }
+        });
+    } catch (error) {
+        console.error(`Login error: ${error}`);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Get current user
+app.get('/api/auth/user', async (req, res) => {
+    try {
+        const token = req.header('Authorization')?.replace('Bearer ', '');
+        
+        if (!token) {
+            return res.status(401).json({ message: 'No token, authorization denied' });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'farmatechsecretkey2025');
+        
+        const user = await User.findById(decoded.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json(user);
+    } catch (error) {
+        res.status(401).json({ message: 'Token is not valid' });
+    }
+});
 // Middleware to parse JSON
 app.use(express.json());
 

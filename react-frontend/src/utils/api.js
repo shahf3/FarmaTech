@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://172.27.231.107:3000';
+//const API_BASE_URL = 'http://172.27.231.107:3000';
+const API_BASE_URL = 'http://localhost:3000';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -44,6 +45,9 @@ apiClient.interceptors.response.use(
   }
 );
 
-export const getAssets = () => apiClient.get('/api/assets');
-export const initLedger = () => apiClient.post('/api/init');
-export const checkHealth = () => apiClient.get('/health');
+export const getAssets = () => axios.get(`${API_BASE_URL}/api/assets`);
+export const initLedger = () => axios.post(`${API_BASE_URL}/api/init`);
+export const checkHealth = () => axios.get(`${API_BASE_URL}/health`);
+export const createAsset = (assetData) => axios.post(`${API_BASE_URL}/api/assets`, assetData);
+export const updateAsset = (id, assetData) => axios.put(`${API_BASE_URL}/api/assets/${id}`, assetData);
+export const deleteAsset = (id) => axios.delete(`${API_BASE_URL}/api/assets/${id}`);

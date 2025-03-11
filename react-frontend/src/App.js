@@ -1,11 +1,11 @@
-// react-frontend/src/App.js
+// App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
-import './styles/Dashboard.css'; // Import dashboard styling
-
-// Auth components
+import './styles/Dashboard.css';
+import './styles/Home.css';
+import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/auth/Register';
 import Unauthorized from './components/common/Unauthorized';
@@ -17,7 +17,7 @@ import DistributorDashboard from './components/dashboard/DistributorDashboard';
 import RegulatorDashboard from './components/dashboard/RegulatorDashboard';
 import EndUserDashboard from './components/dashboard/EndUserDashboard';
 
-// Import existing components
+
 import AssetsList from './components/AssetsList';
 import AssetForm from './components/AssetForm';
 import LedgerInit from './components/LedgerInit';
@@ -28,7 +28,8 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public routes */}
+          {/* Home and public routes */}
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
@@ -79,9 +80,6 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/health" element={<HealthCheck />} />
-          
-          {/* Default route */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

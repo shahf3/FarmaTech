@@ -3,20 +3,21 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import './styles/Dashboard.css'; // Import dashboard styling
 
 // Auth components
 import Login from './components/Login';
 import Register from './components/auth/Register';
-//import Unauthorized from './components/common/Unauthorized';
+import Unauthorized from './components/common/Unauthorized';
 
 // Dashboard components
-/*import Dashboard from './components/dashboard/Dashboard';
+import Dashboard from './components/dashboard/Dashboard';
 import ManufacturerDashboard from './components/dashboard/ManufacturerDashboard';
 import DistributorDashboard from './components/dashboard/DistributorDashboard';
 import RegulatorDashboard from './components/dashboard/RegulatorDashboard';
 import EndUserDashboard from './components/dashboard/EndUserDashboard';
-*/
-// Import your existing components
+
+// Import existing components
 import AssetsList from './components/AssetsList';
 import AssetForm from './components/AssetForm';
 import LedgerInit from './components/LedgerInit';
@@ -30,7 +31,37 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-         
+          <Route path="/unauthorized" element={<Unauthorized />} />
+          
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          
+          {/* Role-specific dashboards */}
+          <Route path="/manufacturer" element={
+            <ProtectedRoute allowedRoles={['manufacturer']}>
+              <ManufacturerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/distributor" element={
+            <ProtectedRoute allowedRoles={['distributor']}>
+              <DistributorDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/regulator" element={
+            <ProtectedRoute allowedRoles={['regulator']}>
+              <RegulatorDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/enduser" element={
+            <ProtectedRoute allowedRoles={['enduser']}>
+              <EndUserDashboard />
+            </ProtectedRoute>
+          } />
+          
           {/* Existing routes with role protection */}
           <Route path="/assets" element={
             <ProtectedRoute>

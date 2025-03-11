@@ -51,3 +51,7 @@ export const checkHealth = () => axios.get(`${API_BASE_URL}/health`);
 export const createAsset = (assetData) => axios.post(`${API_BASE_URL}/api/assets`, assetData);
 export const updateAsset = (id, assetData) => axios.put(`${API_BASE_URL}/api/assets/${id}`, assetData);
 export const deleteAsset = (id) => axios.delete(`${API_BASE_URL}/api/assets/${id}`);
+
+export const registerUser = (userData) => apiClient.post('/api/auth/register', userData);
+export const loginUser = (credentials) => apiClient.post('/api/auth/login', credentials);
+export const getUserInfo = () => apiClient.get('/api/auth/user');

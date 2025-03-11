@@ -1,0 +1,164 @@
+/* src/styles/Dashboard.css */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f5f5f5;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border-radius: 5px;
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .dashboard-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .dashboard-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .assets-list {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .assets-list table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .assets-list th, .assets-list td {
+    padding: 0.75rem;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+  
+  .assets-list th {
+    background-color: #f2f2f2;
+  }
+  
+  .assets-list tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .assets-list tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* Form styling */
+  .update-form, .asset-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .update-form form, .asset-form-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .update-form form div, .asset-form-container form div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .update-form input, .asset-form-container input, .update-form select, .asset-form-container select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  button {
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  button:hover {
+    background-color: #0069d9;
+  }
+  
+  button[type="button"] {
+    background-color: #6c757d;
+  }
+  
+  button[type="button"]:hover {
+    background-color: #5a6268;
+  }
+  
+  /* End user specific */
+  .medicine-details {
+    margin-top: 2rem;
+  }
+  
+  .detail-card, .medicine-card {
+    background-color: white;
+    border-radius: 5px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .verification-badge {
+    margin-top: 1rem;
+    text-align: center;
+  }
+  
+  .verified {
+    background-color: #28a745;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+  }
+  
+  .medicine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  
+  .medicine-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  .medicine-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .search-container {
+    margin-bottom: 2rem;
+  }
+  
+  .search-container input {
+    padding: 0.5rem;
+    width: 300px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+  }

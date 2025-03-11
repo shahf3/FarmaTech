@@ -771,3 +771,225 @@
       width: 100%;
     }
   }
+
+  .register-container {
+  padding: 2rem 5%;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 1s ease-out;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.register-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.register-header p {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+.register-card {
+  background-color: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  max-width: 800px;
+  margin: 0 auto 3rem;
+}
+
+.register-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s;
+}
+
+.progress-step.active .step-number {
+  background: var(--primary-gradient);
+  color: white;
+}
+
+.progress-line {
+  height: 3px;
+  width: 100px;
+  background-color: #e0e0e0;
+  margin: 0 1rem;
+  position: relative;
+  top: -10px;
+}
+
+.progress-step span {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.progress-step.active span {
+  color: var(--primary-blue);
+  font-weight: 500;
+}
+
+.register-step h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary-dark);
+  text-align: center;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.next-btn, .back-btn, .register-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.next-btn, .register-btn {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.next-btn:hover, .register-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.back-btn {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid #e0e0e0;
+}
+
+.back-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.register-btn:disabled {
+  background: linear-gradient(135deg, #90caf9 0%, #80cbc4 100%);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.next-btn {
+  margin-left: auto;
+}
+
+/* Role Selection */
+.role-selection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.role-card {
+  background-color: var(--bg-light);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.role-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-sm);
+}
+
+.role-card.selected {
+  border-color: var(--primary-blue);
+  background-color: rgba(30, 136, 229, 0.05);
+}
+
+.role-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.role-icon svg {
+  width: 25px;
+  height: 25px;
+  color: white;
+}
+
+.role-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-dark);
+}
+
+.role-card p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive Design for Registration */
+@media (max-width: 768px) {
+  .register-header h1 {
+    font-size: 2rem;
+  }
+  
+  .register-card {
+    padding: 1.5rem;
+  }
+  
+  .role-selection {
+    grid-template-columns: 1fr;
+  }
+  
+  .progress-line {
+    width: 50px;
+  }
+}

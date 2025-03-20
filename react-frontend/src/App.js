@@ -7,6 +7,7 @@ import './styles/Dashboard.css';
 import './styles/Home.css';
 import Home from './components/Home';
 import Login from './components/Login';
+import AboutUs from './components/AboutUs';
 import Register from './components/auth/Register';
 import Unauthorized from './components/common/Unauthorized';
 
@@ -28,20 +29,18 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Home and public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/about" element={<AboutUs />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
-          
-          {/* Protected routes */}
+   
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           } />
           
-          {/* Role-specific dashboards */}
           <Route path="/manufacturer" element={
             <ProtectedRoute allowedRoles={['manufacturer']}>
               <ManufacturerDashboard />
@@ -63,7 +62,6 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Existing routes with role protection */}
           <Route path="/assets" element={
             <ProtectedRoute>
               <AssetsList />

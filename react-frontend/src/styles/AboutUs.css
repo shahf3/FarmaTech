@@ -1,0 +1,431 @@
+/* src/styles/AboutUs.css */
+/* Using the same root variables as Home.css */
+
+.about-container {
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  /* About Hero Section */
+  .about-hero {
+    background: var(--primary-gradient);
+    padding: 8rem 5% 6rem;
+    text-align: center;
+    color: var(--text-light);
+    position: relative;
+    margin-bottom: 3rem;
+  }
+  
+  .about-hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    animation: fadeInUp 1s ease-out;
+  }
+  
+  .about-hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+  }
+  
+  .about-hero-divider {
+    width: 80px;
+    height: 4px;
+    background-color: white;
+    margin: 0 auto 2rem;
+  }
+  
+  .about-hero p {
+    font-size: 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+    opacity: 0.9;
+  }
+  
+  /* About Sections Common Styles */
+  .about-section {
+    padding: 5rem 5%;
+    margin-bottom: 2rem;
+  }
+  
+  .about-section:nth-child(odd) {
+    background-color: var(--bg-secondary);
+  }
+  
+  .about-section:nth-child(even) {
+    background-color: white;
+  }
+  
+  .about-section-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .about-section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .about-section h2 {
+    font-size: 2.5rem;
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+  }
+  
+  .section-divider {
+    width: 60px;
+    height: 3px;
+    background: var(--primary-gradient);
+    margin: 0 auto;
+  }
+  
+  .about-section-content {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  
+  .about-section-content > p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 3rem;
+    line-height: 1.7;
+  }
+  
+  /* Team Section Styles */
+  .founders-container {
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    flex-wrap: wrap;
+  }
+  
+  .founder-card {
+    text-align: center;
+    max-width: 280px;
+  }
+  
+  .founder-photo {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    background-color: var(--bg-secondary);
+    background-position: center;
+    background-size: cover;
+    border: 4px solid white;
+    box-shadow: var(--shadow-md);
+  }
+  
+  .founder-1 {
+    background-image: url('https://via.placeholder.com/200x200.png?text=Faizan');
+  }
+  
+  .founder-2 {
+    background-image: url('https://via.placeholder.com/200x200.png?text=Abhjit');
+  }
+  
+  .founder-card h3 {
+    font-size: 1.5rem;
+    color: var(--primary-dark);
+    margin-bottom: 0.3rem;
+  }
+  
+  .founder-card p {
+    color: var(--text-secondary);
+  }
+  
+  .founder-id {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    color: var(--blockchain-gray);
+  }
+  
+  /* Problem Section Styles */
+  .stats-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+  
+  .stat-box {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    flex: 1;
+    min-width: 200px;
+    max-width: 280px;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .stat-box:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .stat-box h3 {
+    font-size: 2.5rem;
+    color: var(--primary-blue);
+    margin-bottom: 1rem;
+  }
+  
+  .stat-box p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+  }
+  
+  /* Solution Section Styles */
+  .solutions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+  }
+  
+  .solution-card {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .solution-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .solution-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+  }
+  
+  .solution-icon svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+  }
+  
+  .manufacturer-icon {
+    background-color: var(--primary-blue);
+  }
+  
+  .distributor-icon {
+    background-color: var(--primary-green);
+  }
+  
+  .regulator-icon {
+    background-color: var(--blockchain-gray);
+  }
+  
+  .enduser-icon {
+    background-color: var(--verification-green);
+  }
+  
+  .solution-card h3 {
+    font-size: 1.25rem;
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+  }
+  
+  .solution-card ul {
+    padding-left: 1.5rem;
+    color: var(--text-secondary);
+  }
+  
+  .solution-card ul li {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Technology Section Styles */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2rem;
+  }
+  
+  .tech-card {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .tech-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--primary-gradient);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+  
+  .tech-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .tech-card:hover::after {
+    transform: scaleX(1);
+  }
+  
+  .tech-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(30, 136, 229, 0.1);
+    border-radius: 50%;
+  }
+  
+  .tech-icon svg {
+    width: 30px;
+    height: 30px;
+    color: var(--primary-blue);
+  }
+  
+  .tech-card h3 {
+    font-size: 1.2rem;
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+  }
+  
+  .tech-card p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+  }
+  
+  /* Vision Section Styles */
+  .vision-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  
+  .vision-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .vision-item:hover {
+    transform: translateX(10px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .vision-icon {
+    min-width: 40px;
+    height: 40px;
+    background-color: rgba(0, 121, 107, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .vision-icon svg {
+    width: 20px;
+    height: 20px;
+    color: var(--primary-green);
+  }
+  
+  .vision-item p {
+    font-size: 1.1rem;
+    color: var(--primary-dark);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1100px) {
+    .about-hero h1 {
+      font-size: 3rem;
+    }
+  
+    .about-section h2 {
+      font-size: 2.2rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .about-hero {
+      padding: 6rem 5% 4rem;
+    }
+  
+    .about-hero h1 {
+      font-size: 2.5rem;
+    }
+  
+    .about-hero p {
+      font-size: 1.2rem;
+    }
+  
+    .about-section {
+      padding: 3rem 5%;
+    }
+  
+    .about-section h2 {
+      font-size: 2rem;
+    }
+  
+    .founders-container {
+      gap: 2rem;
+    }
+  
+    .founder-photo {
+      width: 150px;
+      height: 150px;
+    }
+  
+    .solutions-grid, .tech-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .about-hero h1 {
+      font-size: 2rem;
+    }
+  
+    .about-hero p {
+      font-size: 1rem;
+    }
+  
+    .stats-container {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .stat-box {
+      width: 100%;
+    }
+  
+    .vision-item {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+  }

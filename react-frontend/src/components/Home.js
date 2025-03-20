@@ -2,6 +2,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import Header from "./Header";
 import "../styles/Home.css";
 
 const Home = () => {
@@ -125,46 +126,17 @@ const Home = () => {
 
   return (
     <div className="home-container">
+      {/* Animated Background */}
       <div className="animated-bg">
         <div className="shape shape-1"></div>
         <div className="shape shape-2"></div>
         <div className="shape shape-3"></div>
       </div>
 
-      <header className="home-header">
-        <div className="logo">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="12" y1="8" x2="12" y2="16"></line>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
-          </svg>
-          <div className="logo">
-            <img
-              src="../../public/Farmatechlogo.jpg"
-              alt="FarmaTech Logo"
-              className="header-logo-image"
-            />
-            <span>FarmaTech</span>
-          </div>
-        </div>
-        <nav className="nav-links">
-          <a href="#features">Features</a>
-          <a href="/about">About Us</a>
-          <a href="#contact">Contact</a>
-          <Link to="/register" className="register-btn">
-            Register
-          </Link>
-        </nav>
-      </header>
+      {/* Using the Header component */}
+      <Header />
 
+      {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
           <h1>Secure Medicine Authentication with Blockchain</h1>
@@ -222,6 +194,7 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Features Section */}
       <section id="features" className="features-section">
         <h2>Blockchain-Powered Medicine Security</h2>
         <div className="features-container">
@@ -252,6 +225,7 @@ const Home = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
       <section className="how-it-works">
         <h2>How FarmaTech Works</h2>
         <div className="steps-container">
@@ -290,6 +264,7 @@ const Home = () => {
         </div>
       </section>
 
+      {/* User Types Section */}
       <section className="user-types">
         <h2>Who Uses FarmaTech</h2>
         <div className="user-types-grid">
@@ -382,6 +357,7 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Call To Action */}
       <section className="cta-section">
         <div className="cta-content">
           <h2>Join the FarmaTech Network</h2>
@@ -394,59 +370,6 @@ const Home = () => {
           </Link>
         </div>
       </section>
-
-      <footer className="home-footer">
-        <div className="footer-content">
-          <div className="footer-logo">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="12" y1="8" x2="12" y2="16"></line>
-              <line x1="8" y1="12" x2="16" y2="12"></line>
-            </svg>
-            <span>FarmaTech</span>
-          </div>
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Platform</h4>
-              <a href="#">How it Works</a>
-              <a href="#">Features</a>
-              <a href="#">Security</a>
-              <a href="#">Pricing</a>
-            </div>
-            <div className="footer-column">
-              <h4>Company</h4>
-              <a href="/about">About Us</a>
-              <a href="#">Careers</a>
-              <a href="#">Contact</a>
-              <a href="#">Blog</a>
-            </div>
-            <div className="footer-column">
-              <h4>Resources</h4>
-              <a href="#">Documentation</a>
-              <a href="#">API</a>
-              <a href="#">Support</a>
-              <a href="#">Community</a>
-            </div>
-            <div className="footer-column">
-              <h4>Legal</h4>
-              <a href="#">Privacy Policy</a>
-              <a href="#">Terms of Service</a>
-              <a href="#">Compliance</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; 2025 FarmaTech. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 };

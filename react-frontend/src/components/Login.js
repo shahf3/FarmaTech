@@ -1,7 +1,7 @@
 // src/components/Login.js
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Auth.css';
 
 const Login = () => {
@@ -9,7 +9,7 @@ const Login = () => {
     username: '',
     password: ''
   });
-  const { login, loading, error } = useContext(AuthContext);
+  const { login, loading, error } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,12 +21,36 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    console.log("Login attempt initiated for:", formData.username);
     try {
-      await login(formData.username, formData.password);
-      navigate('/dashboard');
+      const user = await login(formData.username, formData.password);
+      console.log("Login successful, user data:", user);
+      // Redirect based on user role
+      if (user  && user.role) {
+        console.log(`Redirecting to ${user.role} dashboard`);
+
+        switch(user.role) {
+          case 'manufacturer':
+            navigate('/manufacturer');
+            break;
+          case 'distributor':
+            navigate('/distributor');
+            break;
+          case 'regulator':
+            navigate('/regulator');
+            break;
+          case 'enduser':
+            navigate('/enduser');
+            break;
+          default:
+            navigate('/dashboard');
+        }
+      } else {
+        console.error("User data missing role property:", user);
+      }
     } catch (err) {
       console.error('Login error:', err);
+      // Error is already set in the context so no need to handle it here
     }
   };
 

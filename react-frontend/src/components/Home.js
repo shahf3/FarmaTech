@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import Header from "./Header";
 import "../styles/Home.css";
+import Footer from "./Footer";
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -370,6 +371,7 @@ const Home = () => {
           </Link>
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

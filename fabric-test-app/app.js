@@ -8,9 +8,18 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const User = require('./models/User');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const authRoutes = require('./routes/auth');
+
+// Add request logging to debug route issues
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
 
 // Enable CORS for all origins (for development; adjust for production)
 app.use(cors({
@@ -38,7 +47,7 @@ mongoose.connect('mongodb://localhost:27017/farmatech', {
 .catch(err => console.error('MongoDB connection error:', err));
 
 // Define User model schema
-const UserSchema = new mongoose.Schema({
+/*const UserSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
@@ -82,10 +91,17 @@ UserSchema.pre('save', async function(next) {
 });
 
 const User = mongoose.model('User', UserSchema);
+*/
 
-// Authentication Routes
+// Simple health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'UP' });
+});
+
+// ================== AUTH ROUTES ==================
+
 // Register a new user
-app.post('/api/auth/register', async (req, res) => {
+/*app.post('/api/auth/register', async (req, res) => {
     try {
         const { username, password, role, email, organization } = req.body;
 
@@ -135,6 +151,7 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        console.log("Login attempt for:", username);
 
         // Check if user exists
         const user = await User.findOne({ username });
@@ -171,6 +188,9 @@ app.post('/api/auth/login', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+*/
+
+app.use('/api/auth', authRoutes);
 
 // Get current user
 app.get('/api/auth/user', async (req, res) => {
@@ -193,17 +213,11 @@ app.get('/api/auth/user', async (req, res) => {
         res.status(401).json({ message: 'Token is not valid' });
     }
 });
-// Middleware to parse JSON
-app.use(express.json());
 
-// Define API endpoints before serving static files or wildcard routes
-// Simple health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ status: 'UP' });
-});
+// ================ MEDICINE CONTRACT API ENDPOINTS ================
 
-// Initialize the ledger with some assets
-app.post('/api/init', async (req, res) => {
+// Initialize the ledger with sample medicines
+app.post('/api/medicines/init', async (req, res) => {
     try {
         // Load the connection profile
         const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
@@ -232,7 +246,7 @@ app.post('/api/init', async (req, res) => {
         const network = await gateway.getNetwork('mychannel');
 
         // Get the contract from the network
-        const contract = network.getContract('basic');
+        const contract = network.getContract('medicine-contract');
 
         // Submit the transaction to initialize the ledger
         await contract.submitTransaction('InitLedger');
@@ -240,19 +254,18 @@ app.post('/api/init', async (req, res) => {
         // Disconnect from the gateway
         await gateway.disconnect();
 
-        res.json({ success: true, message: 'Ledger initialized successfully' });
+        res.json({ success: true, message: 'Medicine ledger initialized successfully' });
 
     } catch (error) {
-        console.error(`Failed to initialize ledger: ${error}`);
+        console.error(`Failed to initialize medicine ledger: ${error}`);
         res.status(500).json({ error: error.message });
     }
 });
 
-// Get all assets endpoint
-// Get all assets endpoint
-app.get('/api/assets', async (req, res) => {
+// Get all medicines endpoint
+app.get('/api/medicines', async (req, res) => {
     try {
-        console.log('Attempting to get all assets...');
+        console.log('Attempting to get all medicines...');
         // Load the connection profile
         const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
@@ -279,31 +292,27 @@ app.get('/api/assets', async (req, res) => {
 
         // Get the network (channel) our contract is deployed to
         const network = await gateway.getNetwork('mychannel');
-        // Remove or replace network.getName() since it’s causing the error
-        console.log('Connected to network for channel:', 'mychannel'); // Use the channel name directly
+        console.log('Connected to network for channel:', 'mychannel');
 
         // Get the contract from the network
-        const contract = network.getContract('basic');
-        // Check if contract.getName() exists before calling it (optional, for consistency)
-        const contractName = contract.getName ? contract.getName() : 'basic';
-        console.log('Retrieved contract:', contractName);
+        const contract = network.getContract('medicine-contract');
+        console.log('Retrieved contract: medicine-contract');
 
-        // Submit the transaction to get all assets
-        console.log('Calling GetAllAssets transaction...');
-        const result = await contract.evaluateTransaction('GetAllAssets');
+        // Submit the transaction to get all medicines
+        console.log('Calling GetAllMedicines transaction...');
+        const result = await contract.evaluateTransaction('GetAllMedicines');
         console.log('Transaction result (raw):', result ? (result.toString() || 'No result') : 'No result');
 
         // Disconnect from the gateway
         await gateway.disconnect();
         console.log('Disconnected from gateway');
 
-        // Parse the result and ensure we return a JSON array, handling buffers or invalid data
-        let assets = [];
+        // Parse the result and ensure we return a JSON array
+        let medicines = [];
         if (result) {
             try {
                 let parsedResult;
                 if (Buffer.isBuffer(result)) {
-                    // If result is a Buffer (common in Fabric), convert to string and parse
                     const resultStr = result.toString('utf8');
                     parsedResult = resultStr ? JSON.parse(resultStr) : {};
                 } else if (typeof result === 'string' && result.trim()) {
@@ -315,49 +324,279 @@ app.get('/api/assets', async (req, res) => {
                 }
 
                 console.log('Parsed result:', parsedResult);
-                // Handle different possible response formats from the contract
                 if (Array.isArray(parsedResult)) {
-                    assets = parsedResult; // If it’s already an array, use it
+                    medicines = parsedResult;
                 } else if (parsedResult && typeof parsedResult === 'object') {
-                    // Check for common object structures (e.g., { assets: [] }, { result: [] }, single object)
-                    if (parsedResult.assets && Array.isArray(parsedResult.assets)) {
-                        assets = parsedResult.assets; // Use the 'assets' array if it exists
-                    } else if (parsedResult.result && Array.isArray(parsedResult.result)) {
-                        assets = parsedResult.result; // Handle if the contract returns { result: [] }
-                    } else if (Object.keys(parsedResult).length > 0) {
-                        console.warn('Unexpected object format, converting to array:', parsedResult);
-                        assets = [parsedResult]; // Convert single object to array if applicable
-                    } else {
-                        console.warn('Empty or unexpected object format, defaulting to empty array');
+                    if (Object.keys(parsedResult).length > 0) {
+                        medicines = [parsedResult];
                     }
-                } else {
-                    console.warn('Non-object response, defaulting to empty array:', parsedResult);
                 }
             } catch (parseError) {
-                console.error('Failed to parse assets:', parseError);
-                assets = []; // Default to empty array on parse error
+                console.error('Failed to parse medicines:', parseError);
+                medicines = [];
             }
         } else {
-            console.log('No assets found on the ledger, returning empty array');
+            console.log('No medicines found on the ledger, returning empty array');
         }
 
-        console.log('Parsed assets to send:', assets);
-        res.json(assets); // Always return a JSON array (or empty array)
+        console.log('Parsed medicines to send:', medicines);
+        res.json(medicines);
 
     } catch (error) {
-        console.error(`Failed to get all assets: ${error.message}`, error.stack);
-        res.status(500).json({ error: 'Internal server error while retrieving assets', details: error.message });
+        console.error(`Failed to get all medicines: ${error.message}`, error.stack);
+        res.status(500).json({ error: 'Internal server error while retrieving medicines', details: error.message });
     }
 });
 
-// Create a new asset endpoint
-app.post('/api/assets', async (req, res) => {
+// Get medicines by manufacturer
+app.get('/api/medicines/manufacturer/:manufacturer', async (req, res) => {
     try {
-        const { id, color, size, owner, value } = req.body;
+        const { manufacturer } = req.params;
+        
+        // Load the connection profile
+        const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities
+        const walletPath = path.join(__dirname, 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+        // Check if we have the appUser identity
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            return res.status(400).json({ error: 'User "appUser" does not exist in the wallet' });
+        }
+
+        // Create a new gateway for connecting to the peer node
+        const gateway = new Gateway();
+        await gateway.connect(ccp, {
+            wallet,
+            identity: 'appUser',
+            discovery: { enabled: true, asLocalhost: true }
+        });
+
+        // Get the network (channel) our contract is deployed to
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network
+        const contract = network.getContract('medicine-contract');
+
+        // Submit the transaction to get medicines by manufacturer
+        const result = await contract.evaluateTransaction('GetMedicinesByManufacturer', manufacturer);
+
+        // Disconnect from the gateway
+        await gateway.disconnect();
+
+        const medicines = JSON.parse(result.toString());
+        res.json(medicines);
+
+    } catch (error) {
+        console.error(`Failed to get medicines by manufacturer: ${error}`);
+        res.status(500).json({ error: `Failed to get medicines by manufacturer: ${error.message}` });
+    }
+});
+
+// Get medicines by owner (for distributors)
+app.get('/api/medicines/owner/:owner', async (req, res) => {
+    try {
+        const { owner } = req.params;
+        
+        // Load the connection profile
+        const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities
+        const walletPath = path.join(__dirname, 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+        // Check if we have the appUser identity
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            return res.status(400).json({ error: 'User "appUser" does not exist in the wallet' });
+        }
+
+        // Create a new gateway for connecting to the peer node
+        const gateway = new Gateway();
+        await gateway.connect(ccp, {
+            wallet,
+            identity: 'appUser',
+            discovery: { enabled: true, asLocalhost: true }
+        });
+
+        // Get the network (channel) our contract is deployed to
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network
+        const contract = network.getContract('medicine-contract');
+
+        // Submit the transaction to get medicines by owner
+        const result = await contract.evaluateTransaction('GetMedicinesByOwner', owner);
+
+        // Disconnect from the gateway
+        await gateway.disconnect();
+
+        const medicines = JSON.parse(result.toString());
+        res.json(medicines);
+
+    } catch (error) {
+        console.error(`Failed to get medicines by owner: ${error}`);
+        res.status(500).json({ error: `Failed to get medicines by owner: ${error.message}` });
+    }
+});
+
+// Get flagged medicines (for regulators)
+app.get('/api/medicines/flagged', async (req, res) => {
+    try {
+        // Load the connection profile
+        const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities
+        const walletPath = path.join(__dirname, 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+        // Check if we have the appUser identity
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            return res.status(400).json({ error: 'User "appUser" does not exist in the wallet' });
+        }
+
+        // Create a new gateway for connecting to the peer node
+        const gateway = new Gateway();
+        await gateway.connect(ccp, {
+            wallet,
+            identity: 'appUser',
+            discovery: { enabled: true, asLocalhost: true }
+        });
+
+        // Get the network (channel) our contract is deployed to
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network
+        const contract = network.getContract('medicine-contract');
+
+        // Submit the transaction to get flagged medicines
+        const result = await contract.evaluateTransaction('GetFlaggedMedicines');
+
+        // Disconnect from the gateway
+        await gateway.disconnect();
+
+        const medicines = JSON.parse(result.toString());
+        res.json(medicines);
+
+    } catch (error) {
+        console.error(`Failed to get flagged medicines: ${error}`);
+        res.status(500).json({ error: `Failed to get flagged medicines: ${error.message}` });
+    }
+});
+
+// Verify medicine by QR code
+app.get('/api/medicines/verify/:qrCode', async (req, res) => {
+    try {
+        const { qrCode } = req.params;
+        
+        // Load the connection profile
+        const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities
+        const walletPath = path.join(__dirname, 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+        // Check if we have the appUser identity
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            return res.status(400).json({ error: 'User "appUser" does not exist in the wallet' });
+        }
+
+        // Create a new gateway for connecting to the peer node
+        const gateway = new Gateway();
+        await gateway.connect(ccp, {
+            wallet,
+            identity: 'appUser',
+            discovery: { enabled: true, asLocalhost: true }
+        });
+
+        // Get the network (channel) our contract is deployed to
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network
+        const contract = network.getContract('medicine-contract');
+
+        // Submit the transaction to verify the medicine
+        const result = await contract.evaluateTransaction('VerifyMedicine', qrCode);
+
+        // Disconnect from the gateway
+        await gateway.disconnect();
+
+        const medicine = JSON.parse(result.toString());
+        res.json(medicine);
+
+    } catch (error) {
+        console.error(`Failed to verify medicine: ${error}`);
+        res.status(500).json({ error: `Failed to verify medicine: ${error.message}` });
+    }
+});
+
+// Get medicine by ID endpoint
+app.get('/api/medicines/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log(`Attempting to get medicine with ID: ${id}`);
+
+        // Load the connection profile
+        const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities
+        const walletPath = path.join(__dirname, 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+        // Check if we have the appUser identity
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            return res.status(400).json({ error: 'User "appUser" does not exist in the wallet' });
+        }
+
+        // Create a new gateway for connecting to the peer node
+        const gateway = new Gateway();
+        await gateway.connect(ccp, {
+            wallet,
+            identity: 'appUser',
+            discovery: { enabled: true, asLocalhost: true }
+        });
+
+        // Get the network (channel) our contract is deployed to
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network
+        const contract = network.getContract('medicine-contract');
+
+        // Submit the transaction to get the medicine
+        const result = await contract.evaluateTransaction('GetMedicine', id);
+        
+        // Disconnect from the gateway
+        await gateway.disconnect();
+
+        const medicine = JSON.parse(result.toString());
+        res.json(medicine);
+
+    } catch (error) {
+        console.error(`Failed to get medicine: ${error}`);
+        res.status(500).json({ error: `Failed to get medicine: ${error.message}` });
+    }
+});
+
+// Create/register a new medicine
+app.post('/api/medicines', async (req, res) => {
+    try {
+        const { id, name, manufacturer, batchNumber, manufacturingDate, expirationDate } = req.body;
 
         // Validate input
-        if (!id || !color || !size || !owner || !value) {
-            return res.status(400).json({ error: 'All fields (id, color, size, owner, value) are required' });
+        if (!id || !name || !manufacturer || !batchNumber || !manufacturingDate || !expirationDate) {
+            return res.status(400).json({ 
+                error: 'All fields (id, name, manufacturer, batchNumber, manufacturingDate, expirationDate) are required' 
+            });
         }
 
         // Load the connection profile
@@ -386,31 +625,46 @@ app.post('/api/assets', async (req, res) => {
         const network = await gateway.getNetwork('mychannel');
 
         // Get the contract from the network
-        const contract = network.getContract('basic');
+        const contract = network.getContract('medicine-contract');
 
-        // Submit the transaction to create an asset
-        await contract.submitTransaction('CreateAsset', id, color, size.toString(), owner, value.toString());
+        // Submit the transaction to register a medicine
+        const result = await contract.submitTransaction(
+            'RegisterMedicine', 
+            id, 
+            name, 
+            manufacturer, 
+            batchNumber, 
+            manufacturingDate, 
+            expirationDate
+        );
 
         // Disconnect from the gateway
         await gateway.disconnect();
 
-        res.json({ success: true, message: `Asset ${id} created successfully` });
+        const medicine = JSON.parse(result.toString());
+        res.json({ 
+            success: true, 
+            message: `Medicine ${id} registered successfully`, 
+            medicine 
+        });
 
     } catch (error) {
-        console.error(`Failed to create asset: ${error}`);
-        res.status(500).json({ error: `Failed to create asset: ${error.message}` });
+        console.error(`Failed to register medicine: ${error}`);
+        res.status(500).json({ error: `Failed to register medicine: ${error.message}` });
     }
 });
 
-// Update an existing asset endpoint
-app.put('/api/assets/:id', async (req, res) => {
+// Update medicine supply chain
+app.post('/api/medicines/:id/update', async (req, res) => {
     try {
-        const { id } = req.params; // Get the asset ID from the URL
-        const { color, size, owner, value } = req.body; // Get updated fields from the request body
+        const { id } = req.params;
+        const { handler, status, location, notes } = req.body;
 
         // Validate input
-        if (!color || !size || !owner || !value) {
-            return res.status(400).json({ error: 'All fields (color, size, owner, value) are required to update an asset' });
+        if (!handler || !status || !location) {
+            return res.status(400).json({ 
+                error: 'Required fields (handler, status, location) are missing' 
+            });
         }
 
         // Load the connection profile
@@ -439,26 +693,46 @@ app.put('/api/assets/:id', async (req, res) => {
         const network = await gateway.getNetwork('mychannel');
 
         // Get the contract from the network
-        const contract = network.getContract('basic');
+        const contract = network.getContract('medicine-contract');
 
-        // Submit the transaction to update the asset
-        await contract.submitTransaction('UpdateAsset', id, color, size.toString(), owner, value.toString());
+        // Submit the transaction to update supply chain
+        const result = await contract.submitTransaction(
+            'UpdateSupplyChain', 
+            id, 
+            handler, 
+            status, 
+            location, 
+            notes || ''
+        );
 
         // Disconnect from the gateway
         await gateway.disconnect();
 
-        res.json({ success: true, message: `Asset ${id} updated successfully` });
+        const medicine = JSON.parse(result.toString());
+        res.json({ 
+            success: true, 
+            message: `Medicine ${id} supply chain updated successfully`, 
+            medicine 
+        });
 
     } catch (error) {
-        console.error(`Failed to update asset: ${error}`);
-        res.status(500).json({ error: `Failed to update asset: ${error.message}` });
+        console.error(`Failed to update medicine supply chain: ${error}`);
+        res.status(500).json({ error: `Failed to update medicine supply chain: ${error.message}` });
     }
 });
 
-// Delete an existing asset endpoint
-app.delete('/api/assets/:id', async (req, res) => {
+// Flag a medicine for issues
+app.post('/api/medicines/:id/flag', async (req, res) => {
     try {
-        const { id } = req.params; // Get the asset ID from the URL
+        const { id } = req.params;
+        const { flaggedBy, reason, location } = req.body;
+
+        // Validate input
+        if (!flaggedBy || !reason || !location) {
+            return res.status(400).json({ 
+                error: 'Required fields (flaggedBy, reason, location) are missing' 
+            });
+        }
 
         // Load the connection profile
         const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
@@ -486,27 +760,38 @@ app.delete('/api/assets/:id', async (req, res) => {
         const network = await gateway.getNetwork('mychannel');
 
         // Get the contract from the network
-        const contract = network.getContract('basic');
+        const contract = network.getContract('medicine-contract');
 
-        // Submit the transaction to delete the asset
-        await contract.submitTransaction('DeleteAsset', id);
+        // Submit the transaction to flag the medicine
+        const result = await contract.submitTransaction(
+            'FlagMedicine', 
+            id, 
+            flaggedBy, 
+            reason, 
+            location
+        );
 
         // Disconnect from the gateway
         await gateway.disconnect();
 
-        res.json({ success: true, message: `Asset ${id} deleted successfully` });
+        const medicine = JSON.parse(result.toString());
+        res.json({ 
+            success: true, 
+            message: `Medicine ${id} flagged successfully`, 
+            medicine 
+        });
 
     } catch (error) {
-        console.error(`Failed to delete asset: ${error}`);
-        res.status(500).json({ error: `Failed to delete asset: ${error.message}` });
+        console.error(`Failed to flag medicine: ${error}`);
+        res.status(500).json({ error: `Failed to flag medicine: ${error.message}` });
     }
 });
 
-// Serve static files (React frontend build and public folder) after API routes
+// Serve static files (React frontend build and public folder)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, '..', 'react-frontend', 'build')));
 
-// Handle root route (serving React app) after API routes
+// Handle root route (serving React app)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -524,4 +809,5 @@ app.get('*', (req, res) => {
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`FarmaTech API is now available with medicine-contract integration`);
 });

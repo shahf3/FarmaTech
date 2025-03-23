@@ -5,6 +5,8 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import './styles/Dashboard.css';
 import './styles/Home.css';
+//import './styles/Animations.css';
+import './styles/EnhancedUI.css';
 import Home from './components/Home';
 import Login from './components/Login';
 import AboutUs from './components/AboutUs';

@@ -25,3 +25,10 @@ yarn-error.log*
 node_modules/
 
 # Ignore wallet directory
+fabric-samples/bin/
+fabric-samples/config/
+fabric-samples/test-network/organizations/
+**/*.block
+**/*.tx
+**/*.tar.gz
+wallet/

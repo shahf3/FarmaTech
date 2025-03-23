@@ -1,18 +1,18 @@
 /* src/styles/Home.css */
 :root {
-    --primary-blue: #1e88e5;       /* Trustworthy blue for healthcare */
-    --primary-green: #00796b;      /* Professional pharmacy green */
-    --primary-dark: #263238;       /* Security and reliability */
+    --primary-blue: #1e88e5;       
+    --primary-green: #00796b;     
+    --primary-dark: #263238;    
     --primary-gradient: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-green) 100%);
-    --verification-green: #4caf50; /* Success and verification */
-    --alert-orange: #ff8f00;       /* Warnings */
-    --error-red: #e53935;          /* Errors and failed verification */
-    --blockchain-gray: #607d8b;    /* Blockchain technology */
-    --bg-light: #f5f7fa;           /* Clean background */
-    --bg-secondary: #e8eaf6;       /* Cards and containers */
-    --text-dark: #263238;          /* Primary text */
-    --text-light: #ffffff;         /* Text on dark backgrounds */
-    --text-secondary: #607d8b;     /* Secondary text */
+    --verification-green: #4caf50; 
+    --alert-orange: #ff8f00;    
+    --error-red: #e53935;         
+    --blockchain-gray: #607d8b;    
+    --bg-light: #f5f7fa;      
+    --bg-secondary: #e8eaf6;       
+    --text-dark: #263238;          
+    --text-light: #ffffff;         
+    --text-secondary: #607d8b;     
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -452,7 +452,7 @@
     width: 50px;
     height: 50px;
     background: var(--primary-gradient);
-    color: white;
+    color: var(--text-light);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -992,4 +992,38 @@
   .progress-line {
     width: 50px;
   }
+}
+
+.home-header {
+  padding: 0.8rem 5%; 
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-sm);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+
+.header-logo-image {
+  width: 120px;
+  height: auto;
+  margin-right: 10px;
+}
+
+.logo span {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem; 
 }

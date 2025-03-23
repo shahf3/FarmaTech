@@ -1,15 +1,16 @@
 // src/components/dashboard/Dashboard.js
 import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 const Dashboard = () => {
-  const { currentUser } = useContext(AuthContext);
+  // Use useAuth hook instead of directly accessing context
+  const { user } = useAuth();
   const navigate = useNavigate();
-
+  
   useEffect(() => {
-    if (currentUser) {
-      switch (currentUser.role) {
+    if (user) {
+      switch (user.role) {
         case 'manufacturer':
           navigate('/manufacturer');
           break;
@@ -26,8 +27,8 @@ const Dashboard = () => {
           navigate('/assets');
       }
     }
-  }, [currentUser, navigate]);
-
+  }, [user, navigate]);
+  
   return <div>Redirecting to your dashboard...</div>;
 };
 

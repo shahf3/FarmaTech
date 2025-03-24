@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Header from '../Header';
 import Footer from '../Footer';
 import axios from 'axios';
+import { Html5Qrcode } from 'html5-qrcode';
 import '../../styles/Dashboard.css';
 
 const API_URL = 'http://localhost:3000/api';
@@ -23,6 +24,13 @@ const DistributorDashboard = () => {
     message: '',
     type: ''
   });
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [roleActions, setRoleActions] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
+  
+  // QR scanner reference
+  const scannerRef = useRef(null);
+  const scannerContainerId = 'qr-reader';
   
   // Supply chain update form state
   const [updateForm, setUpdateForm] = useState({
@@ -40,6 +48,53 @@ const DistributorDashboard = () => {
     
     fetchMedicines();
   }, [user, navigate]);
+
+  // Initialize and cleanup the QR scanner
+  useEffect(() => {
+    if (showScanner) {
+      // Initialize scanner
+      scannerRef.current = new Html5Qrcode(scannerContainerId);
+      
+      scannerRef.current.start(
+        { facingMode: "environment" },
+        { 
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        (decodedText) => {
+          // On Success
+          console.log('QR Code detected:', decodedText);
+          setQrCode(decodedText);
+          setShowScanner(false);
+          
+          // Auto submit
+          setTimeout(() => {
+            handleVerify({ preventDefault: () => {} });
+          }, 500);
+        },
+        (errorMessage) => {
+          // On Error - we can ignore most errors as they happen constantly during scanning
+          console.log(errorMessage);
+        }
+      ).catch(err => {
+        console.error("Failed to start scanner:", err);
+        setScanResult({
+          success: false,
+          message: `Camera access error: ${err.message || 'Could not access camera'}`,
+          type: 'error'
+        });
+      });
+    }
+    
+    // Cleanup function
+    return () => {
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        scannerRef.current.stop()
+          .then(() => console.log('Scanner stopped'))
+          .catch(err => console.error('Error stopping scanner:', err));
+      }
+    };
+  }, [showScanner]);
 
   const fetchMedicines = async () => {
     setLoading(true);
@@ -73,22 +128,66 @@ const DistributorDashboard = () => {
       return;
     }
     
+    setVerifyLoading(true);
+    
     try {
-      const response = await axios.get(`${API_URL}/medicines/verify/${encodeURIComponent(qrCode)}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      // Check if the QR code is a JSON string (secure QR)
+      let isSecureQR = false;
+      let response;
       
-      setVerifiedMedicine(response.data);
-      setScanResult({
-        success: true,
-        message: 'Medicine verified successfully!',
-        type: 'success'
-      });
+      try {
+        // Try to parse as JSON - if it succeeds, it's a secure QR
+        JSON.parse(qrCode);
+        isSecureQR = true;
+      } catch (e) {
+        // Not JSON - treat as regular QR code
+        isSecureQR = false;
+      }
+      
+      if (isSecureQR) {
+        // Use the secure verification endpoint
+        response = await axios.post(
+          `${API_URL}/medicines/verify-secure`, 
+          { qrContent: qrCode },
+          { headers: { 'Authorization': `Bearer ${token}` }}
+        );
+        
+        // Extract medicine from response - secure endpoint returns it in a different structure
+        setVerifiedMedicine(response.data.medicine);
+        
+        // Save role-specific actions
+        if (response.data.roleSpecificActions) {
+          setRoleActions(response.data.roleSpecificActions);
+          console.log('Role-specific actions:', response.data.roleSpecificActions);
+        }
+        
+        setScanResult({
+          success: true,
+          message: 'Medicine verified successfully with secure QR code!',
+          type: 'success'
+        });
+      } else {
+        // Use the regular verification endpoint
+        response = await axios.get(
+          `${API_URL}/medicines/verify/${encodeURIComponent(qrCode)}`,
+          { headers: { 'Authorization': `Bearer ${token}` }}
+        );
+        
+        // Set the verified medicine directly from response
+        setVerifiedMedicine(response.data);
+        setRoleActions(null);
+        
+        setScanResult({
+          success: true,
+          message: 'Medicine verified successfully!',
+          type: 'success'
+        });
+      }
       
       // Pre-fill the update form with the verified medicine's ID
       setUpdateForm(prev => ({
         ...prev,
-        medicineId: response.data.id,
+        medicineId: isSecureQR ? response.data.medicine.id : response.data.id,
         location: user.organization.split(' ').pop() // Just as an example
       }));
       
@@ -100,6 +199,9 @@ const DistributorDashboard = () => {
         type: 'error'
       });
       setVerifiedMedicine(null);
+      setRoleActions(null);
+    } finally {
+      setVerifyLoading(false);
     }
   };
   
@@ -150,6 +252,7 @@ const DistributorDashboard = () => {
       });
       
       setVerifiedMedicine(null);
+      setRoleActions(null);
       setQrCode('');
       fetchMedicines(); // Refresh the list
       
@@ -220,12 +323,38 @@ const DistributorDashboard = () => {
                   id="qrCode" 
                   value={qrCode} 
                   onChange={handleQrInputChange}
-                  placeholder="e.g., QR-PCL-2025-001" 
+                  placeholder="e.g., QR-PCL-2025-001 or paste secure JSON QR code" 
                 />
+                <small className="form-text text-muted">
+                  Enter either a standard QR code or paste a secure QR code (the full JSON string)
+                </small>
               </div>
               
-              <button type="submit" className="scan-btn">Verify</button>
+              <div className="button-group">
+                <button 
+                  type="submit" 
+                  className="scan-btn"
+                  disabled={verifyLoading}
+                >
+                  {verifyLoading ? 'Verifying...' : 'Verify'}
+                </button>
+                
+                <button 
+                  type="button" 
+                  className="scan-camera-btn"
+                  onClick={() => setShowScanner(!showScanner)}
+                >
+                  {showScanner ? 'Hide Scanner' : 'Use Camera'}
+                </button>
+              </div>
             </form>
+            
+            {showScanner && (
+              <div className="camera-scanner">
+                <div id={scannerContainerId} style={{ width: '100%', maxWidth: '400px' }}></div>
+                <p className="scanner-instruction">Point your camera at a medicine QR code</p>
+              </div>
+            )}
             
             {scanResult.message && (
               <div className={`scan-result ${scanResult.type}`}>
@@ -236,6 +365,12 @@ const DistributorDashboard = () => {
             {verifiedMedicine && (
               <div className="verified-medicine">
                 <h3>Verified Medicine Details</h3>
+                {roleActions && roleActions.canUpdateSupplyChain && (
+                  <div className="role-actions">
+                    <span className="role-badge">Distributor Actions Available</span>
+                  </div>
+                )}
+                
                 <div className="medicine-details">
                   <p><strong>ID:</strong> {verifiedMedicine.id}</p>
                   <p><strong>Name:</strong> {verifiedMedicine.name}</p>
@@ -435,6 +570,83 @@ const DistributorDashboard = () => {
             </div>
           )}
         </div>
+
+        <style jsx>{`
+          .form-text {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: #6c757d;
+          }
+          
+          .role-actions {
+            margin-bottom: 15px;
+            padding: 8px 0;
+          }
+          
+          .role-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #e3f2fd;
+            color: #0d6efd;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid #b6dbff;
+          }
+          
+          .scan-result {
+            margin: 15px 0;
+            padding: 10px 15px;
+            border-radius: 4px;
+          }
+          
+          .scan-result.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+          }
+          
+          .scan-result.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+          }
+          
+          .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+          }
+          
+          .scan-camera-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+          }
+          
+          .scan-camera-btn:hover {
+            background-color: #5a6268;
+          }
+          
+          .camera-scanner {
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+          }
+          
+          .scanner-instruction {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #6c757d;
+          }
+        `}</style>
       </main>
       <Footer />
     </div>

@@ -15,6 +15,7 @@ const ManufacturerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showQR, setShowQR] = useState({});
+  const [secureQRs, setSecureQRs] = useState({});
   
   // New medicine form state
   const [newMedicine, setNewMedicine] = useState({
@@ -98,11 +99,29 @@ const ManufacturerDashboard = () => {
     }
   };
   
-  const toggleQRCode = (medicineId) => {
+  const toggleQRCode = async (medicineId) => {
+    // Toggle the visibility state
     setShowQR(prev => ({
       ...prev,
       [medicineId]: !prev[medicineId]
     }));
+    
+    // If we're showing the QR and don't have a secure version yet, fetch it
+    if (!showQR[medicineId] && !secureQRs[medicineId]) {
+      try {
+        const response = await axios.get(`${API_URL}/test/secure-qr/${medicineId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        // Store the secure QR code
+        setSecureQRs(prev => ({
+          ...prev,
+          [medicineId]: response.data.secureQRCode
+        }));
+      } catch (err) {
+        console.error('Error fetching secure QR code:', err);
+      }
+    }
   };
   
   // Function to initialize the ledger with sample data (for testing)
@@ -271,11 +290,37 @@ const ManufacturerDashboard = () => {
                         <tr className="qr-row">
                           <td colSpan="7" className="qr-container">
                             <div className="qr-code">
-                            <QRCodeSVG value={medicine.qrCode} size={150} />
-                              <p>QR Code: {medicine.qrCode}</p>
-                              <p className="qr-instructions">
-                                This QR code can be scanned by distributors and end-users to verify the authenticity of this medicine.
-                              </p>
+                              {/* First show the regular blockchain QR code */}
+                              <div className="qr-section">
+                                <h4>Standard QR Code</h4>
+                                <QRCodeSVG value={medicine.qrCode} size={150} />
+                                <p>QR Code: {medicine.qrCode}</p>
+                                <p className="qr-note">This simple QR code can be scanned to verify the medicine, but doesn't include tamper-proof security features.</p>
+                              </div>
+
+                              {/* Then show the secure QR code if available */}
+                              {secureQRs[medicine.id] && (
+                                <div className="qr-section secure-qr-section">
+                                  <h4>Secure QR Code (Recommended)</h4>
+                                  <QRCodeSVG value={secureQRs[medicine.id]} size={150} />
+                                  <p><strong>Secure QR Code:</strong></p>
+                                  <textarea 
+                                    readOnly 
+                                    className="secure-qr-text"
+                                    value={secureQRs[medicine.id]}
+                                    rows="4" 
+                                    onClick={(e) => {
+                                      e.target.select();
+                                      navigator.clipboard.writeText(e.target.value);
+                                      alert('Secure QR code copied to clipboard!');
+                                    }}
+                                  />
+                                  <p className="copy-hint">(Click to copy)</p>
+                                  <p className="qr-note">
+                                    This cryptographically secure QR code includes tamper protection and can only be verified through the authorized supply chain.
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -287,6 +332,39 @@ const ManufacturerDashboard = () => {
             </div>
           )}
         </div>
+
+        <style jsx>{`
+          .qr-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+          }
+          .secure-qr-section {
+            background-color: #f5faff;
+            border-color: #b8daff;
+          }
+          .secure-qr-text {
+            width: 100%;
+            max-width: 300px;
+            font-size: 10px;
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+          }
+          .copy-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: -5px;
+          }
+          .qr-note {
+            font-size: 12px;
+            margin-top: 10px;
+            color: #555;
+            max-width: 300px;
+          }
+        `}</style>
       </main>
       <Footer />
     </div>

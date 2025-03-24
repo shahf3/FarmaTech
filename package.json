@@ -2,6 +2,8 @@
   "dependencies": {
     "cors": "^2.8.5",
     "fabric-ca-client": "^2.2.20",
-    "fabric-network": "^2.2.20"
+    "fabric-network": "^2.2.20",
+    "html5-qrcode": "^2.3.8",
+    "react-qr-reader": "^3.0.0-beta-1"
   }
 }

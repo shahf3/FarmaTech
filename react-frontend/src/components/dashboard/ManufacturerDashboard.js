@@ -16,6 +16,8 @@ const ManufacturerDashboard = () => {
   const [error, setError] = useState(null);
   const [showQR, setShowQR] = useState({});
   const [secureQRs, setSecureQRs] = useState({});
+  const [currentLocation, setCurrentLocation] = useState('');
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   
   // New medicine form state
   const [newMedicine, setNewMedicine] = useState({
@@ -24,7 +26,8 @@ const ManufacturerDashboard = () => {
     manufacturer: user ? user.organization : '',
     batchNumber: '',
     manufacturingDate: '',
-    expirationDate: ''
+    expirationDate: '',
+    registrationLocation: ''
   });
   
   const [formError, setFormError] = useState('');
@@ -37,6 +40,7 @@ const ManufacturerDashboard = () => {
     }
     
     fetchMedicines();
+    detectLocation(); // Get location when component mounts
   }, [user, navigate]);
 
   const fetchMedicines = async () => {
@@ -53,6 +57,69 @@ const ManufacturerDashboard = () => {
       setError('Failed to fetch medicines. Please try again later.');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const detectLocation = async () => {
+    setIsDetectingLocation(true);
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          try {
+            // Use OpenStreetMap's Nominatim API for reverse geocoding
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+              {
+                headers: {
+                  'Accept-Language': 'en',
+                  'User-Agent': 'FarmaTech-MedicineApp/1.0'
+                }
+              }
+            );
+            
+            if (!response.ok) {
+              throw new Error('Failed to get location name');
+            }
+            
+            const data = await response.json();
+            
+            // Format the address from components
+            const city = data.address?.city || data.address?.town || data.address?.village || '';
+            const state = data.address?.state || '';
+            const country = data.address?.country || '';
+            const locationString = [city, state, country].filter(Boolean).join(', ');
+            
+            setCurrentLocation(locationString);
+            setNewMedicine(prev => ({
+              ...prev,
+              registrationLocation: locationString
+            }));
+            setIsDetectingLocation(false);
+          } catch (error) {
+            console.error("Error retrieving location name:", error);
+            
+            // Fallback to coordinates
+            const locationString = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+            setCurrentLocation(locationString);
+            setNewMedicine(prev => ({
+              ...prev,
+              registrationLocation: locationString
+            }));
+            setIsDetectingLocation(false);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setIsDetectingLocation(false);
+          setFormError('Failed to detect location. Please try again or enter manually.');
+        }
+      );
+    } else {
+      setIsDetectingLocation(false);
+      setFormError('Geolocation is not supported by this browser.');
     }
   };
   
@@ -76,6 +143,17 @@ const ManufacturerDashboard = () => {
       return;
     }
     
+    if (!newMedicine.registrationLocation) {
+      // If location is not set yet, try to detect it once more
+      await detectLocation();
+      if (!newMedicine.registrationLocation) {
+        setNewMedicine(prev => ({
+          ...prev,
+          registrationLocation: 'Unknown location'
+        }));
+      }
+    }
+    
     try {
       const response = await axios.post(`${API_URL}/medicines`, newMedicine, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -88,7 +166,8 @@ const ManufacturerDashboard = () => {
         manufacturer: user.organization,
         batchNumber: '',
         manufacturingDate: '',
-        expirationDate: ''
+        expirationDate: '',
+        registrationLocation: currentLocation // Keep the current location for next medicine
       });
       
       setSuccessMessage(`Medicine ${response.data.medicine.id} registered successfully!`);
@@ -229,6 +308,28 @@ const ManufacturerDashboard = () => {
               />
             </div>
             
+            <div className="form-group">
+              <label htmlFor="registrationLocation">Registration Location:</label>
+              <div className="location-input-group">
+                <input 
+                  type="text" 
+                  id="registrationLocation" 
+                  name="registrationLocation" 
+                  value={newMedicine.registrationLocation} 
+                  onChange={handleInputChange}
+                  placeholder={isDetectingLocation ? "Detecting location..." : "Enter location"} 
+                />
+                <button 
+                  type="button" 
+                  className="location-btn"
+                  onClick={detectLocation}
+                  disabled={isDetectingLocation}
+                >
+                  {isDetectingLocation ? 'Detecting...' : 'Detect Location'}
+                </button>
+              </div>
+            </div>
+            
             <button type="submit" className="submit-btn">Register Medicine</button>
           </form>
         </div>
@@ -363,6 +464,26 @@ const ManufacturerDashboard = () => {
             margin-top: 10px;
             color: #555;
             max-width: 300px;
+          }
+          .location-input-group {
+            display: flex;
+            gap: 10px;
+          }
+          .location-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            white-space: nowrap;
+          }
+          .location-btn:hover {
+            background-color: #218838;
+          }
+          .location-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
           }
         `}</style>
       </main>

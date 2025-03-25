@@ -673,6 +673,7 @@ app.post("/api/medicines", async (req, res) => {
       batchNumber,
       manufacturingDate,
       expirationDate,
+      registrationLocation
     } = req.body;
 
     // Validate input
@@ -729,7 +730,8 @@ app.post("/api/medicines", async (req, res) => {
       batchNumber,
       manufacturingDate,
       expirationDate,
-      timestamp // Pass the timestamp
+      timestamp,
+      registrationLocation || 'Unknown location', 
     );
     // Disconnect from the gateway
     await gateway.disconnect();

@@ -171,7 +171,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Enable CORS for all origins (for development; adjust for production)
+
 app.use(
   cors({
     origin: [
@@ -183,7 +183,7 @@ app.use(
       "http://172.27.231.107:3001",
     ],
     methods: ["GET", "POST", "OPTIONS", "DELETE", "PUT"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-User-Location" ],
   })
 );
 

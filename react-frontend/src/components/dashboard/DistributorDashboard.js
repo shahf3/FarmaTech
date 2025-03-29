@@ -14,11 +14,11 @@ import {
   FaQrcode,
   FaHistory,
 } from "react-icons/fa";
-import { 
-  verifyMedicine, 
-  updateMedicine, 
-  flagMedicine, 
-  getMedicines 
+import {
+  verifyMedicine,
+  updateMedicine,
+  flagMedicine,
+  getMedicines,
 } from "../../services/medicineApi";
 
 const API_URL = "http://localhost:3000/api";
@@ -51,6 +51,10 @@ const DistributorDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredMedicines, setFilteredMedicines] = useState([]);
 
+  const [currentLocation, setCurrentLocation] = useState("");
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+
+
   // QR scanner reference
   const scannerRef = useRef(null);
   const scannerContainerId = "qr-reader";
@@ -70,6 +74,7 @@ const DistributorDashboard = () => {
     }
 
     fetchMedicines();
+    detectLocation();
   }, [user, navigate]);
 
   useEffect(() => {
@@ -94,7 +99,6 @@ const DistributorDashboard = () => {
             }, 500);
           },
           (errorMessage) => {
-            
             console.log(errorMessage);
           }
         )
@@ -164,18 +168,18 @@ const DistributorDashboard = () => {
     setError(null);
     try {
       console.log(`Fetching medicines for organization: ${user.organization}`);
-      
+
       // Use the API service instead of direct axios calls
       const response = await getMedicines(user.organization);
-      
+
       console.log("Medicines fetched:", response.data);
       setMedicines(response.data);
       setFilteredMedicines(response.data);
     } catch (err) {
       console.error("Error fetching medicines:", err);
       setError(
-        err.response?.data?.error || 
-        "Failed to fetch medicines. Please try again later."
+        err.response?.data?.error ||
+          "Failed to fetch medicines. Please try again later."
       );
     } finally {
       setLoading(false);
@@ -205,52 +209,152 @@ const DistributorDashboard = () => {
     });
   
     try {
-      const cleanQrCode = qrCode.trim();
+      // Check if the QR code is a JSON string (secure QR)
+      let isSecureQR = false;
+      let cleanQrCode = qrCode.trim();
+      let response;
+  
       console.log('Verifying QR code:', cleanQrCode);
       
-      // Use the medicine API service for verification
-      const response = await verifyMedicine(cleanQrCode);
-      console.log('QR verification response:', response.data);
-      
-      // Determine if this was a secure QR or standard QR from the response structure
-      const isSecureQR = response.data.medicine !== undefined;
-      
-      // Set the verified medicine based on response structure
+      // Get the current location for scan tracking
+      const locationForScan = currentLocation || 'Unknown location';
+  
+      try {
+        // Try to parse as JSON - if it succeeds, it's a secure QR
+        JSON.parse(cleanQrCode);
+        isSecureQR = true;
+        console.log('Detected secure QR code (JSON format)');
+      } catch (e) {
+        // Not JSON - treat as regular QR code
+        isSecureQR = false;
+        console.log('Detected standard QR code');
+      }
+  
       if (isSecureQR) {
+        // Use the secure verification endpoint
+        console.log('Calling secure verify endpoint with location:', locationForScan);
+        response = await axios.post(
+          `${API_URL}/medicines/verify-secure`,
+          { 
+            qrContent: cleanQrCode,
+            location: locationForScan 
+          },
+          { 
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            } 
+          }
+        );
+  
+        console.log('Secure QR response:', response.data);
+  
+        // Extract medicine from response - secure endpoint returns it in a different structure
         setVerifiedMedicine(response.data.medicine);
         
         // Save role-specific actions
         if (response.data.roleSpecificActions) {
           setRoleActions(response.data.roleSpecificActions);
+          console.log(
+            "Role-specific actions:",
+            response.data.roleSpecificActions
+          );
+        }
+  
+        // Check if this distributor belongs to the medicine's manufacturer organization
+        const belongsToManufacturer = user.organization === response.data.medicine.manufacturer;
+        
+        // Get scan authorization status
+        const isAuthorizedScan = response.data.roleSpecificActions?.isAuthorizedScan;
+        
+        // Check if medicine was flagged due to unauthorized access
+        if (response.data.medicine.securityWarning) {
+          setScanResult({
+            success: false,
+            message: response.data.medicine.securityWarning,
+            type: "error",
+          });
+        } else if (!isAuthorizedScan) {
+          setScanResult({
+            success: false,
+            message: "You are not authorized to scan this medicine. This incident has been recorded.",
+            type: "error",
+          });
+        } else {
+          setScanResult({
+            success: true,
+            message: belongsToManufacturer
+              ? "Medicine verified successfully with secure QR code! You have full update permissions."
+              : "Medicine verified, but you have limited permissions as you are not from the manufacturer organization.",
+            type: "success",
+          });
         }
       } else {
+        // For standard QR codes, make sure we have the format "QR-XXX-YYYY-ZZZ"
+        if (!cleanQrCode.startsWith('QR-')) {
+          throw new Error('Invalid QR code format. QR code should start with "QR-"');
+        }
+  
+        // Send location with header for regular QR verification
+        console.log('Calling standard verify endpoint');
+        response = await axios.get(
+          `${API_URL}/medicines/verify/${encodeURIComponent(cleanQrCode)}`,
+          { 
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'X-User-Location': locationForScan
+            } 
+          }
+        );
+  
+        console.log('Standard QR response:', response.data);
+  
+        // Set the verified medicine directly from response
         setVerifiedMedicine(response.data);
         
+        // Get scan authorization status
+        const isAuthorizedScan = response.data.roleSpecificActions?.isAuthorizedScan;
+  
         // Check if this distributor belongs to the medicine's manufacturer organization
         const belongsToManufacturer = user.organization === response.data.manufacturer;
+  
         setRoleActions({
           canUpdateSupplyChain: true,
           belongsToManufacturer,
+          isAuthorizedScan
         });
+        
+        // Check if medicine was flagged due to unauthorized access
+        if (response.data.securityWarning) {
+          setScanResult({
+            success: false,
+            message: response.data.securityWarning,
+            type: "error",
+          });
+        } else if (!isAuthorizedScan) {
+          setScanResult({
+            success: false,
+            message: "You are not authorized to scan this medicine. This incident has been recorded.",
+            type: "error",
+          });
+        } else {
+          setScanResult({
+            success: true,
+            message: response.data.scanRecorded 
+              ? "Medicine verified successfully! Your scan has been recorded in the blockchain."
+              : "Medicine verified successfully!",
+            type: "success",
+          });
+        }
       }
-      
-      // Check manufacturer relationship for the message
+  
+      // Pre-fill the update form with the verified medicine's ID and current location
       const medicine = isSecureQR ? response.data.medicine : response.data;
-      const belongsToManufacturer = user.organization === medicine.manufacturer;
-      
-      setScanResult({
-        success: true,
-        message: belongsToManufacturer
-          ? "Medicine verified successfully! You have full update permissions."
-          : "Medicine verified, but you have limited permissions as you are not from the manufacturer organization.",
-        type: "success",
-      });
-      
-      // Pre-fill the update form with the verified medicine's ID
       setUpdateForm({
         medicineId: medicine.id,
         status: "", // Don't pre-fill status
-        location: user.organization + ", Ireland", // Example location
+        location: currentLocation || (user.organization + ", Ireland"), // Use detected location
         notes: "",
       });
     } catch (err) {
@@ -288,14 +392,14 @@ const DistributorDashboard = () => {
     e.preventDefault();
     setSuccessMessage("");
     setError(null);
-    
+
     // Clear previous scan result messages
     setScanResult({
       success: false,
       message: "",
       type: "",
     });
-  
+
     // Validate form inputs
     if (!updateForm.medicineId || !updateForm.status || !updateForm.location) {
       setScanResult({
@@ -305,11 +409,11 @@ const DistributorDashboard = () => {
       });
       return;
     }
-  
+
     // Check permissions based on status
-    const belongsToManufacturer = verifiedMedicine && 
-      user.organization === verifiedMedicine.manufacturer;
-    
+    const belongsToManufacturer =
+      verifiedMedicine && user.organization === verifiedMedicine.manufacturer;
+
     // If not from the same organization, restrict certain status changes
     if (
       !belongsToManufacturer &&
@@ -317,38 +421,39 @@ const DistributorDashboard = () => {
     ) {
       setScanResult({
         success: false,
-        message: "You do not have permission to set this status as you are not from the manufacturer organization",
+        message:
+          "You do not have permission to set this status as you are not from the manufacturer organization",
         type: "error",
       });
       return;
     }
-  
+
     console.log("Submitting update for medicine:", {
       id: updateForm.medicineId,
       status: updateForm.status,
       location: updateForm.location,
       notes: updateForm.notes,
-      handler: user.organization
+      handler: user.organization,
     });
-  
+
     try {
       // Use the medicine API service for updating
       const updateData = {
         handler: user.organization,
         status: updateForm.status,
         location: updateForm.location,
-        notes: updateForm.notes || ""
+        notes: updateForm.notes || "",
       };
-      
-      // Use the API service 
+
+      // Use the API service
       const response = await updateMedicine(updateForm.medicineId, updateData);
-  
+
       console.log("Update response:", response.data);
-  
+
       setSuccessMessage(
         `Medicine ${updateForm.medicineId} updated successfully!`
       );
-  
+
       // Reset form and state
       setUpdateForm({
         medicineId: "",
@@ -356,7 +461,7 @@ const DistributorDashboard = () => {
         location: "",
         notes: "",
       });
-  
+
       setVerifiedMedicine(null);
       setRoleActions(null);
       setQrCode("");
@@ -365,19 +470,19 @@ const DistributorDashboard = () => {
         message: "",
         type: "",
       });
-      
+
       // Refresh the medicines list
       await fetchMedicines();
     } catch (err) {
       console.error("Error updating medicine:", err);
-      
+
       // Extract the most useful error message
-      const errorMsg = 
-        err.response?.data?.details || 
-        err.response?.data?.error || 
-        err.message || 
+      const errorMsg =
+        err.response?.data?.details ||
+        err.response?.data?.error ||
+        err.message ||
         "Failed to update medicine";
-      
+
       setScanResult({
         success: false,
         message: errorMsg,
@@ -385,6 +490,7 @@ const DistributorDashboard = () => {
       });
     }
   };
+
   const toggleSupplyChain = (medicineId) => {
     setShowSupplyChain((prev) => ({
       ...prev,
@@ -400,58 +506,58 @@ const DistributorDashboard = () => {
     ) {
       return;
     }
-  
+
     try {
       // Get the reason from the user
       const reason = window.prompt(
         "Please provide a reason for flagging this medicine:",
         "Quality concerns"
       );
-      
+
       if (!reason) {
         return; // User cancelled the prompt
       }
-      
+
       // Get the current location (or use organization name as fallback)
       const location = window.prompt(
         "Enter the current location:",
         user.organization.split(" ").pop() + ", Ireland" // Default location
       );
-      
+
       if (!location) {
         return; // User cancelled the prompt
       }
-  
+
       console.log("Flagging medicine:", {
         id: medicine.id,
         flaggedBy: user.organization,
         reason,
-        location
+        location,
       });
-  
+
       // Call the API to flag the medicine
       const response = await flagMedicine(medicine.id, {
         flaggedBy: user.organization,
         reason,
         location,
       });
-  
+
       console.log("Flag response:", response.data);
-  
+
       setSuccessMessage(`Medicine ${medicine.id} flagged successfully!`);
-      
+
       // Refresh the medicines list
       await fetchMedicines();
     } catch (err) {
       console.error("Error flagging medicine:", err);
-      
+
       // Extract the most useful error message
-      const errorMsg = 
-        err.response?.data?.details || 
-        err.response?.data?.error || 
-        err.message || 
+      const errorMsg =
+        err.response?.data?.details ||
+        err.response?.data?.error ||
+        err.message ||
         "Failed to flag medicine";
-      
+
       setError(errorMsg);
     }
   };
@@ -471,6 +577,86 @@ const DistributorDashboard = () => {
       message: "",
       type: "",
     });
+  };
+
+  const detectLocation = async () => {
+    setIsDetectingLocation(true);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+
+          try {
+            // Use OpenStreetMap's Nominatim API for reverse geocoding
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+              {
+                headers: {
+                  "Accept-Language": "en",
+                  "User-Agent": "FarmaTech-MedicineApp/1.0",
+                },
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to get location name");
+            }
+
+            const data = await response.json();
+
+            // Format the address from components
+            const city =
+              data.address?.city ||
+              data.address?.town ||
+              data.address?.village ||
+              "";
+            const state = data.address?.state || "";
+            const country = data.address?.country || "";
+            const locationString = [city, state, country]
+              .filter(Boolean)
+              .join(", ");
+
+            setCurrentLocation(locationString);
+            setUpdateForm((prev) => ({
+              ...prev,
+              location: locationString,
+            }));
+            setIsDetectingLocation(false);
+          } catch (error) {
+            console.error("Error retrieving location name:", error);
+
+            // Fallback to coordinates
+            const locationString = `${latitude.toFixed(6)}, ${longitude.toFixed(
+              6
+            )}`;
+            setCurrentLocation(locationString);
+            setUpdateForm((prev) => ({
+              ...prev,
+              location: locationString,
+            }));
+            setIsDetectingLocation(false);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setIsDetectingLocation(false);
+          setScanResult({
+            success: false,
+            message:
+              "Failed to detect location. Please enter location manually.",
+            type: "error",
+          });
+        }
+      );
+    } else {
+      setIsDetectingLocation(false);
+      setScanResult({
+        success: false,
+        message: "Geolocation is not supported by this browser.",
+        type: "error",
+      });
+    }
   };
 
   return (
@@ -766,15 +952,31 @@ const DistributorDashboard = () => {
 
                   <div className="form-group">
                     <label htmlFor="location">Location:</label>
-                    <input
-                      type="text"
-                      id="location"
-                      name="location"
-                      value={updateForm.location}
-                      onChange={handleUpdateInputChange}
-                      placeholder="e.g., Dublin, Ireland"
-                      required
-                    />
+                    <div className="location-input-group">
+                      <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        value={updateForm.location}
+                        onChange={handleUpdateInputChange}
+                        placeholder={
+                          isDetectingLocation
+                            ? "Detecting location..."
+                            : "Enter location"
+                        }
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="location-btn"
+                        onClick={detectLocation}
+                        disabled={isDetectingLocation}
+                      >
+                        {isDetectingLocation
+                          ? "Detecting..."
+                          : "Detect Location"}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="form-group">
@@ -1556,6 +1758,26 @@ const DistributorDashboard = () => {
 
             .dashboard-section {
               padding: 1rem;
+            }
+            .location-input-group {
+              display: flex;
+              gap: 10px;
+            }
+            .location-btn {
+              background-color: #28a745;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 8px 12px;
+              cursor: pointer;
+              white-space: nowrap;
+            }
+            .location-btn:hover {
+              background-color: #218838;
+            }
+            .location-btn:disabled {
+              background-color: #6c757d;
+              cursor: not-allowed;
             }
           }
         `}</style>

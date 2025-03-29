@@ -483,7 +483,7 @@ router.post(
       }
     }
   );
-  
+
 // @route   POST api/medicines
 // @desc    Register a new medicine
 // @access  Private/Manufacturer
@@ -746,5 +746,73 @@ router.get('/test-qr/:id', verifyToken, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// @route   GET api/medicines/manufacturer/:manufacturer
+// @desc    Get medicines by manufacturer
+// @access  Private
+router.get('/manufacturer/:manufacturer', verifyToken, async (req, res) => {
+    try {
+      const { manufacturer } = req.params;
+      console.log(`Fetching medicines for manufacturer: ${manufacturer}`);
+  
+      // Check if user is authorized to view these medicines
+      // Only allow users from the same organization or regulators
+      if (req.user.role !== 'regulator' && req.user.organization !== manufacturer) {
+        return res.status(403).json({ 
+          error: 'You are not authorized to view medicines from other manufacturers' 
+        });
+      }
+  
+      // Load the connection profile
+      const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
+      const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
+  
+      // Create a new file system based wallet for managing identities
+      const walletPath = path.join(__dirname, "../wallet");
+      const wallet = await Wallets.newFileSystemWallet(walletPath);
+  
+      // Check if we have the appUser identity
+      const identity = await wallet.get("appUser");
+      if (!identity) {
+        return res
+          .status(400)
+          .json({ error: 'User "appUser" does not exist in the wallet' });
+      }
+  
+      // Create a new gateway for connecting to the peer node
+      const gateway = new Gateway();
+      await gateway.connect(ccp, {
+        wallet,
+        identity: "appUser",
+        discovery: { enabled: true, asLocalhost: true },
+      });
+  
+      // Get the network (channel) our contract is deployed to
+      const network = await gateway.getNetwork("mychannel");
+  
+      // Get the contract from the network
+      const contract = network.getContract("medicine-contract");
+  
+      // Submit the transaction to get medicines by manufacturer
+      console.log(`Calling GetMedicinesByManufacturer with param: ${manufacturer}`);
+      const result = await contract.evaluateTransaction(
+        "GetMedicinesByManufacturer",
+        manufacturer
+      );
+  
+      // Disconnect from the gateway
+      await gateway.disconnect();
+  
+      const medicines = JSON.parse(result.toString());
+      console.log(`Found ${medicines.length} medicines for manufacturer ${manufacturer}`);
+      
+      res.json(medicines);
+    } catch (error) {
+      console.error(`Failed to get medicines by manufacturer: ${error}`);
+      res
+        .status(500)
+        .json({ error: `Failed to get medicines by manufacturer: ${error.message}` });
+    }
+  });
 
 module.exports = router;

@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import Header from '../Header';
-import Footer from '../Footer';
-import axios from 'axios';
-import { QRCodeSVG } from 'qrcode.react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import Header from "../Header";
+import Footer from "../Footer";
+import axios from "axios";
+import { QRCodeSVG } from "qrcode.react";
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = "http://localhost:3000/api";
 
 const ManufacturerDashboard = () => {
   const { user, token, logout } = useAuth();
@@ -16,97 +16,105 @@ const ManufacturerDashboard = () => {
   const [error, setError] = useState(null);
   const [showQR, setShowQR] = useState({});
   const [secureQRs, setSecureQRs] = useState({});
-  const [currentLocation, setCurrentLocation] = useState('');
+  const [currentLocation, setCurrentLocation] = useState("");
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
-  
-  // New medicine form state
+
   const [newMedicine, setNewMedicine] = useState({
-    id: '',
-    name: '',
-    manufacturer: user ? user.organization : '',
-    batchNumber: '',
-    manufacturingDate: '',
-    expirationDate: '',
-    registrationLocation: ''
+    id: "",
+    name: "",
+    manufacturer: user ? user.organization : "",
+    batchNumber: "",
+    manufacturingDate: "",
+    expirationDate: "",
+    registrationLocation: "",
   });
-  
-  const [formError, setFormError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+
+  const [formError, setFormError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    if (!user || user.role !== 'manufacturer') {
-      navigate('/unauthorized');
+    if (!user || user.role !== "manufacturer") {
+      navigate("/unauthorized");
       return;
     }
-    
+
     fetchMedicines();
-    detectLocation(); // Get location when component mounts
+    detectLocation();
   }, [user, navigate]);
 
   const fetchMedicines = async () => {
     setLoading(true);
     try {
-      // Fetch medicines manufactured by this organization
-      const response = await axios.get(`${API_URL}/medicines/manufacturer/${encodeURIComponent(user.organization)}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await axios.get(
+        `${API_URL}/medicines/manufacturer/${encodeURIComponent(
+          user.organization
+        )}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setMedicines(response.data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching medicines:', err);
-      setError('Failed to fetch medicines. Please try again later.');
+      console.error("Error fetching medicines:", err);
+      setError("Failed to fetch medicines. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
-  
+
   const detectLocation = async () => {
     setIsDetectingLocation(true);
-    
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          
+
           try {
-            // Use OpenStreetMap's Nominatim API for reverse geocoding
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
               {
                 headers: {
-                  'Accept-Language': 'en',
-                  'User-Agent': 'FarmaTech-MedicineApp/1.0'
-                }
+                  "Accept-Language": "en",
+                  "User-Agent": "FarmaTech-MedicineApp/1.0",
+                },
               }
             );
-            
+
             if (!response.ok) {
-              throw new Error('Failed to get location name');
+              throw new Error("Failed to get location name");
             }
-            
+
             const data = await response.json();
-            
-            // Format the address from components
-            const city = data.address?.city || data.address?.town || data.address?.village || '';
-            const state = data.address?.state || '';
-            const country = data.address?.country || '';
-            const locationString = [city, state, country].filter(Boolean).join(', ');
-            
+
+            const city =
+              data.address?.city ||
+              data.address?.town ||
+              data.address?.village ||
+              "";
+            const state = data.address?.state || "";
+            const country = data.address?.country || "";
+            const locationString = [city, state, country]
+              .filter(Boolean)
+              .join(", ");
+
             setCurrentLocation(locationString);
-            setNewMedicine(prev => ({
+            setNewMedicine((prev) => ({
               ...prev,
-              registrationLocation: locationString
+              registrationLocation: locationString,
             }));
             setIsDetectingLocation(false);
           } catch (error) {
             console.error("Error retrieving location name:", error);
-            
-            // Fallback to coordinates
-            const locationString = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+
+            const locationString = `${latitude.toFixed(6)}, ${longitude.toFixed(
+              6
+            )}`;
             setCurrentLocation(locationString);
-            setNewMedicine(prev => ({
+            setNewMedicine((prev) => ({
               ...prev,
-              registrationLocation: locationString
+              registrationLocation: locationString,
             }));
             setIsDetectingLocation(false);
           }
@@ -114,107 +122,123 @@ const ManufacturerDashboard = () => {
         (error) => {
           console.error("Error getting location:", error);
           setIsDetectingLocation(false);
-          setFormError('Failed to detect location. Please try again or enter manually.');
+          setFormError(
+            "Failed to detect location. Please try again or enter manually."
+          );
         }
       );
     } else {
       setIsDetectingLocation(false);
-      setFormError('Geolocation is not supported by this browser.');
+      setFormError("Geolocation is not supported by this browser.");
     }
   };
-  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewMedicine(prev => ({
+    setNewMedicine((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormError('');
-    setSuccessMessage('');
-    
+    setFormError("");
+    setSuccessMessage("");
+
     // Validate form inputs
-    if (!newMedicine.id || !newMedicine.name || !newMedicine.batchNumber || 
-        !newMedicine.manufacturingDate || !newMedicine.expirationDate) {
-      setFormError('All fields are required');
+    if (
+      !newMedicine.id ||
+      !newMedicine.name ||
+      !newMedicine.batchNumber ||
+      !newMedicine.manufacturingDate ||
+      !newMedicine.expirationDate
+    ) {
+      setFormError("All fields are required");
       return;
     }
-    
+
     if (!newMedicine.registrationLocation) {
       // If location is not set yet, try to detect it once more
       await detectLocation();
       if (!newMedicine.registrationLocation) {
-        setNewMedicine(prev => ({
+        setNewMedicine((prev) => ({
           ...prev,
-          registrationLocation: 'Unknown location'
+          registrationLocation: "Unknown location",
         }));
       }
     }
-    
+
     try {
       const response = await axios.post(`${API_URL}/medicines`, newMedicine, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       // Reset form
       setNewMedicine({
-        id: '',
-        name: '',
+        id: "",
+        name: "",
         manufacturer: user.organization,
-        batchNumber: '',
-        manufacturingDate: '',
-        expirationDate: '',
-        registrationLocation: currentLocation // Keep the current location for next medicine
+        batchNumber: "",
+        manufacturingDate: "",
+        expirationDate: "",
+        registrationLocation: currentLocation,
       });
-      
-      setSuccessMessage(`Medicine ${response.data.medicine.id} registered successfully!`);
-      fetchMedicines(); // Refresh the list
+
+      setSuccessMessage(
+        `Medicine ${response.data.medicine.id} registered successfully!`
+      );
+      fetchMedicines();
     } catch (err) {
-      console.error('Error registering medicine:', err);
-      setFormError(err.response?.data?.error || 'Failed to register medicine. Please try again.');
+      console.error("Error registering medicine:", err);
+      setFormError(
+        err.response?.data?.error ||
+          "Failed to register medicine. Please try again."
+      );
     }
   };
-  
+
   const toggleQRCode = async (medicineId) => {
-    // Toggle the visibility state
-    setShowQR(prev => ({
+    setShowQR((prev) => ({
       ...prev,
-      [medicineId]: !prev[medicineId]
+      [medicineId]: !prev[medicineId],
     }));
-    
-    // If we're showing the QR and don't have a secure version yet, fetch it
+
     if (!showQR[medicineId] && !secureQRs[medicineId]) {
       try {
-        const response = await axios.get(`${API_URL}/test/secure-qr/${medicineId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
+        const response = await axios.get(
+          `${API_URL}/medicines/test-qr/${medicineId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
         // Store the secure QR code
-        setSecureQRs(prev => ({
+        setSecureQRs((prev) => ({
           ...prev,
-          [medicineId]: response.data.secureQRCode
+          [medicineId]: response.data.secureQRCode,
         }));
       } catch (err) {
-        console.error('Error fetching secure QR code:', err);
+        console.error("Error fetching secure QR code:", err);
       }
     }
   };
-  
-  // Function to initialize the ledger with sample data (for testing)
+
   const initLedger = async () => {
     try {
       setLoading(true);
-      await axios.post(`${API_URL}/medicines/init`, {}, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setSuccessMessage('Ledger initialized with sample medicines!');
+      await axios.post(
+        `${API_URL}/medicines/init`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setSuccessMessage("Ledger initialized with sample medicines!");
       fetchMedicines(); // Refresh the list
     } catch (err) {
-      console.error('Error initializing ledger:', err);
-      setError('Failed to initialize ledger. Please try again later.');
+      console.error("Error initializing ledger:", err);
+      setError("Failed to initialize ledger. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -227,125 +251,139 @@ const ManufacturerDashboard = () => {
         <div className="dashboard-header">
           <h1>Manufacturer Dashboard</h1>
           <div className="user-info">
-            <p>Welcome, <strong>{user?.username}</strong> | {user?.organization}</p>
-            <button className="logout-btn" onClick={logout}>Logout</button>
+            <p>
+              Welcome, <strong>{user?.username}</strong> | {user?.organization}
+            </p>
+            <button className="logout-btn" onClick={logout}>
+              Logout
+            </button>
           </div>
         </div>
-        
+
         <div className="dashboard-section">
           <h2>Register New Medicine</h2>
           {formError && <div className="error-message">{formError}</div>}
-          {successMessage && <div className="success-message">{successMessage}</div>}
-          
+          {successMessage && (
+            <div className="success-message">{successMessage}</div>
+          )}
+
           <form className="medicine-form" onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="id">Medicine ID:</label>
-              <input 
-                type="text" 
-                id="id" 
-                name="id" 
-                value={newMedicine.id} 
+              <input
+                type="text"
+                id="id"
+                name="id"
+                value={newMedicine.id}
                 onChange={handleInputChange}
-                placeholder="e.g., MED123" 
+                placeholder="e.g., MED123"
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="name">Medicine Name:</label>
-              <input 
-                type="text" 
-                id="name" 
-                name="name" 
-                value={newMedicine.name} 
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={newMedicine.name}
                 onChange={handleInputChange}
-                placeholder="e.g., Paracetamol 500mg" 
+                placeholder="e.g., Paracetamol 500mg"
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="manufacturer">Manufacturer:</label>
-              <input 
-                type="text" 
-                id="manufacturer" 
-                name="manufacturer" 
-                value={newMedicine.manufacturer} 
+              <input
+                type="text"
+                id="manufacturer"
+                name="manufacturer"
+                value={newMedicine.manufacturer}
                 onChange={handleInputChange}
-                readOnly 
+                readOnly
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="batchNumber">Batch Number:</label>
-              <input 
-                type="text" 
-                id="batchNumber" 
-                name="batchNumber" 
-                value={newMedicine.batchNumber} 
+              <input
+                type="text"
+                id="batchNumber"
+                name="batchNumber"
+                value={newMedicine.batchNumber}
                 onChange={handleInputChange}
-                placeholder="e.g., PCL-2025-001" 
+                placeholder="e.g., PCL-2025-001"
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="manufacturingDate">Manufacturing Date:</label>
-              <input 
-                type="date" 
-                id="manufacturingDate" 
-                name="manufacturingDate" 
-                value={newMedicine.manufacturingDate} 
-                onChange={handleInputChange} 
+              <input
+                type="date"
+                id="manufacturingDate"
+                name="manufacturingDate"
+                value={newMedicine.manufacturingDate}
+                onChange={handleInputChange}
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="expirationDate">Expiration Date:</label>
-              <input 
-                type="date" 
-                id="expirationDate" 
-                name="expirationDate" 
-                value={newMedicine.expirationDate} 
-                onChange={handleInputChange} 
+              <input
+                type="date"
+                id="expirationDate"
+                name="expirationDate"
+                value={newMedicine.expirationDate}
+                onChange={handleInputChange}
               />
             </div>
-            
+
             <div className="form-group">
-              <label htmlFor="registrationLocation">Registration Location:</label>
+              <label htmlFor="registrationLocation">
+                Registration Location:
+              </label>
               <div className="location-input-group">
-                <input 
-                  type="text" 
-                  id="registrationLocation" 
-                  name="registrationLocation" 
-                  value={newMedicine.registrationLocation} 
+                <input
+                  type="text"
+                  id="registrationLocation"
+                  name="registrationLocation"
+                  value={newMedicine.registrationLocation}
                   onChange={handleInputChange}
-                  placeholder={isDetectingLocation ? "Detecting location..." : "Enter location"} 
+                  placeholder={
+                    isDetectingLocation
+                      ? "Detecting location..."
+                      : "Enter location"
+                  }
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="location-btn"
                   onClick={detectLocation}
                   disabled={isDetectingLocation}
                 >
-                  {isDetectingLocation ? 'Detecting...' : 'Detect Location'}
+                  {isDetectingLocation ? "Detecting..." : "Detect Location"}
                 </button>
               </div>
             </div>
-            
-            <button type="submit" className="submit-btn">Register Medicine</button>
+
+            <button type="submit" className="submit-btn">
+              Register Medicine
+            </button>
           </form>
         </div>
-        
+
         <div className="dashboard-section">
           <div className="section-header">
             <h2>Your Registered Medicines</h2>
-            <button 
-              className="action-btn init-btn" 
-              onClick={initLedger} 
+            <button
+              className="action-btn init-btn"
+              onClick={initLedger}
               disabled={loading}
             >
               Initialize Sample Data
             </button>
           </div>
-          
+
           {loading ? (
             <div className="loading">Loading medicines...</div>
           ) : error ? (
@@ -373,17 +411,31 @@ const ManufacturerDashboard = () => {
                         <td>{medicine.id}</td>
                         <td>{medicine.name}</td>
                         <td>{medicine.batchNumber}</td>
-                        <td>{new Date(medicine.manufacturingDate).toLocaleDateString()}</td>
-                        <td>{new Date(medicine.expirationDate).toLocaleDateString()}</td>
-                        <td className={medicine.flagged ? 'status-flagged' : 'status-normal'}>
+                        <td>
+                          {new Date(
+                            medicine.manufacturingDate
+                          ).toLocaleDateString()}
+                        </td>
+                        <td>
+                          {new Date(
+                            medicine.expirationDate
+                          ).toLocaleDateString()}
+                        </td>
+                        <td
+                          className={
+                            medicine.flagged
+                              ? "status-flagged"
+                              : "status-normal"
+                          }
+                        >
                           {medicine.status}
                         </td>
                         <td>
-                          <button 
+                          <button
                             className="action-btn"
                             onClick={() => toggleQRCode(medicine.id)}
                           >
-                            {showQR[medicine.id] ? 'Hide QR' : 'Show QR'}
+                            {showQR[medicine.id] ? "Hide QR" : "Show QR"}
                           </button>
                         </td>
                       </tr>
@@ -396,29 +448,45 @@ const ManufacturerDashboard = () => {
                                 <h4>Standard QR Code</h4>
                                 <QRCodeSVG value={medicine.qrCode} size={150} />
                                 <p>QR Code: {medicine.qrCode}</p>
-                                <p className="qr-note">This simple QR code can be scanned to verify the medicine, but doesn't include tamper-proof security features.</p>
+                                <p className="qr-note">
+                                  This simple QR code can be scanned to verify
+                                  the medicine, but doesn't include tamper-proof
+                                  security features.
+                                </p>
                               </div>
 
                               {/* Then show the secure QR code if available */}
                               {secureQRs[medicine.id] && (
                                 <div className="qr-section secure-qr-section">
                                   <h4>Secure QR Code (Recommended)</h4>
-                                  <QRCodeSVG value={secureQRs[medicine.id]} size={150} />
-                                  <p><strong>Secure QR Code:</strong></p>
-                                  <textarea 
-                                    readOnly 
+                                  <QRCodeSVG
+                                    value={secureQRs[medicine.id]}
+                                    size={150}
+                                  />
+                                  <p>
+                                    <strong>Secure QR Code:</strong>
+                                  </p>
+                                  <textarea
+                                    readOnly
                                     className="secure-qr-text"
                                     value={secureQRs[medicine.id]}
-                                    rows="4" 
+                                    rows="4"
                                     onClick={(e) => {
                                       e.target.select();
-                                      navigator.clipboard.writeText(e.target.value);
-                                      alert('Secure QR code copied to clipboard!');
+                                      navigator.clipboard.writeText(
+                                        e.target.value
+                                      );
+                                      alert(
+                                        "Secure QR code copied to clipboard!"
+                                      );
                                     }}
                                   />
                                   <p className="copy-hint">(Click to copy)</p>
                                   <p className="qr-note">
-                                    This cryptographically secure QR code includes tamper protection and can only be verified through the authorized supply chain.
+                                    This cryptographically secure QR code
+                                    includes tamper protection and can only be
+                                    verified through the authorized supply
+                                    chain.
                                   </p>
                                 </div>
                               )}

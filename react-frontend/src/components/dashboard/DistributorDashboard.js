@@ -72,10 +72,8 @@ const DistributorDashboard = () => {
     fetchMedicines();
   }, [user, navigate]);
 
-  // Initialize and cleanup the QR scanner
   useEffect(() => {
     if (showScanner) {
-      // Initialize scanner
       scannerRef.current = new Html5Qrcode(scannerContainerId);
 
       scannerRef.current
@@ -91,13 +89,12 @@ const DistributorDashboard = () => {
             setQrCode(decodedText);
             setShowScanner(false);
 
-            // Auto submit
             setTimeout(() => {
               handleVerify({ preventDefault: () => {} });
             }, 500);
           },
           (errorMessage) => {
-            // On Error - we can ignore most errors as they happen constantly during scanning
+            
             console.log(errorMessage);
           }
         )

@@ -1,4 +1,4 @@
-// react-frontend/src/context/AuthContext.js
+// src/context/AuthContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 
@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [organizations, setOrganizations] = useState([]);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -20,7 +21,20 @@ export const AuthProvider = ({ children }) => {
     }
     
     setLoading(false);
+    
+    // Fetch organizations when the component mounts
+    fetchOrganizations();
   }, []);
+
+  // Fetch organizations for registration form
+  const fetchOrganizations = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/auth/organizations');
+      setOrganizations(response.data);
+    } catch (err) {
+      console.error('Error fetching organizations:', err);
+    }
+  };
 
   const register = async (userData) => {
     try {
@@ -29,7 +43,15 @@ export const AuthProvider = ({ children }) => {
       
       const response = await axios.post('http://localhost:3000/api/auth/register', userData);
       
-      const { token, user } = response.data;
+      const { token } = response.data;
+      
+      // After registration, fetch user data to get full details including organization info
+      const userResponse = await axios.get('http://localhost:3000/api/auth/user', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      const user = userResponse.data;
+      
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
@@ -38,24 +60,32 @@ export const AuthProvider = ({ children }) => {
       
       return user;
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      const errorMessage = err.response?.data?.errors?.[0]?.msg || 
+                          err.response?.data?.message || 
+                          'Registration failed';
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
       setLoading(true);
       setError(null);
       
+      console.log("Login attempt initiated for:", email);
+      
       const response = await axios.post('http://localhost:3000/api/auth/login', {
-        username,
+        email,
         password
       });
       
       const { token, user } = response.data;
+      
+      console.log("Login successful, user data:", user);
+      
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
@@ -64,7 +94,11 @@ export const AuthProvider = ({ children }) => {
       
       return user;
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      console.error('Login error:', err);
+      const errorMessage = err.response?.data?.errors?.[0]?.msg || 
+                          err.response?.data?.message || 
+                          'Login failed. Please check your email and password.';
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -78,16 +112,30 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
+  // Check if user belongs to specific organization
+  const isFromOrganization = (organizationName) => {
+    return currentUser?.organization === organizationName;
+  };
+
+  // Check if user is admin of their organization
+  const isOrgAdmin = () => {
+    return currentUser?.isOrgAdmin === true;
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user: currentUser,
+        organizations,
         token: localStorage.getItem('token'),
         loading,
         error,
         register,
         login,
-        logout
+        logout,
+        isFromOrganization,
+        isOrgAdmin,
+        fetchOrganizations
       }}
     >
       {children}

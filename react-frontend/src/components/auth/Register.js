@@ -1,42 +1,90 @@
 // src/components/auth/Register.js
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import '../../styles/Auth.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
     password: '',
     confirmPassword: '',
-    email: '',
     role: '',
-    organization: ''
+    organization: '',
+    organizationCode: '',
+    newOrganization: false
   });
-  const { register, loading, error } = useContext(AuthContext);
+  
+  const { register, loading, error, organizations, fetchOrganizations } = useAuth();
   const navigate = useNavigate();
 
+  // Fetch organizations when component mounts
+  useEffect(() => {
+    fetchOrganizations();
+  }, [fetchOrganizations]);
+
+  // Filter organizations based on selected role
+  const filteredOrganizations = organizations.filter(org => {
+    if (formData.role === 'manufacturer') return org.type === 'manufacturer';
+    if (formData.role === 'distributor') return org.type === 'distributor';
+    return true;
+  });
+
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? checked : value
     });
+  };
+
+  const validateForm = () => {
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match');
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      alert('Password must be at least 6 characters');
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+    if (!validateForm()) {
       return;
     }
     
     try {
+      // Remove confirmPassword from data sent to server
       const { confirmPassword, ...registerData } = formData;
       await register(registerData);
-      navigate('/dashboard');
+      
+      // Redirect based on role
+      switch(registerData.role) {
+        case 'manufacturer':
+          navigate('/manufacturer');
+          break;
+        case 'distributor':
+          navigate('/distributor');
+          break;
+        case 'regulator':
+          navigate('/regulator');
+          break;
+        case 'enduser':
+          navigate('/enduser');
+          break;
+        default:
+          navigate('/dashboard');
+      }
     } catch (err) {
       console.error('Registration error:', err);
+      // Error is handled by the context
     }
   };
 
@@ -115,7 +163,7 @@ const Register = () => {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    minLength="8"
+                    minLength="6"
                     placeholder="Create a password"
                   />
                 </div>
@@ -128,7 +176,7 @@ const Register = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    minLength="8"
+                    minLength="6"
                     placeholder="Confirm your password"
                   />
                 </div>
@@ -150,19 +198,81 @@ const Register = () => {
                     <option value="enduser">End User</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="organization">Organization</label>
-                  <input
-                    type="text"
-                    id="organization"
-                    name="organization"
-                    value={formData.organization}
+              </div>
+              
+              {/* Organization section with new/existing toggle */}
+              <div className="form-row organization-section">
+                <div className="form-group checkbox-group">
+                  <input 
+                    type="checkbox" 
+                    id="newOrganization" 
+                    name="newOrganization" 
+                    checked={formData.newOrganization} 
                     onChange={handleChange}
-                    required
-                    placeholder="Your organization name"
                   />
+                  <label htmlFor="newOrganization">Create New Organization</label>
                 </div>
               </div>
+              
+              {!formData.newOrganization ? (
+                <div className="form-group">
+                  <label htmlFor="organization">Select Organization</label>
+                  <select 
+                    id="organization" 
+                    name="organization" 
+                    value={formData.organization} 
+                    onChange={handleChange}
+                    required
+                    disabled={!formData.role || filteredOrganizations.length === 0}
+                  >
+                    <option value="">-- Select Organization --</option>
+                    {filteredOrganizations.map(org => (
+                      <option key={org._id} value={org.name}>
+                        {org.name}
+                      </option>
+                    ))}
+                  </select>
+                  {formData.role && filteredOrganizations.length === 0 && (
+                    <p className="help-text">No organizations found for this role. Create a new one.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="organization">Organization Name</label>
+                    <input 
+                      type="text" 
+                      id="organization" 
+                      name="organization" 
+                      value={formData.organization} 
+                      onChange={handleChange} 
+                      placeholder="Enter organization name"
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+              
+              <div className="form-group">
+                <label htmlFor="organizationCode">
+                  {formData.newOrganization ? 'Create Organization Code' : 'Organization Code'}
+                </label>
+                <input 
+                  type="password" 
+                  id="organizationCode" 
+                  name="organizationCode" 
+                  value={formData.organizationCode} 
+                  onChange={handleChange} 
+                  placeholder={formData.newOrganization ? "Create a secure code" : "Enter organization code"}
+                  required
+                />
+                <p className="help-text">
+                  {formData.newOrganization 
+                    ? 'This code will be used for others to join your organization' 
+                    : 'Required to join the organization'}
+                </p>
+              </div>
+              
               <button
                 type="submit"
                 className="auth-button"

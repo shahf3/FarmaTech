@@ -10,11 +10,47 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("./models/User");
-
+const medicineRoutes = require('./routes/medicines');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const authRoutes = require("./routes/auth");
+
+// Helper function to verify QR code
+function verifyQRCode(qrContent, secretKey) {
+    try {
+      // Parse QR content
+      const data = JSON.parse(qrContent);
+  
+      // Extract signature
+      const { signature, ...baseContent } = data;
+  
+      // Re-compute HMAC
+      const contentString = JSON.stringify(baseContent);
+      const expectedHmac = crypto
+        .createHmac("sha256", secretKey)
+        .update(contentString)
+        .digest("hex");
+  
+      // Verify signature matches
+      if (signature !== expectedHmac) {
+        return { valid: false, reason: "Invalid signature" };
+      }
+  
+      // Check for expired QR code (optional - e.g., codes older than 30 days)
+      const now = Date.now();
+      if (now - data.timestamp > 30 * 24 * 60 * 60 * 1000) {
+        return { valid: false, reason: "QR code expired" };
+      }
+  
+      return { valid: true, blockchainQR: data.blockchainQR };
+    } catch (error) {
+      return { valid: false, reason: "Invalid QR format" };
+    }
+  }
+  
+  // Export the function if needed elsewhere
+  module.exports.verifyQRCode = verifyQRCode;
 
 // Add this new endpoint for secure QR verification
 app.post("/api/medicines/verify-secure", async (req, res) => {
@@ -196,8 +232,38 @@ app.get("/api/auth/user", async (req, res) => {
     res.status(401).json({ message: "Token is not valid" });
   }
 });
+app.use('/api/medicines', medicineRoutes);
 
-// ================ MEDICINE CONTRACT API ENDPOINTS ================
+// Serve static files (React frontend build and public folder)
+app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "..", "react-frontend", "build")));
+
+// Handle root route (serving React app)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Handle all other non-API routes by serving the React app's index.html
+app.get("*", (req, res) => {
+  // Exclude API routes from this wildcard
+  if (!req.url.startsWith("/api")) {
+    res.sendFile(
+      path.join(__dirname, "..", "react-frontend", "build", "index.html")
+    );
+  } else {
+    res.status(404).send("API route not found");
+  }
+});
+
+// Start the server
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(
+    `FarmaTech API is now available with medicine-contract integration`
+  );
+});
+
+/*// ================ MEDICINE CONTRACT API ENDPOINTS ================
 
 // Initialize the ledger with sample medicines
 app.post("/api/medicines/init", async (req, res) => {
@@ -945,34 +1011,4 @@ app.get("/api/test/secure-qr/:id", async (req, res) => {
     console.error(`Test QR generation failed: ${error}`);
     res.status(500).json({ error: error.message });
   }
-});
-
-// Serve static files (React frontend build and public folder)
-app.use(express.static(path.join(__dirname, "public")));
-app.use(express.static(path.join(__dirname, "..", "react-frontend", "build")));
-
-// Handle root route (serving React app)
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// Handle all other non-API routes by serving the React app's index.html
-app.get("*", (req, res) => {
-  // Exclude API routes from this wildcard
-  if (!req.url.startsWith("/api")) {
-    res.sendFile(
-      path.join(__dirname, "..", "react-frontend", "build", "index.html")
-    );
-  } else {
-    res.status(404).send("API route not found");
-  }
-});
-
-// Start the server
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(
-    `FarmaTech API is now available with medicine-contract integration`
-  );
-});
-
+});*/

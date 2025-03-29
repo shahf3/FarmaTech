@@ -8,10 +8,11 @@ import './styles/Home.css';
 //import './styles/Animations.css';
 import './styles/EnhancedUI.css';
 import Home from './components/Home';
-import Login from './components/Login';
+import Login from './components/auth/Login';
 import AboutUs from './components/AboutUs';
 import Register from './components/auth/Register';
 import Unauthorized from './components/common/Unauthorized';
+import './services/medicineApi';
 
 // Dashboard components
 import Dashboard from './components/dashboard/Dashboard';

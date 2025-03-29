@@ -26,6 +26,20 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  isOrgAdmin: {
+    type: Boolean,
+    default: false
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  lastLogin: {
+    type: Date
+  },
+  profileImage: {
+    type: String
+  },
   createdAt: {
     type: Date,
     default: Date.now

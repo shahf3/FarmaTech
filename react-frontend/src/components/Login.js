@@ -1,12 +1,12 @@
-// src/components/auth/Login.js
+// src/components/Login.js
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import '../../styles/Auth.css';
+import { useAuth } from '../context/AuthContext';
+import '../styles/Auth.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
   const { login, loading, error } = useAuth();
@@ -21,12 +21,12 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempt initiated for:", formData.email);
+    console.log("Login attempt initiated for:", formData.username);
     try {
-      const user = await login(formData.email, formData.password);
+      const user = await login(formData.username, formData.password);
       console.log("Login successful, user data:", user);
       // Redirect based on user role
-      if (user && user.role) {
+      if (user  && user.role) {
         console.log(`Redirecting to ${user.role} dashboard`);
 
         switch(user.role) {
@@ -101,15 +101,15 @@ const Login = () => {
             {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="username">Username</label>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  id="username"
+                  name="username"
+                  value={formData.username}
                   onChange={handleChange}
                   required
-                  placeholder="Enter your email"
+                  placeholder="Enter your username"
                 />
               </div>
               <div className="form-group">

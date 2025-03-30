@@ -1,0 +1,294 @@
+// src/components/Sidebar.js
+import React, { useState } from 'react';
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, ListSubheader, Collapse } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import MenuIcon from '@mui/icons-material/Menu';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import BusinessIcon from '@mui/icons-material/Business';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import GavelIcon from '@mui/icons-material/Gavel';
+import PersonIcon from '@mui/icons-material/Person';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import StorageIcon from '@mui/icons-material/Storage';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import LogoutIcon from '@mui/icons-material/Logout';
+
+function Sidebar() {
+  const { user, logout } = useAuth();
+  const { themeMode, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [manufacturerOpen, setManufacturerOpen] = useState(false);
+  const [distributorOpen, setDistributorOpen] = useState(false);
+  const [regulatorOpen, setRegulatorOpen] = useState(false);
+  const [endUserOpen, setEndUserOpen] = useState(false);
+
+  const toggleDrawer = () => {
+    setOpen(!open);
+  };
+
+  const toggleManufacturer = () => {
+    setManufacturerOpen(!manufacturerOpen);
+  };
+
+  const toggleDistributor = () => {
+    setDistributorOpen(!distributorOpen);
+  };
+
+  const toggleRegulator = () => {
+    setRegulatorOpen(!regulatorOpen);
+  };
+
+  const toggleEndUser = () => {
+    setEndUserOpen(!endUserOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    toggleDrawer();
+  };
+
+  return (
+    <>
+      {/* Fixed menu icon in top left */}
+      <div style={{ position: 'fixed', top: '16px', left: '16px', zIndex: 1200 }}>
+        <IconButton onClick={toggleDrawer} color="inherit" aria-label="menu">
+          <MenuIcon />
+        </IconButton>
+      </div>
+
+      {/* Sidebar Drawer */}
+      <Drawer
+        anchor="left"
+        open={open}
+        onClose={toggleDrawer}
+        sx={{
+          '& .MuiDrawer-paper': {
+            borderTopRightRadius: '16px',
+            borderBottomRightRadius: '16px',
+          },
+        }}
+      >
+        <div style={{ width: 250 }}>
+          {/* FarmaTech Title */}
+          <div className="sidebar-title">
+            <h1>FarmaTech</h1>
+            {user && (
+              <p className="welcome-message">
+                Welcome {user.username} | {user.org}
+              </p>
+            )}
+          </div>
+
+          <List>
+            {/* Theme Toggle */}
+            <ListItem button onClick={toggleTheme}>
+              <ListItemIcon>
+                {themeMode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+              </ListItemIcon>
+              <ListItemText primary={themeMode === 'light' ? 'Dark Mode' : 'Light Mode'} />
+            </ListItem>
+
+            {/* Dashboard (Top-level item) */}
+            <ListItem button component={Link} to="/dashboard" onClick={toggleDrawer}>
+              <ListItemIcon>
+                <DashboardIcon />
+              </ListItemIcon>
+              <ListItemText primary="Dashboard" />
+            </ListItem>
+
+            {/* Manufacturer Section */}
+            {user?.role === 'manufacturer' && (
+              <>
+                <ListSubheader className="sidebar-subheader">Manufacturer</ListSubheader>
+                <ListItem button onClick={toggleManufacturer} className="sidebar-heading">
+                  <ListItemIcon>
+                    <BusinessIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Manufacturer" />
+                  {manufacturerOpen ? <ExpandLess className="dropdown-icon" /> : <ExpandMore className="dropdown-icon" />}
+                </ListItem>
+                <Collapse in={manufacturerOpen} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    <ListItem
+                      button
+                      sx={{ pl: 4, color: 'inherit' }}
+                      component={Link}
+                      to="/manufacturer/register"
+                      onClick={toggleDrawer}
+                      className="register-medicines-btn"
+                    >
+                      <ListItemIcon>
+                        <AddCircleIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Register New Medicine" />
+                    </ListItem>
+                    <ListItem
+                      button
+                      sx={{ pl: 4, color: 'inherit' }}
+                      component={Link}
+                      to="/manufacturer/view"
+                      onClick={toggleDrawer}
+                    >
+                      <ListItemIcon>
+                        <ListAltIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="View Registered Medicines" />
+                    </ListItem>
+                  </List>
+                </Collapse>
+              </>
+            )}
+
+            {/* Distributor Section */}
+            {user?.role === 'distributor' && (
+              <>
+                <ListSubheader className="sidebar-subheader">Distributor</ListSubheader>
+                <ListItem button onClick={toggleDistributor} className="sidebar-heading">
+                  <ListItemIcon>
+                    <LocalShippingIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Distributor" />
+                  {distributorOpen ? <ExpandLess className="dropdown-icon" /> : <ExpandMore className="dropdown-icon" />}
+                </ListItem>
+                <Collapse in={distributorOpen} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    <ListItem
+                      button
+                      sx={{ pl: 4, color: 'inherit' }}
+                      component={Link}
+                      to="/distributor/scan"
+                      onClick={toggleDrawer}
+                    >
+                      <ListItemIcon>
+                        <QrCodeScannerIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Scan QR Code" />
+                    </ListItem>
+                    <ListItem
+                      button
+                      sx={{ pl: 4, color: 'inherit' }}
+                      component={Link}
+                      to="/distributor/inventory"
+                      onClick={toggleDrawer}
+                    >
+                      <ListItemIcon>
+                        <ListAltIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Medicines in Your Inventory" />
+                    </ListItem>
+                  </List>
+                </Collapse>
+              </>
+            )}
+
+            {/* Regulator Section */}
+            {user?.role === 'regulator' && (
+              <>
+                <ListSubheader className="sidebar-subheader">Regulator</ListSubheader>
+                <ListItem button onClick={toggleRegulator} className="sidebar-heading">
+                  <ListItemIcon>
+                    <GavelIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Regulator" />
+                  {regulatorOpen ? <ExpandLess className="dropdown-icon" /> : <ExpandMore className="dropdown-icon" />}
+                </ListItem>
+                <Collapse in={regulatorOpen} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    <ListItem
+                      button
+                      sx={{ pl: 4, color: 'inherit' }}
+                      component={Link}
+                      to="/regulator"
+                      onClick={toggleDrawer}
+                    >
+                      <ListItemIcon>
+                        <GavelIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Dashboard" />
+                    </ListItem>
+                  </List>
+                </Collapse>
+              </>
+            )}
+
+            {/* End User Section */}
+            {user?.role === 'enduser' && (
+              <>
+                <ListSubheader className="sidebar-subheader">End User</ListSubheader>
+                <ListItem button onClick={toggleEndUser} className="sidebar-heading">
+                  <ListItemIcon>
+                    <PersonIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="End User" />
+                  {endUserOpen ? <ExpandLess className="dropdown-icon" /> : <ExpandMore className="dropdown-icon" />}
+                </ListItem>
+                <Collapse in={endUserOpen} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    <ListItem
+                      button
+                      sx={{ pl: 4, color: 'inherit' }}
+                      component={Link}
+                      to="/enduser"
+                      onClick={toggleDrawer}
+                    >
+                      <ListItemIcon>
+                        <PersonIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Dashboard" />
+                    </ListItem>
+                  </List>
+                </Collapse>
+              </>
+            )}
+
+            {/* Other Top-Level Items */}
+            <ListSubheader className="sidebar-subheader">Other</ListSubheader>
+            <ListItem button component={Link} to="/assets" onClick={toggleDrawer}>
+              <ListItemIcon>
+                <ListAltIcon />
+              </ListItemIcon>
+              <ListItemText primary="Assets" />
+            </ListItem>
+            {user?.role === 'manufacturer' && (
+              <ListItem button component={Link} to="/create-asset" onClick={toggleDrawer}>
+                <ListItemIcon>
+                  <AddCircleIcon />
+                </ListItemIcon>
+                <ListItemText primary="Create Asset" />
+              </ListItem>
+            )}
+            {(user?.role === 'manufacturer' || user?.role === 'regulator') && (
+              <ListItem button component={Link} to="/init-ledger" onClick={toggleDrawer}>
+                <ListItemIcon>
+                  <StorageIcon />
+                </ListItemIcon>
+                <ListItemText primary="Init Ledger" />
+              </ListItem>
+            )}
+
+            {/* Logout Button at the Bottom */}
+            {user && (
+              <ListItem button onClick={handleLogout}>
+                <ListItemIcon>
+                  <LogoutIcon />
+                </ListItemIcon>
+                <ListItemText primary="Logout" />
+              </ListItem>
+            )}
+          </List>
+        </div>
+      </Drawer>
+    </>
+  );
+}
+
+export default Sidebar;

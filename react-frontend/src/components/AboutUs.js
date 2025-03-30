@@ -2,6 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/AboutUs.css";
+import Header from "./Header";
 
 const AboutUs = () => {
   return (
@@ -12,33 +13,9 @@ const AboutUs = () => {
         <div className="shape shape-3"></div>
       </div>
 
-      <header className="home-header">
-        <div className="logo">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="12" y1="8" x2="12" y2="16"></line>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
-          </svg>
-          <span>FarmaTech</span>
-        </div>
-        <nav className="nav-links">
-          <Link to="/#features">Features</Link>
-          <Link to="/about">About</Link>
-          <Link to="/#contact">Contact</Link>
-          <Link to="/register" className="register-btn">
-            Register
-          </Link>
-        </nav>
-      </header>
-
+      <Header />
+      <div className="header-spacer"></div>
+      
       <section className="about-hero">
         <div className="about-hero-content">
           <h1>About FarmaTech</h1>

@@ -1,6 +1,4 @@
-/* Update in Home.css, in the :root section */
 :root {
-  /* Light mode variables */
   --primary-blue: #1e88e5;
   --primary-green: #00796b;
   --primary-dark: #263238;
@@ -17,11 +15,10 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-  /* Additional variables for consistency */
   --background-primary: #f5f7fa;
   --background-secondary: #e8eaf6;
   --background-card: #ffffff;
-  --text-primary: #000000; /* Updated to pure black */
+  --text-primary: #000000;
   --text-secondary-light: #607d8b;
   --button-primary-bg: #1e88e5;
   --button-primary-text: #ffffff;
@@ -33,15 +30,13 @@
   --success-bg: rgba(39, 174, 96, 0.1);
   --success-text: #27ae60;
   --disabled-bg: linear-gradient(135deg, #90caf9 0%, #80cbc4 100%);
-  /* New variables */
-  --heading-color: #000000; /* Updated to pure black */
+  --heading-color: #000000;
   --input-bg: #ffffff;
   --vibrant-dark-blue: #1976d2;
   --label-color: #607d8b;
 }
 
 [data-theme="dark"] {
-  /* Dark mode variables */
   --primary-blue: #90caf9;
   --primary-green: #80cbc4;
   --primary-dark: #b0bec5;
@@ -58,11 +53,10 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
-  /* Additional variables for consistency */
   --background-primary: #121212;
   --background-secondary: #1e1e1e;
   --background-card: #1e1e1e;
-  --text-primary: #ffffff; /* Already white */
+  --text-primary: #ffffff;
   --text-secondary-light: #b0bec5;
   --button-primary-bg: #90caf9;
   --button-primary-text: #000000;
@@ -74,14 +68,12 @@
   --success-bg: rgba(129, 199, 132, 0.2);
   --success-text: #81c784;
   --disabled-bg: linear-gradient(135deg, #4a6b88 0%, #4a7b78 100%);
-  /* New variables for dark mode */
-  --heading-color: #ffffff; /* Already white */
+  --heading-color: #ffffff;
   --input-bg: #2a2a2a;
   --vibrant-dark-blue: #1976d2;
   --label-color: #ffffff;
 }
 
-/* Sidebar Title */
 .sidebar-title {
   padding: 1.5rem 1rem;
   text-align: center;

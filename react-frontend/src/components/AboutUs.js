@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/AboutUs.css";
 import Header from "./Header";
+import Footer from "./Footer";
 
 const AboutUs = () => {
   return (
@@ -15,7 +16,7 @@ const AboutUs = () => {
 
       <Header />
       <div className="header-spacer"></div>
-      
+
       <section className="about-hero">
         <div className="about-hero-content">
           <h1>About FarmaTech</h1>
@@ -441,58 +442,7 @@ const AboutUs = () => {
         </div>
       </section>
 
-      <footer className="home-footer">
-        <div className="footer-content">
-          <div className="footer-logo">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="12" y1="8" x2="12" y2="16"></line>
-              <line x1="8" y1="12" x2="16" y2="12"></line>
-            </svg>
-            <span>FarmaTech</span>
-          </div>
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Platform</h4>
-              <a href="/#features">How it Works</a>
-              <a href="/#features">Features</a>
-              <a href="/#">Security</a>
-              <a href="/#">Pricing</a>
-            </div>
-            <div className="footer-column">
-              <h4>Company</h4>
-              <Link to="/about">About Us</Link>
-              <a href="/#">Careers</a>
-              <a href="/#contact">Contact</a>
-              <a href="/#">Blog</a>
-            </div>
-            <div className="footer-column">
-              <h4>Resources</h4>
-              <a href="/#">Documentation</a>
-              <a href="/#">API</a>
-              <a href="/#">Support</a>
-              <a href="/#">Community</a>
-            </div>
-            <div className="footer-column">
-              <h4>Legal</h4>
-              <a href="/#">Privacy Policy</a>
-              <a href="/#">Terms of Service</a>
-              <a href="/#">Compliance</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; 2025 FarmaTech. All rights reserved.</p>
-        </div>
-      </footer>
+     <Footer />
     </div>
   );
 };

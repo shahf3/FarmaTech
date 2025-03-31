@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import "../styles/Home.css";
 import Header from "./Header";
+import Footer from "./Footer"; 
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -411,47 +412,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Footer (New) */}
-      <footer className="home-footer">
-        <div className="footer-content">
-          <div className="footer-logo">
-            <div className="logo-icon">FT</div>
-            <span className="logo-text">FarmaTech</span>
-          </div>
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Platform</h4>
-              <a href="#features">Features</a>
-              <a href="#features">How it Works</a>
-              <a href="#">Security</a>
-              <a href="#">Pricing</a>
-            </div>
-            <div className="footer-column">
-              <h4>Company</h4>
-              <Link to="/about">About Us</Link>
-              <a href="#">Careers</a>
-              <a href="#">Contact</a>
-              <a href="#">Blog</a>
-            </div>
-            <div className="footer-column">
-              <h4>Resources</h4>
-              <a href="#">Documentation</a>
-              <a href="#">API</a>
-              <a href="#">Support</a>
-              <a href="#">Community</a>
-            </div>
-            <div className="footer-column">
-              <h4>Legal</h4>
-              <a href="#">Privacy Policy</a>
-              <a href="#">Terms of Service</a>
-              <a href="#">Compliance</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; 2025 FarmaTech. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

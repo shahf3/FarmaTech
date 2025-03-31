@@ -1,24 +1,20 @@
-// src/components/Footer.js
 import React from "react";
 import { Link } from "react-router-dom";
+import "../styles/Footer.css";
 
 const Footer = () => {
   return (
     <footer className="home-footer">
       <div className="footer-content">
         <div className="footer-logo">
-          <img
-            src="/FarmatechLogo.jpg"
-            alt="FarmaTech Logo"
-            className="footer-logo-image"
-          />
-          <span>FarmaTech</span>
+          <div className="logo-icon">FT</div>
+          <span className="logo-text">FarmaTech</span>
         </div>
         <div className="footer-links">
           <div className="footer-column">
             <h4>Platform</h4>
-            <a href="#features">How it Works</a>
             <a href="#features">Features</a>
+            <a href="#features">How it Works</a>
             <a href="#">Security</a>
             <a href="#">Pricing</a>
           </div>

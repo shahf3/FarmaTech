@@ -1,0 +1,118 @@
+.home-footer {
+    background-color: var(--background-secondary);
+    padding: 5rem 5% 2rem;
+    color: var(--text-primary);
+  }
+  
+  .footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 3rem;
+  }
+  
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .footer-logo .logo-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    font-weight: 700;
+    font-size: 18px;
+    margin-right: 10px;
+    box-shadow: 0 3px 10px rgba(30, 136, 229, 0.3);
+  }
+  
+  .footer-logo .logo-text {
+    font-size: 22px;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3rem;
+  }
+  
+  .footer-column {
+    min-width: 160px;
+  }
+  
+  .footer-column h4 {
+    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+    color: var(--heading-color);
+    position: relative;
+    display: inline-block;
+  }
+  
+  .footer-column h4::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: var(--primary-gradient);
+  }
+  
+  .footer-column a {
+    display: block;
+    color: var(--text-secondary-light);
+    margin-bottom: 0.8rem;
+    transition: color 0.3s, transform 0.3s;
+    text-decoration: none;
+  }
+  
+  .footer-column a:hover {
+    color: var(--primary-blue);
+    transform: translateX(3px);
+  }
+  
+  .footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    margin-top: 3rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--text-secondary-light);
+    font-size: 0.9rem;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .footer-content {
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    .footer-links {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .footer-links {
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    .footer-column {
+      width: 100%;
+    }
+  }

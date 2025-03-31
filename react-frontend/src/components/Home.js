@@ -3,7 +3,6 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import "../styles/Home.css";
-import Header from "./Header";
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -131,14 +130,8 @@ const Home = () => {
         <div className="shape shape-1"></div>
         <div className="shape shape-2"></div>
         <div className="shape shape-3"></div>
-        <div className="shape shape-4"></div>
       </div>
 
-      <Header />
-      
-      {/* Add a header spacer to prevent content from being hidden under fixed header */}
-      <div className="header-spacer"></div>
-      
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
@@ -157,54 +150,49 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="login-card-container">
-          <div className="login-card">
-            <h2>Sign In</h2>
-            {error && <div className="error-message">{error}</div>}
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="username">Username</label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter your username"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter your password"
-                />
-              </div>
-              <button type="submit" className="login-btn" disabled={loading}>
-                {loading ? "Signing in..." : "Sign In"}
-              </button>
-            </form>
-            <div className="auth-links">
-              <p>
-                New to FarmaTech? <Link to="/register">Create Account</Link>
-              </p>
+        <div className="login-card">
+          <h2>Sign In</h2>
+          {error && <div className="error-message">{error}</div>}
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                placeholder="Enter your username"
+              />
             </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                placeholder="Enter your password"
+              />
+            </div>
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+          <div className="auth-links">
+            <p>
+              New to FarmaTech? <Link to="/register">Create Account</Link>
+            </p>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
       <section id="features" className="features-section">
-        <div className="section-header">
-          <h2>Blockchain-Powered Medicine Security</h2>
-          <div className="section-divider"></div>
-        </div>
+        <h2>Blockchain-Powered Medicine Security</h2>
         <div className="features-container">
           <div className="features-carousel">
             {features.map((feature, index) => (
@@ -235,10 +223,7 @@ const Home = () => {
 
       {/* How It Works Section */}
       <section className="how-it-works">
-        <div className="section-header">
-          <h2>How FarmaTech Works</h2>
-          <div className="section-divider"></div>
-        </div>
+        <h2>How FarmaTech Works</h2>
         <div className="steps-container">
           <div className="step">
             <div className="step-number">1</div>
@@ -277,10 +262,7 @@ const Home = () => {
 
       {/* User Types Section */}
       <section className="user-types">
-        <div className="section-header">
-          <h2>Who Uses FarmaTech</h2>
-          <div className="section-divider"></div>
-        </div>
+        <h2>Who Uses FarmaTech</h2>
         <div className="user-types-grid">
           <div className="user-type">
             <div className="user-icon manufacturer-icon">
@@ -371,32 +353,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Statistics Section (New) */}
-      <section className="statistics-section">
-        <div className="section-header">
-          <h2>FarmaTech Impact</h2>
-          <div className="section-divider"></div>
-        </div>
-        <div className="stats-container">
-          <div className="stat-item">
-            <div className="stat-value">100%</div>
-            <p>Verification Accuracy</p>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">90%</div>
-            <p>Reduction in Counterfeits</p>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">24/7</div>
-            <p>Continuous Monitoring</p>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">15+</div>
-            <p>Countries Served</p>
-          </div>
-        </div>
-      </section>
-
       {/* Call To Action */}
       <section className="cta-section">
         <div className="cta-content">
@@ -410,48 +366,6 @@ const Home = () => {
           </Link>
         </div>
       </section>
-
-      {/* Footer (New) */}
-      <footer className="home-footer">
-        <div className="footer-content">
-          <div className="footer-logo">
-            <div className="logo-icon">FT</div>
-            <span className="logo-text">FarmaTech</span>
-          </div>
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Platform</h4>
-              <a href="#features">Features</a>
-              <a href="#features">How it Works</a>
-              <a href="#">Security</a>
-              <a href="#">Pricing</a>
-            </div>
-            <div className="footer-column">
-              <h4>Company</h4>
-              <Link to="/about">About Us</Link>
-              <a href="#">Careers</a>
-              <a href="#">Contact</a>
-              <a href="#">Blog</a>
-            </div>
-            <div className="footer-column">
-              <h4>Resources</h4>
-              <a href="#">Documentation</a>
-              <a href="#">API</a>
-              <a href="#">Support</a>
-              <a href="#">Community</a>
-            </div>
-            <div className="footer-column">
-              <h4>Legal</h4>
-              <a href="#">Privacy Policy</a>
-              <a href="#">Terms of Service</a>
-              <a href="#">Compliance</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; 2025 FarmaTech. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 };

@@ -6,8 +6,10 @@ const { Gateway, Wallets } = require('fabric-network');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-
 const { verifyToken, checkRole, checkOrganization } = require('../middleware/auth');
+const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
+const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
+const { isAuthorizedToScan, flagMedicineForUnauthorizedAccess, recordSecurityIncident } = require('../utils/securityUtils');
 
 // Helper function to generate secure QR code
 function generateSecureQRCode(medicine, secretKey) {
@@ -73,33 +75,40 @@ function verifyQRCode(qrContent, secretKey) {
 // @route   GET api/medicines/verify/:qrCode
 // @desc    Verify medicine by QR code and record scanning activity
 // @access  Private
+// Add this to your routes/medicines.js file
+// GET endpoint for regular QR code verification
+
 router.get('/verify/:qrCode', verifyToken, async (req, res) => {
+  try {
+    const { qrCode } = req.params;
+    console.log(`Verifying medicine with QR code: ${qrCode} by ${req.user.username}`);
+    
+    // Validate QR code format
+    if (!qrCode || !qrCode.startsWith('QR-')) {
+      return res.status(400).json({ 
+        error: 'Invalid QR code format. QR codes should start with "QR-"' 
+      });
+    }
+
+    // Get location from headers or default to Unknown
+    const location = req.headers['x-user-location'] || 'Unknown location';
+
+    // Load the connection profile
+    const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
+    const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
+
+    const walletPath = path.join(__dirname, "../wallet");
+    const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+    const identity = await wallet.get("appUser");
+    if (!identity) {
+      return res.status(400).json({ 
+        error: 'User "appUser" does not exist in the wallet' 
+      });
+    }
+
+    const gateway = new Gateway();
     try {
-      const { qrCode } = req.params;
-      console.log(`Verifying medicine with QR code: ${qrCode}`);
-      
-      // Check if QR code has the correct format
-      if (!qrCode.startsWith('QR-')) {
-        return res.status(400).json({ 
-          error: 'Invalid QR code format. QR codes should start with "QR-"' 
-        });
-      }
-  
-      // Load the connection profile
-      const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
-      const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
-  
-      const walletPath = path.join(__dirname, "../wallet");
-      const wallet = await Wallets.newFileSystemWallet(walletPath);
-  
-      const identity = await wallet.get("appUser");
-      if (!identity) {
-        return res
-          .status(400)
-          .json({ error: 'User "appUser" does not exist in the wallet' });
-      }
-  
-      const gateway = new Gateway();
       await gateway.connect(ccp, {
         wallet,
         identity: "appUser",
@@ -108,131 +117,237 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
   
       const network = await gateway.getNetwork("mychannel");
       const contract = network.getContract("medicine-contract");
-  
-      // Verify medicine using the QR code
-      console.log(`Calling chaincode with QR code: ${qrCode}`);
-      const result = await contract.evaluateTransaction("VerifyMedicine", qrCode);
-      console.log(`Chaincode response received`);
-  
-      const medicine = JSON.parse(result.toString());
       
-      // Check authorization to determine if this scan should be flagged
-      const isAuthorized = 
-        req.user.role === 'manufacturer' || 
-        req.user.role === 'distributor' || 
-        req.user.role === 'regulator' ||
-        (req.user.role === 'enduser' && medicine.status === 'Dispensed');
+      // Find the medicine by QR code 
+      // First, get all medicines
+      console.log(`Getting all medicines to find QR code: ${qrCode}`);
+      const allMedicinesResult = await contract.evaluateTransaction("GetAllMedicines");
+      const allMedicines = JSON.parse(allMedicinesResult.toString());
       
-      const isOwnerOrManufacturer = 
-        req.user.organization === medicine.currentOwner || 
-        req.user.organization === medicine.manufacturer;
+      // Find the medicine with matching QR code
+      const medicine = allMedicines.find(med => med.qrCode === qrCode);
       
-      // For unauthorized scans, flag the medicine
+      if (!medicine) {
+        await gateway.disconnect();
+        return res.status(404).json({ error: `Medicine with QR code ${qrCode} not found` });
+      }
+      
+      console.log(`Found medicine: ${medicine.id} with QR code: ${qrCode}`);
+      
+      // Now get the full medicine details by ID for consistency
+      const result = await contract.evaluateTransaction("GetMedicine", medicine.id);
+      let medicineData = JSON.parse(result.toString());
+      
+      // Determine if the user is authorized to scan this medicine
+      const isAuthorized = isAuthorizedScan(req.user, medicineData);
+      console.log(`Scan authorization: ${isAuthorized ? 'Authorized' : 'UNAUTHORIZED'}`);
+      
+      // For unauthorized scans, flag the medicine automatically
       if (!isAuthorized) {
-        console.log(`Unauthorized scan detected by ${req.user.username} (${req.user.role}) from ${req.user.organization}`);
+        console.warn(`SECURITY ALERT: Unauthorized scan detected - User: ${req.user.username}, Role: ${req.user.role}, Org: ${req.user.organization}, Medicine: ${medicineData.id}`);
         
-        // Auto-flag the medicine
         try {
-          // Get user location from headers if provided, otherwise use a default
-          const location = req.headers['x-user-location'] || 'Unknown location';
+          // Create detailed flag reason
+          const flagReason = `Unauthorized scan by ${req.user.role} (${req.user.username}) from ${req.user.organization}`;
           
+          // Submit the transaction to flag the medicine
           const flagResult = await contract.submitTransaction(
             "FlagMedicine",
-            medicine.id,
+            medicineData.id,
             req.user.organization,
-            `Unauthorized scan by ${req.user.role} (${req.user.username})`,
+            flagReason,
             location
           );
           
-          console.log(`Medicine ${medicine.id} auto-flagged due to unauthorized scan`);
+          // Update medicine with flag information from blockchain
+          medicineData = JSON.parse(flagResult.toString());
           
-          // Update the medicine object with flag information
-          medicine.flagged = true;
-          medicine.flagNotes = `Unauthorized scan by ${req.user.role} (${req.user.username})`;
-          medicine.status = 'Flagged';
+          // Add unauthorized scan details for frontend display
+          medicineData.unauthorizedScanDetails = {
+            scannerUsername: req.user.username,
+            scannerRole: req.user.role,
+            scannerOrganization: req.user.organization,
+            location: location,
+            timestamp: new Date().toISOString()
+          };
           
-          // Add warning message to the response
-          medicine.securityWarning = "This medicine has been automatically flagged due to unauthorized access";
+          // Record the security incident
+          try {
+            const SecurityIncident = require('../models/SecurityIncident');
+            const incident = new SecurityIncident({
+              medicineId: medicineData.id,
+              medicineName: medicineData.name,
+              batchNumber: medicineData.batchNumber,
+              incidentType: 'unauthorized_scan',
+              severity: req.user.role === 'distributor' ? 'high' : 'medium',
+              scanner: {
+                userId: req.user.id,
+                username: req.user.username,
+                role: req.user.role,
+                organization: req.user.organization
+              },
+              details: {
+                location: location,
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'],
+                notes: `Unauthorized scan detected and medicine flagged`
+              },
+              medicineStatus: {
+                beforeIncident: 'Normal',
+                afterIncident: 'Flagged'
+              },
+              flaggedInBlockchain: true,
+              timestamp: new Date()
+            });
+            
+            await incident.save();
+          } catch (incidentError) {
+            console.error('Error recording security incident:', incidentError);
+            // Continue even if recording incident fails
+          }
+          
+          console.log(`Medicine ${medicineData.id} auto-flagged due to unauthorized scan`);
         } catch (flagError) {
-          console.error(`Error auto-flagging medicine: ${flagError}`);
+          console.error(`Error auto-flagging medicine:`, flagError);
           // Continue with the response even if flagging fails
         }
       } else {
-        // For authorized scans, record the scan activity in supply chain
+        // For authorized scans, try to record the scan event
         try {
-          // Only record scans that are authorized but not already from the current owner
-          // This prevents recording repeated scans by the same entity
-          if (!medicine.supplyChain.some(entry => 
-              entry.status === 'Scanned' && 
+          // Check if this is not a duplicate scan within a short time period
+          if (!medicineData.supplyChain.some(entry => 
               entry.handler === req.user.organization &&
+              entry.status === 'Scanned' &&
               // Only consider scans in the last hour to be duplicates
               new Date(entry.timestamp) > new Date(Date.now() - 60 * 60 * 1000)
           )) {
-            // Get user location from headers if provided, otherwise use a default
-            const location = req.headers['x-user-location'] || 'Unknown location';
-            
-            // Record the scan in the supply chain
-            const scanResult = await contract.submitTransaction(
-              "RecordScan",
-              medicine.id,
-              req.user.organization,
-              req.user.role,
-              req.user.username,
-              location
-            );
-            
-            console.log(`Scan recorded for medicine ${medicine.id} by ${req.user.username}`);
-            
-            // Update the medicine object with the latest supply chain information
-            const updatedMedicine = JSON.parse(scanResult.toString());
-            medicine.supplyChain = updatedMedicine.supplyChain;
+            try {
+              // If the chaincode supports RecordScan
+              await contract.submitTransaction(
+                "RecordScan",
+                medicineData.id,
+                req.user.organization,
+                req.user.role,
+                req.user.username,
+                location
+              );
+              
+              // Get updated medicine after recording scan
+              const updatedResult = await contract.evaluateTransaction("GetMedicine", medicineData.id);
+              medicineData = JSON.parse(updatedResult.toString());
+              
+              console.log(`Scan recorded for medicine ${medicineData.id} by ${req.user.username}`);
+            } catch (error) {
+              // If RecordScan is not implemented in chaincode
+              console.error("Error recording scan:", error);
+            }
           }
         } catch (scanError) {
-          console.error(`Error recording scan: ${scanError}`);
-          // If it's due to missing chaincode function, log it but continue
-          if (scanError.message.includes("RecordScan")) {
-            console.log("RecordScan function not available in chaincode - scan tracking disabled");
-          }
-          // Continue with the response even if recording fails
+          console.error(`Error recording scan:`, scanError);
         }
       }
-  
+
+      // Disconnect from the gateway
       await gateway.disconnect();
-  
+
       // Prepare role-specific information
       let roleSpecificData = {};
-      const isFromManufacturer = req.user.organization === medicine.manufacturer;
-  
+      
       if (req.user.role === "manufacturer") {
         roleSpecificData = {
-          canUpdateRecord: isFromManufacturer,
+          canUpdateRecord: req.user.organization === medicineData.manufacturer,
           viewDetailedHistory: true,
-          belongsToManufacturer: isFromManufacturer
+          belongsToManufacturer: req.user.organization === medicineData.manufacturer
         };
       } else if (req.user.role === "distributor") {
         roleSpecificData = {
-          canUpdateSupplyChain: true,
-          updateEndpoint: `/api/medicines/${medicine.id}/update`,
+          canUpdateSupplyChain: req.user.organization === medicineData.currentOwner,
+          updateEndpoint: `/api/medicines/${medicineData.id}/update`,
           canFlag: true,
-          belongsToManufacturer: isFromManufacturer
+          belongsToManufacturer: req.user.organization === medicineData.manufacturer
+        };
+      } else if (req.user.role === "regulator") {
+        roleSpecificData = {
+          canFlagIssues: true,
+          fullSupplyChainAccess: true,
+          canVerifyAuthenticity: true
+        };
+      } else if (req.user.role === "enduser") {
+        // Check if medicine is expired
+        const isExpired = new Date(medicineData.expirationDate) < new Date();
+        
+        roleSpecificData = {
+          safetyStatus: medicineData.flagged
+            ? "WARNING: Product flagged for issues"
+            : isExpired
+            ? "WARNING: Product expired"
+            : "SAFE: Product verified",
+          safeToUse: !medicineData.flagged && !isExpired
         };
       }
-  
-      // Include scan authorization status in the response
+
+      // Include authorization status
       roleSpecificData.isAuthorizedScan = isAuthorized;
-      roleSpecificData.isOwnerOrManufacturer = isOwnerOrManufacturer;
-  
+      roleSpecificData.isOwnerOrManufacturer = 
+        req.user.organization === medicineData.currentOwner || 
+        req.user.organization === medicineData.manufacturer;
+
+      // Send the medicine data with role-specific actions
       res.json({
-        ...medicine,
+        ...medicineData,
         roleSpecificActions: roleSpecificData,
-        scanRecorded: true
+        scanRecorded: isAuthorized
       });
-    } catch (error) {
-      console.error(`Failed to verify medicine:`, error);
-      console.error('Stack trace:', error.stack);
-      res.status(500).json({ error: error.message });
+    } catch (gatewayError) {
+      console.error('Gateway Connection Error:', gatewayError);
+      try {
+        await gateway.disconnect();
+      } catch (e) {
+        // Ignore disconnect errors
+      }
+      
+      res.status(500).json({ 
+        error: 'Failed to process medicine verification', 
+        details: gatewayError.message 
+      });
     }
+  } catch (error) {
+    console.error(`Verification Error:`, error);
+    console.error('Error Stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Internal server error during medicine verification', 
+      details: error.message 
+    });
+  }
 });
+// Helper function to determine if a user is authorized to scan a medicine
+function isAuthorizedScan(user, medicine) {
+  // Regulators can scan any medicine
+  if (user.role === 'regulator') {
+    return true;
+  }
+
+  // Manufacturers can only scan their own medicines
+  if (user.role === 'manufacturer') {
+    return user.organization === medicine.manufacturer;
+  }
+
+  // Distributors can scan medicines they own or that are in transit to them
+  if (user.role === 'distributor') {
+    return user.organization === medicine.currentOwner || 
+           (medicine.status === 'In Transit' && 
+            medicine.supplyChain.some(entry => 
+              entry.notes && entry.notes.includes(user.organization)));
+  }
+
+  // End users can only scan dispensed medicines
+  if (user.role === 'enduser') {
+    return medicine.status === 'Dispensed';
+  }
+
+  // By default, deny access
+  return false;
+}
 
 // @route   GET api/medicines
 // @desc    Get all medicines
@@ -674,44 +789,46 @@ router.post(
 // @desc    Verify medicine with secure QR code and record scan
 // @access  Private
 router.post('/verify-secure', verifyToken, async (req, res) => {
+  try {
+    const { qrContent, location } = req.body;
+    
+    if (!qrContent) {
+      return res.status(400).json({ error: 'QR content is required' });
+    }
+    
+    console.log(`Verifying medicine with secure QR code by ${req.user.username}`);
+    
+    // Verify the QR signature
+    const secretKey = process.env.QR_SECRET_KEY || "farmatech-secure-key-2025";
+    const verification = verifyQRCode(qrContent, secretKey);
+    
+    if (!verification.valid) {
+      return res.status(400).json({
+        verified: false,
+        error: `Invalid secure QR code: ${verification.reason}`
+      });
+    }
+    
+    // Get the original blockchain QR code
+    const blockchainQR = verification.blockchainQR;
+    console.log(`Extracted blockchain QR code: ${blockchainQR}`);
+    
+    // Load the connection profile
+    const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
+    const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
+
+    const walletPath = path.join(__dirname, "../wallet");
+    const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+    const identity = await wallet.get("appUser");
+    if (!identity) {
+      return res
+        .status(400)
+        .json({ error: 'User "appUser" does not exist in the wallet' });
+    }
+
+    const gateway = new Gateway();
     try {
-      const { qrContent } = req.body;
-      
-      if (!qrContent) {
-        return res.status(400).json({ error: 'QR content is required' });
-      }
-      
-      console.log(`Verifying medicine with secure QR code`);
-      
-      // Verify the QR signature
-      const secretKey = process.env.QR_SECRET_KEY || "farmatech-secure-key-2025";
-      const verification = verifyQRCode(qrContent, secretKey);
-      
-      if (!verification.valid) {
-        return res.status(400).json({
-          error: `Invalid secure QR code: ${verification.reason}`
-        });
-      }
-      
-      // Get the original blockchain QR code
-      const blockchainQR = verification.blockchainQR;
-      console.log(`Extracted blockchain QR code: ${blockchainQR}`);
-      
-      // Load the connection profile
-      const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
-      const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
-  
-      const walletPath = path.join(__dirname, "../wallet");
-      const wallet = await Wallets.newFileSystemWallet(walletPath);
-  
-      const identity = await wallet.get("appUser");
-      if (!identity) {
-        return res
-          .status(400)
-          .json({ error: 'User "appUser" does not exist in the wallet' });
-      }
-  
-      const gateway = new Gateway();
       await gateway.connect(ccp, {
         wallet,
         identity: "appUser",
@@ -721,133 +838,206 @@ router.post('/verify-secure', verifyToken, async (req, res) => {
       const network = await gateway.getNetwork("mychannel");
       const contract = network.getContract("medicine-contract");
   
-      // Verify medicine using the blockchain QR code
-      console.log(`Calling chaincode with QR code: ${blockchainQR}`);
-      const result = await contract.evaluateTransaction("VerifyMedicine", blockchainQR);
-      console.log(`Chaincode response received`);
-  
-      const medicine = JSON.parse(result.toString());
+      // Find the medicine by QR code 
+      // First, get all medicines
+      console.log(`Getting all medicines to find QR code: ${blockchainQR}`);
+      const allMedicinesResult = await contract.evaluateTransaction("GetAllMedicines");
+      const allMedicines = JSON.parse(allMedicinesResult.toString());
       
-      // Check authorization to determine if this scan should be flagged
-      const isAuthorized = 
-        req.user.role === 'manufacturer' || 
-        req.user.role === 'distributor' || 
-        req.user.role === 'regulator' ||
-        (req.user.role === 'enduser' && medicine.status === 'Dispensed');
+      // Find the medicine with matching QR code
+      const medicine = allMedicines.find(med => med.qrCode === blockchainQR);
       
-      const isOwnerOrManufacturer = 
-        req.user.organization === medicine.currentOwner || 
-        req.user.organization === medicine.manufacturer;
+      if (!medicine) {
+        await gateway.disconnect();
+        return res.status(404).json({ 
+          verified: false,
+          error: `Medicine with QR code ${blockchainQR} not found` 
+        });
+      }
       
-      // For unauthorized scans, flag the medicine
+      console.log(`Found medicine: ${medicine.id} with QR code: ${blockchainQR}`);
+      
+      // Now get the full medicine details by ID for consistency
+      const result = await contract.evaluateTransaction("GetMedicine", medicine.id);
+      let medicineData = JSON.parse(result.toString());
+      
+      // Determine if the user is authorized to scan this medicine
+      const isAuthorized = isAuthorizedScan(req.user, medicineData);
+      console.log(`Scan authorization: ${isAuthorized ? 'Authorized' : 'UNAUTHORIZED'}`);
+      
+      // For unauthorized scans, flag the medicine automatically
       if (!isAuthorized) {
-        console.log(`Unauthorized scan detected by ${req.user.username} (${req.user.role}) from ${req.user.organization}`);
+        console.warn(`SECURITY ALERT: Unauthorized scan detected - User: ${req.user.username}, Role: ${req.user.role}, Org: ${req.user.organization}, Medicine: ${medicineData.id}`);
         
-        // Auto-flag the medicine
         try {
-          // Get user location from request body if provided
-          const location = req.body.location || 'Unknown location';
+          // Create detailed flag reason
+          const flagReason = `Unauthorized scan by ${req.user.role} (${req.user.username}) from ${req.user.organization}`;
           
+          // Submit the transaction to flag the medicine
           const flagResult = await contract.submitTransaction(
             "FlagMedicine",
-            medicine.id,
+            medicineData.id,
             req.user.organization,
-            `Unauthorized scan by ${req.user.role} (${req.user.username})`,
-            location
+            flagReason,
+            location || 'Unknown location'
           );
           
-          console.log(`Medicine ${medicine.id} auto-flagged due to unauthorized scan`);
+          // Update medicine with flag information from blockchain
+          medicineData = JSON.parse(flagResult.toString());
           
-          // Update the medicine object with flag information
-          medicine.flagged = true;
-          medicine.flagNotes = `Unauthorized scan by ${req.user.role} (${req.user.username})`;
-          medicine.status = 'Flagged';
+          // Add unauthorized scan details for frontend display
+          medicineData.unauthorizedScanDetails = {
+            scannerUsername: req.user.username,
+            scannerRole: req.user.role,
+            scannerOrganization: req.user.organization,
+            location: location || 'Unknown location',
+            timestamp: new Date().toISOString()
+          };
           
-          // Add warning message to the response
-          medicine.securityWarning = "This medicine has been automatically flagged due to unauthorized access";
+          // Record the security incident
+          try {
+            const SecurityIncident = require('../models/SecurityIncident');
+            const incident = new SecurityIncident({
+              medicineId: medicineData.id,
+              medicineName: medicineData.name,
+              batchNumber: medicineData.batchNumber,
+              incidentType: 'unauthorized_scan',
+              severity: req.user.role === 'distributor' ? 'high' : 'medium',
+              scanner: {
+                userId: req.user.id,
+                username: req.user.username,
+                role: req.user.role,
+                organization: req.user.organization
+              },
+              details: {
+                location: location || 'Unknown location',
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'],
+                notes: `Unauthorized secure QR scan detected and medicine flagged`
+              },
+              medicineStatus: {
+                beforeIncident: 'Normal',
+                afterIncident: 'Flagged'
+              },
+              flaggedInBlockchain: true,
+              timestamp: new Date()
+            });
+            
+            await incident.save();
+          } catch (incidentError) {
+            console.error('Error recording security incident:', incidentError);
+            // Continue even if recording incident fails
+          }
+          
+          console.log(`Medicine ${medicineData.id} auto-flagged due to unauthorized scan`);
         } catch (flagError) {
-          console.error(`Error auto-flagging medicine: ${flagError}`);
+          console.error(`Error auto-flagging medicine:`, flagError);
           // Continue with the response even if flagging fails
         }
       } else {
-        // For authorized scans, record the scan activity in supply chain
+        // For authorized scans, try to record the scan event
         try {
-          // Only record scans that are authorized but not already from the current owner
-          if (!medicine.supplyChain.some(entry => 
-              entry.status === 'Scanned' && 
+          // Check if this is not a duplicate scan within a short time period
+          if (!medicineData.supplyChain.some(entry => 
               entry.handler === req.user.organization &&
+              entry.status === 'Scanned' &&
               // Only consider scans in the last hour to be duplicates
               new Date(entry.timestamp) > new Date(Date.now() - 60 * 60 * 1000)
           )) {
-            // Get user location from request body if provided
-            const location = req.body.location || 'Unknown location';
-            
-            // Record the scan in the supply chain
-            const scanResult = await contract.submitTransaction(
-              "RecordScan",
-              medicine.id,
-              req.user.organization,
-              req.user.role,
-              req.user.username,
-              location
-            );
-            
-            console.log(`Scan recorded for medicine ${medicine.id} by ${req.user.username}`);
-            
-            // Update the medicine object with the latest supply chain information
-            const updatedMedicine = JSON.parse(scanResult.toString());
-            medicine.supplyChain = updatedMedicine.supplyChain;
+            try {
+              // If the chaincode supports RecordScan
+              await contract.submitTransaction(
+                "RecordScan",
+                medicineData.id,
+                req.user.organization,
+                req.user.role,
+                req.user.username,
+                location || 'Unknown location'
+              );
+              
+              // Get updated medicine after recording scan
+              const updatedResult = await contract.evaluateTransaction("GetMedicine", medicineData.id);
+              medicineData = JSON.parse(updatedResult.toString());
+              
+              console.log(`Scan recorded for medicine ${medicineData.id} by ${req.user.username}`);
+            } catch (error) {
+              console.error("Error recording scan:", error);
+            }
           }
         } catch (scanError) {
-          console.error(`Error recording scan: ${scanError}`);
-          // If it's due to missing chaincode function, log it but continue
-          if (scanError.message.includes("RecordScan")) {
-            console.log("RecordScan function not available in chaincode - scan tracking disabled");
-          }
-          // Continue with the response even if recording fails
+          console.error(`Error recording scan:`, scanError);
         }
       }
-  
+
+      // Disconnect from the gateway
       await gateway.disconnect();
-  
+
       // Prepare role-specific information
       let roleSpecificData = {};
-      const isFromManufacturer = req.user.organization === medicine.manufacturer;
-  
+      
       if (req.user.role === "manufacturer") {
         roleSpecificData = {
-          canUpdateRecord: isFromManufacturer,
+          canUpdateRecord: req.user.organization === medicineData.manufacturer,
           viewDetailedHistory: true,
-          belongsToManufacturer: isFromManufacturer
         };
       } else if (req.user.role === "distributor") {
         roleSpecificData = {
-          canUpdateSupplyChain: true,
-          updateEndpoint: `/api/medicines/${medicine.id}/update`,
+          canUpdateSupplyChain: req.user.organization === medicineData.currentOwner,
+          updateEndpoint: `/api/medicines/${medicineData.id}/update`,
           canFlag: true,
-          belongsToManufacturer: isFromManufacturer
+        };
+      } else if (req.user.role === "regulator") {
+        roleSpecificData = {
+          canFlagIssues: true,
+          canVerifyAll: true,
+        };
+      } else if (req.user.role === "enduser") {
+        // Check if medicine is expired
+        const isExpired = new Date(medicineData.expirationDate) < new Date();
+        
+        roleSpecificData = {
+          safetyStatus: medicineData.flagged
+            ? "WARNING: Product flagged for issues"
+            : isExpired
+            ? "WARNING: Product expired"
+            : "SAFE: Product verified",
+          safeToUse: !medicineData.flagged && !isExpired
         };
       }
-  
-      // Include scan authorization status in the response
+
+      // Include authorization status
       roleSpecificData.isAuthorizedScan = isAuthorized;
-      roleSpecificData.isOwnerOrManufacturer = isOwnerOrManufacturer;
-  
+      roleSpecificData.isOwnerOrManufacturer = 
+        req.user.organization === medicineData.currentOwner || 
+        req.user.organization === medicineData.manufacturer;
+
+      // Send the response with medicine data
       res.json({
         verified: true,
-        medicine: medicine,
+        medicine: medicineData,
         roleSpecificActions: roleSpecificData,
-        scanRecorded: true
+        scanRecorded: isAuthorized
       });
     } catch (error) {
-      console.error(`Failed to verify medicine with secure QR:`, error);
-      console.error('Stack trace:', error.stack);
+      console.error('Gateway Error:', error);
+      try {
+        await gateway.disconnect();
+      } catch (e) { /* ignore disconnect errors */ }
+      
       res.status(500).json({ 
         verified: false, 
         error: error.message 
       });
     }
-  });
+  } catch (error) {
+    console.error(`Failed to verify medicine with secure QR:`, error);
+    console.error('Stack trace:', error.stack);
+    res.status(500).json({ 
+      verified: false, 
+      error: error.message 
+    });
+  }
+});
 
 // @route   GET api/medicines/test-qr/:id
 // @desc    Generate test QR code for a medicine

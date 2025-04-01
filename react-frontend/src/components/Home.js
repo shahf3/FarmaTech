@@ -1,13 +1,9 @@
-// src/components/Home.js
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import "../styles/Home.css";
-<<<<<<< HEAD
 import Header from "./Header";
-import Footer from "./Footer"; 
-=======
->>>>>>> bdbe0363cecb9772d6f4b525afab969d9e830913
+import Footer from "./Footer";
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -137,7 +133,13 @@ const Home = () => {
         <div className="shape shape-3"></div>
       </div>
 
-      {/* Hero Section */}
+      {/* Header */}
+      <Header />
+      
+      {/* Add a header spacer to prevent content from being hidden under fixed header */}
+      <div className="header-spacer"></div>
+      
+      {/* Hero Section with Login Card */}
       <section className="hero-section">
         <div className="hero-content">
           <h1>Secure Medicine Authentication with Blockchain</h1>
@@ -358,6 +360,41 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Our Vision Section */}
+      <section className="vision-section">
+        <div className="section-header">
+          <h2>Our Vision</h2>
+          <div className="section-divider"></div>
+        </div>
+        <div className="vision-content">
+          <p className="vision-intro">
+            We envision a future where patients can trust that their medications are genuine, 
+            effective, and safe. By creating transparency in the pharmaceutical supply chain, 
+            FarmaTech aims to:
+          </p>
+          <div className="vision-goals">
+            <div className="vision-goal">
+              <div className="vision-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <p>Eliminate counterfeit medicines from the market</p>
+            </div>
+            <div className="vision-goal">
+              <div className="vision-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <p>Empower consumers with knowledge about their medications</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Call To Action */}
       <section className="cta-section">
         <div className="cta-content">
@@ -371,11 +408,8 @@ const Home = () => {
           </Link>
         </div>
       </section>
-<<<<<<< HEAD
 
       <Footer />
-=======
->>>>>>> bdbe0363cecb9772d6f4b525afab969d9e830913
     </div>
   );
 };

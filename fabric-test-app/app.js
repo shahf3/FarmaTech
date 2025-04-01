@@ -320,7 +320,7 @@ app.get("/api/medicines", async (req, res) => {
   try {
     console.log("Attempting to get all medicines...");
     // Load the connection profile
-    const ccpPath = path.resolve(__dirname, "config", "connection-org1.json");
+    const ccpPath = path.resolve(__dirname, "config", "");
     const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
 
     // Create a new file system based wallet for managing identities

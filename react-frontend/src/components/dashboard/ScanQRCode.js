@@ -1,8 +1,7 @@
 // src/components/dashboard/ScanQRCode.js
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
-import UnauthorizedScanAlert from '../common/UnauthorizedScanAlert';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -15,8 +14,6 @@ const ScanQRCode = () => {
     message: '',
     type: '',
   });
-  const [verifyLoading, setVerifyLoading] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [updateForm, setUpdateForm] = useState({
     medicineId: '',
@@ -24,50 +21,6 @@ const ScanQRCode = () => {
     location: '',
     notes: '',
   });
-
-  // Get the user's location when component mounts
-  useEffect(() => {
-    detectLocation();
-  }, []);
-
-  const detectLocation = async () => {
-    try {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            try {
-              const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
-              );
-              const data = await response.json();
-              const locationString = [
-                data.address?.city || data.address?.town || "",
-                data.address?.state || "",
-                data.address?.country || "",
-              ]
-                .filter(Boolean)
-                .join(", ");
-              setCurrentLocation(locationString);
-            } catch (error) {
-              setCurrentLocation(
-                `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
-              );
-            }
-          },
-          (error) => {
-            console.log("Error getting location:", error);
-            setCurrentLocation(`${user.organization} Location`);
-          }
-        );
-      } else {
-        setCurrentLocation(`${user.organization} Location`);
-      }
-    } catch (error) {
-      console.error("Location detection error:", error);
-      setCurrentLocation(`${user.organization} Location`);
-    }
-  };
 
   const handleQrInputChange = (e) => {
     setQrCode(e.target.value);
@@ -78,98 +31,40 @@ const ScanQRCode = () => {
     if (!qrCode) {
       setScanResult({
         success: false,
-        message: "Please enter a QR code",
-        type: "error",
+        message: 'Please enter a QR code',
+        type: 'error',
       });
       return;
     }
-    setVerifyLoading(true);
-    setScanResult({
-      success: false,
-      message: "Verifying QR code...",
-      type: "info",
-    });
-  
+
     try {
-      let isSecureQR = false;
-      let response;
-      const locationForScan = currentLocation || "Unknown location";
-  
-      try {
-        // Check if it's a secure QR code (JSON format)
-        JSON.parse(qrCode);
-        isSecureQR = true;
-      } catch (e) {
-        isSecureQR = false;
-      }
-  
-      if (isSecureQR) {
-        response = await axios.post(
-          `${API_URL}/medicines/verify-secure`,
-          { qrContent: qrCode, location: locationForScan },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      } else {
-        response = await axios.get(
-          `${API_URL}/medicines/verify/${encodeURIComponent(qrCode)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "X-User-Location": locationForScan,
-            },
-          }
-        );
-      }
-  
-      // Get the medicine data from the response
-      const data = response.data;
-      const medicine = isSecureQR ? data.medicine : data;
-      const roleActions = isSecureQR ? data.roleSpecificActions : data.roleSpecificActions;
-  
-      // Check if this was an authorized scan
-      const isAuthorized = roleActions?.isAuthorizedScan !== false;
-  
-      if (!isAuthorized || medicine.flagged) {
-        setScanResult({
-          success: false,
-          message: "Warning: Unauthorized access detected! Medicine has been flagged for security.",
-          type: "error",
-        });
-      } else {
-        setScanResult({
-          success: true,
-          message: "Medicine verified successfully!",
-          type: "success",
-        });
-      }
-  
-      setVerifiedMedicine(medicine);
-      
-      setUpdateForm({
-        medicineId: medicine.id,
-        status: "",
-        location: currentLocation || `${user.organization} Location`,
-        notes: "",
+      const response = await axios.get(`${API_URL}/medicines/verify/${encodeURIComponent(qrCode)}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
+
+      setVerifiedMedicine(response.data);
+      setScanResult({
+        success: true,
+        message: 'Medicine verified successfully!',
+        type: 'success',
+      });
+
+      setUpdateForm((prev) => ({
+        ...prev,
+        medicineId: response.data.id,
+        location: user.organization.split(' ').pop(),
+      }));
     } catch (err) {
-      console.error("Error verifying medicine:", err);
+      console.error('Error verifying medicine:', err);
       setScanResult({
         success: false,
-        message:
-          err.response?.data?.error || "Invalid QR code or medicine not found",
-        type: "error",
+        message: err.response?.data?.error || 'Invalid QR code or medicine not found',
+        type: 'error',
       });
       setVerifiedMedicine(null);
-    } finally {
-      setVerifyLoading(false);
     }
   };
-  
+
   const handleUpdateInputChange = (e) => {
     const { name, value } = e.target;
     setUpdateForm((prev) => ({
@@ -241,16 +136,8 @@ const ScanQRCode = () => {
               placeholder="e.g., QR-PCL-2025-001"
             />
           </div>
-          <button type="submit" className="scan-btn" disabled={verifyLoading}>
-            {verifyLoading ? "Verifying..." : "Verify"}
-          </button>
+          <button type="submit" className="scan-btn">Verify</button>
         </form>
-
-        {currentLocation && (
-          <div className="current-location">
-            <strong>Current Location:</strong> {currentLocation}
-          </div>
-        )}
 
         {scanResult.message && (
           <div className={`scan-result ${scanResult.type}`}>
@@ -258,14 +145,10 @@ const ScanQRCode = () => {
           </div>
         )}
 
-        {verifiedMedicine && verifiedMedicine.unauthorizedScanDetails && (
-          <UnauthorizedScanAlert scanDetails={verifiedMedicine.unauthorizedScanDetails} />
-        )}
-
         {verifiedMedicine && (
           <div className="verified-medicine">
             <h3>Verified Medicine Details</h3>
-            <div className={`medicine-details ${verifiedMedicine.flagged ? 'flagged' : ''}`}>
+            <div className="medicine-details">
               <p><strong>ID:</strong> {verifiedMedicine.id}</p>
               <p><strong>Name:</strong> {verifiedMedicine.name}</p>
               <p><strong>Manufacturer:</strong> {verifiedMedicine.manufacturer}</p>
@@ -276,16 +159,9 @@ const ScanQRCode = () => {
                 <strong>Current Status:</strong>
                 <span className={verifiedMedicine.flagged ? 'status-flagged' : 'status-normal'}>
                   {verifiedMedicine.status}
-                  {verifiedMedicine.flagged && " (FLAGGED)"}
                 </span>
               </p>
               <p><strong>Current Owner:</strong> {verifiedMedicine.currentOwner}</p>
-              
-              {verifiedMedicine.flagNotes && (
-                <div className="flag-notes">
-                  <p><strong>Flag Notes:</strong> {verifiedMedicine.flagNotes}</p>
-                </div>
-              )}
             </div>
 
             <div className="supply-chain-history">
@@ -317,7 +193,7 @@ const ScanQRCode = () => {
         )}
       </div>
 
-      {verifiedMedicine && !verifiedMedicine.flagged && (
+      {verifiedMedicine && (
         <div className="dashboard-section">
           <h2>Update Supply Chain</h2>
           {successMessage && <div className="success-message">{successMessage}</div>}

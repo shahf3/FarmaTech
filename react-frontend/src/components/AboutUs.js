@@ -2,8 +2,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/AboutUs.css";
-import Header from "./Header";
-import Footer from "./Footer";
 
 const AboutUs = () => {
   return (
@@ -14,11 +12,32 @@ const AboutUs = () => {
         <div className="shape shape-3"></div>
       </div>
 
-      {/* Use the same Header component as in Home page */}
-      <Header />
-      
-      {/* Add header spacer to prevent content overlapping with fixed header */}
-      <div className="header-spacer"></div>
+      <header className="home-header">
+        <div className="logo">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          <span>FarmaTech</span>
+        </div>
+        <nav className="nav-links">
+          <Link to="/#features">Features</Link>
+          <Link to="/about">About</Link>
+          <Link to="/#contact">Contact</Link>
+          <Link to="/register" className="register-btn">
+            Register
+          </Link>
+        </nav>
+      </header>
 
       <section className="about-hero">
         <div className="about-hero-content">
@@ -47,6 +66,7 @@ const AboutUs = () => {
         </div>
       </section>
 
+  
       <section className="about-section team-section">
         <div className="about-section-container">
           <div className="about-section-header">
@@ -373,6 +393,57 @@ const AboutUs = () => {
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                   </svg>
                 </div>
+                <p>Save lives by ensuring medication integrity</p>
+              </div>
+              <div className="vision-item">
+                <div className="vision-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+                <p>Restore trust in the pharmaceutical supply chain</p>
+              </div>
+              <div className="vision-item">
+                <div className="vision-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+                <p>Support regulatory compliance across the industry</p>
+              </div>
+              <div className="vision-item">
+                <div className="vision-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
                 <p>Empower consumers with knowledge about their medications</p>
               </div>
             </div>
@@ -393,7 +464,58 @@ const AboutUs = () => {
         </div>
       </section>
 
-      <Footer />
+      <footer className="home-footer">
+        <div className="footer-content">
+          <div className="footer-logo">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            <span>FarmaTech</span>
+          </div>
+          <div className="footer-links">
+            <div className="footer-column">
+              <h4>Platform</h4>
+              <a href="/#features">How it Works</a>
+              <a href="/#features">Features</a>
+              <a href="/#">Security</a>
+              <a href="/#">Pricing</a>
+            </div>
+            <div className="footer-column">
+              <h4>Company</h4>
+              <Link to="/about">About Us</Link>
+              <a href="/#">Careers</a>
+              <a href="/#contact">Contact</a>
+              <a href="/#">Blog</a>
+            </div>
+            <div className="footer-column">
+              <h4>Resources</h4>
+              <a href="/#">Documentation</a>
+              <a href="/#">API</a>
+              <a href="/#">Support</a>
+              <a href="/#">Community</a>
+            </div>
+            <div className="footer-column">
+              <h4>Legal</h4>
+              <a href="/#">Privacy Policy</a>
+              <a href="/#">Terms of Service</a>
+              <a href="/#">Compliance</a>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>&copy; 2025 FarmaTech. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -6,7 +6,7 @@ import { ThemeProvider as CustomThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import Sidebar from './components/sidebar.js';
+import Sidebar from './components/sidebar'; // Note: File name updated to match case
 import './styles/Dashboard.css';
 import './styles/Home.css';
 import './styles/EnhancedUI.css';
@@ -124,7 +124,7 @@ function AppWithTheme() {
             }
           />
           <Route
-            path="/regulator"
+            path="/regulator/*" // Updated to support nested routes
             element={
               <ProtectedRoute allowedRoles={['regulator']}>
                 <div style={{ display: 'flex' }}>

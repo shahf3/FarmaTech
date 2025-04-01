@@ -1,4 +1,6 @@
+/* Update in Home.css, in the :root section */
 :root {
+  /* Light mode variables */
   --primary-blue: #1e88e5;
   --primary-green: #00796b;
   --primary-dark: #263238;
@@ -15,10 +17,11 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  /* Additional variables for consistency */
   --background-primary: #f5f7fa;
   --background-secondary: #e8eaf6;
   --background-card: #ffffff;
-  --text-primary: #000000;
+  --text-primary: #000000; /* Updated to pure black */
   --text-secondary-light: #607d8b;
   --button-primary-bg: #1e88e5;
   --button-primary-text: #ffffff;
@@ -30,13 +33,15 @@
   --success-bg: rgba(39, 174, 96, 0.1);
   --success-text: #27ae60;
   --disabled-bg: linear-gradient(135deg, #90caf9 0%, #80cbc4 100%);
-  --heading-color: #000000;
+  /* New variables */
+  --heading-color: #000000; /* Updated to pure black */
   --input-bg: #ffffff;
   --vibrant-dark-blue: #1976d2;
   --label-color: #607d8b;
 }
 
 [data-theme="dark"] {
+  /* Dark mode variables */
   --primary-blue: #90caf9;
   --primary-green: #80cbc4;
   --primary-dark: #b0bec5;
@@ -53,10 +58,11 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  /* Additional variables for consistency */
   --background-primary: #121212;
   --background-secondary: #1e1e1e;
   --background-card: #1e1e1e;
-  --text-primary: #ffffff;
+  --text-primary: #ffffff; /* Already white */
   --text-secondary-light: #b0bec5;
   --button-primary-bg: #90caf9;
   --button-primary-text: #000000;
@@ -68,215 +74,14 @@
   --success-bg: rgba(129, 199, 132, 0.2);
   --success-text: #81c784;
   --disabled-bg: linear-gradient(135deg, #4a6b88 0%, #4a7b78 100%);
-  --heading-color: #ffffff;
+  /* New variables for dark mode */
+  --heading-color: #ffffff; /* Already white */
   --input-bg: #2a2a2a;
   --vibrant-dark-blue: #1976d2;
   --label-color: #ffffff;
 }
 
-.header-spacer {
-  height: 80px; /* Match your header height */
-}
-
-.hero-section {
-  display: flex;
-  min-height: calc(100vh - 80px);
-  padding: 3% 5%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4rem;
-}
-
-.hero-content {
-  flex: 1;
-  max-width: 600px;
-  animation: fadeInUp 1s ease-out;
-}
-
-.hero-content h1 {
-  font-size: 3rem;
-  font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.hero-content p {
-  font-size: 1.2rem;
-  color: var(--text-secondary-light);
-  margin-bottom: 2.5rem;
-}
-
-.hero-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-/* Login Card - enhanced styling */
-.login-card {
-  flex: 1;
-  max-width: 400px;
-  background-color: var(--background-card);
-  padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: var(--shadow-lg);
-  animation: fadeInRight 1s ease-out;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.login-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(30, 136, 229, 0.03) 0%, transparent 70%);
-  z-index: -1;
-}
-
-/* Vision Section Styles */
-.vision-section {
-  padding: 5rem 5%;
-  background-color: var(--background-card);
-  text-align: center;
-}
-
-.section-header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.section-header h2 {
-  font-size: 2.5rem;
-  color: var(--heading-color);
-  margin-bottom: 1rem;
-}
-
-.section-divider {
-  width: 80px;
-  height: 4px;
-  background: var(--primary-gradient);
-  margin: 1rem auto 0;
-  border-radius: 2px;
-}
-
-.vision-content {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.vision-intro {
-  font-size: 1.2rem;
-  color: var(--text-secondary-light);
-  margin-bottom: 3rem;
-  line-height: 1.6;
-}
-
-.vision-goals {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.vision-goal {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  background-color: var(--background-secondary);
-  padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.3s, box-shadow 0.3s;
-  text-align: left;
-}
-
-.vision-goal:hover {
-  transform: translateX(10px);
-  box-shadow: var(--shadow-md);
-}
-
-.vision-icon {
-  min-width: 40px;
-  height: 40px;
-  background-color: rgba(0, 121, 107, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.vision-icon svg {
-  width: 20px;
-  height: 20px;
-  color: var(--primary-green);
-}
-
-.vision-goal p {
-  font-size: 1.1rem;
-  color: var(--primary-dark);
-  margin: 0;
-}
-
-/* Responsive Design Updates */
-@media (max-width: 1100px) {
-  .hero-section {
-    flex-direction: column;
-    padding-top: 3rem;
-    padding-bottom: 3rem;
-  }
-  
-  .hero-content {
-    text-align: center;
-    max-width: 100%;
-  }
-  
-  .hero-buttons {
-    justify-content: center;
-  }
-  
-  .login-card {
-    max-width: 500px;
-    width: 100%;
-  }
-  
-  .vision-goal {
-    padding: 1.2rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .header-spacer {
-    height: 70px;
-  }
-  
-  .hero-content h1 {
-    font-size: 2.5rem;
-  }
-  
-  .vision-goal {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-content h1 {
-    font-size: 2rem;
-  }
-  
-  .hero-buttons {
-    flex-direction: column;
-    gap: 1rem;
-  }
-}
+/* Sidebar Title */
 .sidebar-title {
   padding: 1.5rem 1rem;
   text-align: center;
@@ -388,8 +193,7 @@ body {
   animation: float-2 25s infinite ease-in-out;
 }
 
-.shape-3 {.hero-section {
-
+.shape-3 {
   top: 40%;
   left: 30%;
   width: 300px;
@@ -415,6 +219,7 @@ body {
 }
 
 /* Hero Section */
+.hero-section {
   display: flex;
   min-height: calc(100vh - 80px);
   padding: 3% 5%;

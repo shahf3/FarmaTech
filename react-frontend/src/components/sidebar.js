@@ -1,3 +1,4 @@
+// src/components/Sidebar.js
 import React, { useState } from 'react';
 import { 
   Drawer, 
@@ -34,6 +35,8 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MedicationIcon from '@mui/icons-material/Medication';
+import ContactMailIcon from '@mui/icons-material/ContactMail';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 function Sidebar() {
   const { user, logout } = useAuth();
@@ -42,7 +45,6 @@ function Sidebar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   
-  // State for collapsible sections
   const [sections, setSections] = useState({
     manufacturer: false,
     distributor: false,
@@ -67,12 +69,10 @@ function Sidebar() {
     toggleDrawer();
   };
 
-  // Get first letter of username for avatar
   const getInitial = () => {
     return user?.username ? user.username.charAt(0).toUpperCase() : 'U';
   };
 
-  // Get role color
   const getRoleColor = () => {
     switch(user?.role) {
       case 'manufacturer': return '#4caf50';
@@ -83,7 +83,6 @@ function Sidebar() {
     }
   };
 
-  // Nested list item component for better organization
   const NestedListItem = ({ to, icon, primary, onClick }) => (
     <ListItem
       button
@@ -117,7 +116,6 @@ function Sidebar() {
 
   return (
     <>
-      {/* Fixed menu icon in top left */}
       <Tooltip title="Open Menu">
         <IconButton 
           onClick={toggleDrawer} 
@@ -139,7 +137,6 @@ function Sidebar() {
         </IconButton>
       </Tooltip>
 
-      {/* Sidebar Drawer */}
       <Drawer
         anchor="left"
         open={open}
@@ -156,7 +153,6 @@ function Sidebar() {
           },
         }}
       >
-        {/* FarmaTech Title and User Info */}
         <Box 
           sx={{ 
             p: 3, 
@@ -209,7 +205,7 @@ function Sidebar() {
                       display: 'inline-block'
                     }} 
                   />
-                  {user.role} | {user.org}
+                  {user.role} | {user.organization}
                 </Typography>
               </Box>
             </Box>
@@ -217,7 +213,6 @@ function Sidebar() {
         </Box>
 
         <List sx={{ pt: 1, pb: 1 }}>
-          {/* Theme Toggle */}
           <ListItem 
             button 
             onClick={toggleTheme}
@@ -241,7 +236,6 @@ function Sidebar() {
             />
           </ListItem>
 
-          {/* Dashboard (Top-level item) */}
           <ListItem 
             button 
             component={Link} 
@@ -272,7 +266,6 @@ function Sidebar() {
 
           <Divider sx={{ my: 1.5 }} />
 
-          {/* Role-specific sections */}
           {user?.role === 'manufacturer' && (
             <>
               <ListSubheader 
@@ -327,7 +320,6 @@ function Sidebar() {
             </>
           )}
 
-          {/* Distributor Section */}
           {user?.role === 'distributor' && (
             <>
               <ListSubheader 
@@ -377,62 +369,84 @@ function Sidebar() {
                     icon={<ListAltIcon />}
                     primary="Medicines in Inventory"
                   />
-                </List>
-              </Collapse>
-            </>
-          )}
-
-          {/* Regulator Section */}
-          {user?.role === 'regulator' && (
-            <>
-              <ListSubheader 
-                sx={{ 
-                  bgcolor: 'transparent', 
-                  color: themeMode === 'light' ? 'text.secondary' : 'text.primary',
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.5px',
-                  fontWeight: 700,
-                  lineHeight: '1.5rem'
-                }}
-              >
-                REGULATOR
-              </ListSubheader>
-              <ListItem 
-                button 
-                onClick={() => toggleSection('regulator')}
-                sx={{ 
-                  borderRadius: '0 20px 20px 0',
-                  mx: 1,
-                  my: 0.5,
-                  '&:hover': {
-                    backgroundColor: themeMode === 'light' 
-                      ? 'rgba(0, 0, 0, 0.04)' 
-                      : 'rgba(255, 255, 255, 0.08)'
-                  }
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: '40px' }}>
-                  <GavelIcon sx={{ color: '#ff9800' }} />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Regulator" 
-                  primaryTypographyProps={{ fontWeight: 600 }}
-                />
-                {sections.regulator ? <ExpandLess /> : <ExpandMore />}
-              </ListItem>
-              <Collapse in={sections.regulator} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
                   <NestedListItem
-                    to="/regulator"
-                    icon={<GavelIcon color="warning" />}
-                    primary="Dashboard"
+                    to="/distributor/contact-order"
+                    icon={<ContactMailIcon />}
+                    primary="Contact & Order"
                   />
                 </List>
               </Collapse>
             </>
           )}
 
-          {/* End User Section */}
+
+
+{user?.role === 'regulator' && (
+  <>
+    <ListSubheader 
+      sx={{ 
+        bgcolor: 'transparent', 
+        color: themeMode === 'light' ? 'text.secondary' : 'text.primary',
+        fontSize: '0.75rem',
+        letterSpacing: '0.5px',
+        fontWeight: 700,
+        lineHeight: '1.5rem'
+      }}
+    >
+      REGULATOR
+    </ListSubheader>
+    <ListItem 
+      button 
+      onClick={() => toggleSection('regulator')}
+      sx={{ 
+        borderRadius: '0 20px 20px 0',
+        mx: 1,
+        my: 0.5,
+        '&:hover': {
+          backgroundColor: themeMode === 'light' 
+            ? 'rgba(0, 0, 0, 0.04)' 
+            : 'rgba(255, 255, 255, 0.08)'
+        }
+      }}
+    >
+      <ListItemIcon sx={{ minWidth: '40px' }}>
+        <GavelIcon sx={{ color: '#ff9800' }} />
+      </ListItemIcon>
+      <ListItemText 
+        primary="Regulator" 
+        primaryTypographyProps={{ fontWeight: 600 }}
+      />
+      {sections.regulator ? <ExpandLess /> : <ExpandMore />}
+    </ListItem>
+    <Collapse in={sections.regulator} timeout="auto" unmountOnExit>
+      <List component="div" disablePadding>
+        <NestedListItem
+          to="/regulator/scan"
+          icon={<QrCodeScannerIcon color="warning" />}
+          primary="Scan QR Code"
+        />
+        <NestedListItem
+          to="/regulator/inventory"
+          icon={<ListAltIcon />}
+          primary="Medicines in Inventory"
+        />
+        <NestedListItem
+          to="/regulator/contact-order"
+          icon={<AddCircleIcon />}
+          primary="Contact & Order"
+        />
+        <NestedListItem
+          to="/regulator/register-order"
+          icon={<AddCircleIcon />}
+          primary="Register Order"
+        />
+      </List>
+    </Collapse>
+  </>
+)}
+
+
+
           {user?.role === 'enduser' && (
             <>
               <ListSubheader 
@@ -482,7 +496,6 @@ function Sidebar() {
             </>
           )}
 
-          {/* Other Top-Level Items */}
           <Divider sx={{ my: 1.5 }} />
           <ListSubheader 
             sx={{ 
@@ -577,7 +590,6 @@ function Sidebar() {
           )}
         </List>
 
-        {/* Logout Button at the Bottom */}
         {user && (
           <Box 
             sx={{ 
@@ -615,4 +627,4 @@ function Sidebar() {
   );
 }
 
-export default Sidebar; 
+export default Sidebar;

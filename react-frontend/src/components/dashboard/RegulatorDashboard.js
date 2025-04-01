@@ -1,418 +1,348 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/components/dashboard/RegulatorDashboard.js
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Routes, Route } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Header from '../Header';
-import Footer from '../Footer';
+import ScanQRCode from './ScanQRCode';
+import DistributorInventory from './DistributorInventory';
+import ContactAndOrder from './ContactAndOrder';
+import RegisterOrder from './RegisterOrder'; // New component for registering orders
+import { Html5Qrcode } from 'html5-qrcode';
 import axios from 'axios';
 import '../../styles/Dashboard.css';
 
 const API_URL = 'http://localhost:3000/api';
 
 const RegulatorDashboard = () => {
-  const { user, token, logout } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
-  const [allMedicines, setAllMedicines] = useState([]);
-  const [flaggedMedicines, setFlaggedMedicines] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState('');
   const [qrCode, setQrCode] = useState('');
   const [verifiedMedicine, setVerifiedMedicine] = useState(null);
-  const [showSupplyChain, setShowSupplyChain] = useState({});
-  const [activeTab, setActiveTab] = useState('flagged');
-  
+  const [scanResult, setScanResult] = useState({ success: false, message: '', type: '' });
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [roleActions, setRoleActions] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState('');
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [updateForm, setUpdateForm] = useState({ medicineId: '', status: '', location: '', notes: '' });
+  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState(null);
+
+  const scannerRef = useRef(null);
+  const scannerContainerId = 'qr-reader';
+
   useEffect(() => {
     if (!user || user.role !== 'regulator') {
       navigate('/unauthorized');
-      return;
     }
-    
-    fetchMedicines();
+    detectLocation();
   }, [user, navigate]);
 
-  const fetchMedicines = async () => {
-    setLoading(true);
-    try {
-      // Fetch all medicines
-      const allMedicinesResponse = await axios.get(`${API_URL}/medicines`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setAllMedicines(allMedicinesResponse.data);
-      
-      // Fetch flagged medicines
-      const flaggedMedicinesResponse = await axios.get(`${API_URL}/medicines/flagged`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setFlaggedMedicines(flaggedMedicinesResponse.data);
-      
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching medicines:', err);
-      setError('Failed to fetch medicines. Please try again later.');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (showScanner) {
+      scannerRef.current = new Html5Qrcode(scannerContainerId);
+      scannerRef.current
+        .start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            setQrCode(decodedText);
+            setShowScanner(false);
+            setTimeout(() => handleVerify({ preventDefault: () => {} }), 500);
+          },
+          (errorMessage) => console.log(errorMessage)
+        )
+        .catch((err) => {
+          setScanResult({
+            success: false,
+            message: `Camera access error: ${err.message || 'Could not access camera'}`,
+            type: 'error',
+          });
+        });
     }
-  };
-  
-  const handleQrInputChange = (e) => {
-    setQrCode(e.target.value);
-  };
-  
+    return () => {
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        scannerRef.current.stop().catch((err) => console.error('Error stopping scanner:', err));
+      }
+    };
+  }, [showScanner]);
+
+  const handleQrInputChange = (e) => setQrCode(e.target.value);
+
   const handleVerify = async (e) => {
     e.preventDefault();
     if (!qrCode) {
-      setError('Please enter a QR code');
+      setScanResult({ success: false, message: 'Please enter a QR code', type: 'error' });
       return;
     }
-    
+    setVerifyLoading(true);
+    setScanResult({ success: false, message: 'Verifying QR code...', type: 'info' });
+
     try {
-      const response = await axios.get(`${API_URL}/medicines/verify/${encodeURIComponent(qrCode)}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      let isSecureQR = false;
+      let response;
+      const locationForScan = currentLocation || 'Unknown location';
+
+      try {
+        JSON.parse(qrCode);
+        isSecureQR = true;
+      } catch (e) {
+        isSecureQR = false;
+      }
+
+      if (isSecureQR) {
+        response = await axios.post(
+          `${API_URL}/medicines/verify-secure`,
+          { qrContent: qrCode, location: locationForScan },
+          { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+        );
+        setVerifiedMedicine(response.data.medicine);
+        setRoleActions(response.data.roleSpecificActions);
+        setScanResult({
+          success: true,
+          message: 'Medicine verified successfully with secure QR code!',
+          type: 'success',
+        });
+      } else {
+        response = await axios.get(
+          `${API_URL}/medicines/verify/${encodeURIComponent(qrCode)}`,
+          { headers: { Authorization: `Bearer ${token}`, 'X-User-Location': locationForScan } }
+        );
+        setVerifiedMedicine(response.data);
+        setRoleActions({ canUpdateSupplyChain: true });
+        setScanResult({
+          success: true,
+          message: 'Medicine verified successfully!',
+          type: 'success',
+        });
+      }
+
+      const medicine = isSecureQR ? response.data.medicine : response.data;
+      setUpdateForm({
+        medicineId: medicine.id,
+        status: '',
+        location: currentLocation || `${user.organization}, Ireland`,
+        notes: '',
       });
-      
-      setVerifiedMedicine(response.data);
-      setSuccessMessage('Medicine verified successfully!');
-      setError(null);
-      
     } catch (err) {
-      console.error('Error verifying medicine:', err);
-      setError(err.response?.data?.error || 'Invalid QR code or medicine not found');
+      setScanResult({
+        success: false,
+        message: err.response?.data?.error || 'Invalid QR code or medicine not found',
+        type: 'error',
+      });
       setVerifiedMedicine(null);
-    }
-  };
-  
-  const toggleSupplyChain = (medicineId) => {
-    setShowSupplyChain(prev => ({
-      ...prev,
-      [medicineId]: !prev[medicineId]
-    }));
-  };
-  
-  const isExpired = (expirationDate) => {
-    return new Date(expirationDate) < new Date();
-  };
-  
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-  };
-  
-  const handleInitLedger = async () => {
-    try {
-      setLoading(true);
-      await axios.post(`${API_URL}/medicines/init`, {}, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setSuccessMessage('Ledger initialized with sample medicines!');
-      fetchMedicines(); // Refresh the list
-    } catch (err) {
-      console.error('Error initializing ledger:', err);
-      setError('Failed to initialize ledger. Please try again later.');
+      setRoleActions(null);
     } finally {
-      setLoading(false);
+      setVerifyLoading(false);
     }
   };
-  
-  // Handle updating the medicine supply chain (for regulators)
-  const handleUpdateMedicine = async (medicineId) => {
+
+  const handleUpdateInputChange = (e) => {
+    const { name, value } = e.target;
+    setUpdateForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
+    setSuccessMessage('');
+    setError(null);
+    if (!updateForm.medicineId || !updateForm.status || !updateForm.location) {
+      setError('Medicine ID, Status, and Location are required');
+      return;
+    }
+
     try {
-      await axios.post(
-        `${API_URL}/medicines/${medicineId}/update`,
-        {
-          handler: user.organization,
-          status: 'Verified by Regulator',
-          location: user.organization.split(' ').pop(), // Example location
-          notes: 'Regulatory verification complete'
+      const response = await axios.post(
+        `${API_URL}/medicines/${updateForm.medicineId}/update`,
+        { ...updateForm, handler: user.organization },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSuccessMessage(`Medicine ${updateForm.medicineId} updated successfully!`);
+      setUpdateForm({ medicineId: '', status: '', location: '', notes: '' });
+      setVerifiedMedicine(null);
+      setRoleActions(null);
+      setQrCode('');
+      setScanResult({ success: false, message: '', type: '' });
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to update medicine');
+    }
+  };
+
+  const detectLocation = async () => {
+    setIsDetectingLocation(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+            );
+            const data = await response.json();
+            const locationString = [
+              data.address?.city || data.address?.town || '',
+              data.address?.state || '',
+              data.address?.country || '',
+            ].filter(Boolean).join(', ');
+            setCurrentLocation(locationString);
+            setUpdateForm((prev) => ({ ...prev, location: locationString }));
+          } catch (error) {
+            setCurrentLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          } finally {
+            setIsDetectingLocation(false);
+          }
         },
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
+        (error) => {
+          setIsDetectingLocation(false);
+          setError('Failed to detect location. Please enter manually.');
         }
       );
-      
-      setSuccessMessage(`Medicine ${medicineId} verified successfully!`);
-      fetchMedicines(); // Refresh the list
-      
-    } catch (err) {
-      console.error('Error updating medicine:', err);
-      setError(err.response?.data?.error || 'Failed to update medicine');
+    } else {
+      setIsDetectingLocation(false);
+      setError('Geolocation not supported.');
     }
   };
 
   return (
     <div className="dashboard-container">
-      <Header />
       <main className="dashboard-main">
         <div className="dashboard-header">
-          <h1>Regulatory Dashboard</h1>
-          <div className="user-info">
-            <p>Welcome, <strong>{user?.username}</strong> | {user?.organization}</p>
-            <button className="logout-btn" onClick={logout}>Logout</button>
-          </div>
+          <h1>Regulator Dashboard</h1>
         </div>
-        
-        <div className="dashboard-section">
-          <h2>Verify Medicine</h2>
-          {error && <div className="error-message">{error}</div>}
-          {successMessage && <div className="success-message">{successMessage}</div>}
-          
-          <form className="qr-form" onSubmit={handleVerify}>
-            <div className="form-group">
-              <label htmlFor="qrCode">Enter QR Code:</label>
-              <input 
-                type="text" 
-                id="qrCode" 
-                value={qrCode} 
-                onChange={handleQrInputChange}
-                placeholder="e.g., QR-PCL-2025-001" 
-              />
-            </div>
-            
-            <button type="submit" className="scan-btn">Verify</button>
-          </form>
-          
-          {verifiedMedicine && (
-            <div className="verified-medicine">
-              <h3>Verified Medicine Details</h3>
-              <div className="medicine-details">
-                <p><strong>ID:</strong> {verifiedMedicine.id}</p>
-                <p><strong>Name:</strong> {verifiedMedicine.name}</p>
-                <p><strong>Manufacturer:</strong> {verifiedMedicine.manufacturer}</p>
-                <p><strong>Batch:</strong> {verifiedMedicine.batchNumber}</p>
-                <p><strong>Manufacturing Date:</strong> {new Date(verifiedMedicine.manufacturingDate).toLocaleDateString()}</p>
-                <p><strong>Expiration Date:</strong> {new Date(verifiedMedicine.expirationDate).toLocaleDateString()}</p>
-                <p><strong>Current Status:</strong> 
-                  <span className={verifiedMedicine.flagged ? 'status-flagged' : isExpired(verifiedMedicine.expirationDate) ? 'status-expired' : 'status-normal'}>
-                    {verifiedMedicine.status}
-                    {isExpired(verifiedMedicine.expirationDate) && ' (EXPIRED)'}
-                  </span>
-                </p>
-                <p><strong>Current Owner:</strong> {verifiedMedicine.currentOwner}</p>
-                
-                {verifiedMedicine.flagged && (
-                  <div className="flag-details">
-                    <p><strong>Flag Notes:</strong> {verifiedMedicine.flagNotes}</p>
-                  </div>
-                )}
-                
-                <button 
-                  className="action-btn"
-                  onClick={() => handleUpdateMedicine(verifiedMedicine.id)}
-                >
-                  Mark as Verified by Regulator
-                </button>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <div className="dashboard-section">
+                <h2>Welcome to the Regulator Dashboard</h2>
+                <p>Navigate to different sections of your dashboard using the routes:</p>
+                <ul>
+                  <li>Scan a QR code to verify a medicine and update its supply chain status.</li>
+                  <li>View all medicines currently in your inventory.</li>
+                  <li>Contact a manufacturer or place an order for medicines.</li>
+                  <li>Register a new order to a manufacturer.</li>
+                </ul>
               </div>
-              
-              <div className="supply-chain-history">
-                <h4>Supply Chain History</h4>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Location</th>
-                      <th>Handler</th>
-                      <th>Status</th>
-                      <th>Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {verifiedMedicine.supplyChain.map((entry, index) => (
-                      <tr key={index} className={entry.status === 'Flagged' ? 'flagged-row' : ''}>
-                        <td>{new Date(entry.timestamp).toLocaleString()}</td>
-                        <td>{entry.location}</td>
-                        <td>{entry.handler}</td>
-                        <td>{entry.status}</td>
-                        <td>{entry.notes}</td>
+            }
+          />
+          <Route path="scan" element={
+            <div className="dashboard-section">
+              <h2>Scan QR Code to Verify Medicine</h2>
+              <form className="medicine-form" onSubmit={handleVerify}>
+                <div className="form-group">
+                  <label htmlFor="qrCode">Enter QR Code:</label>
+                  <input
+                    type="text"
+                    id="qrCode"
+                    value={qrCode}
+                    onChange={handleQrInputChange}
+                    placeholder="e.g., QR-PCL-2025-001"
+                  />
+                </div>
+                <div className="button-group">
+                  <button type="submit" className="submit-btn" disabled={verifyLoading}>
+                    {verifyLoading ? 'Verifying...' : 'Verify'}
+                  </button>
+                  <button
+                    type="button"
+                    className="scan-camera-btn"
+                    onClick={() => setShowScanner(!showScanner)}
+                  >
+                    {showScanner ? 'Hide Scanner' : 'Use Camera'}
+                  </button>
+                </div>
+              </form>
+              {showScanner && (
+                <div id={scannerContainerId} style={{ width: '100%', maxWidth: '400px', marginTop: '20px' }}></div>
+              )}
+              {scanResult.message && (
+                <div className={`scan-result ${scanResult.type}`}>{scanResult.message}</div>
+              )}
+              {verifiedMedicine && (
+                <div className="verified-medicine">
+                  <h3>Verified Medicine Details</h3>
+                  <p><strong>ID:</strong> {verifiedMedicine.id}</p>
+                  <p><strong>Name:</strong> {verifiedMedicine.name}</p>
+                  <p><strong>Manufacturer:</strong> {verifiedMedicine.manufacturer}</p>
+                  <p><strong>Batch:</strong> {verifiedMedicine.batchNumber}</p>
+                  <p><strong>Expiration Date:</strong> {new Date(verifiedMedicine.expirationDate).toLocaleDateString()}</p>
+                  <p><strong>Status:</strong> {verifiedMedicine.status}</p>
+                  <h4>Supply Chain History</h4>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Handler</th>
+                        <th>Status</th>
+                        <th>Notes</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        <div className="dashboard-section">
-          <div className="section-header">
-            <h2>Medicine Monitoring</h2>
-            <div className="tab-buttons">
-              <button 
-                className={`tab-btn ${activeTab === 'flagged' ? 'active' : ''}`}
-                onClick={() => handleTabChange('flagged')}
-              >
-                Flagged Medicines
-              </button>
-              <button 
-                className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
-                onClick={() => handleTabChange('all')}
-              >
-                All Medicines
-              </button>
-            </div>
-            <button 
-              className="action-btn init-btn" 
-              onClick={handleInitLedger}
-              disabled={loading}
-            >
-              Initialize Sample Data
-            </button>
-          </div>
-          
-          {loading ? (
-            <div className="loading">Loading medicines...</div>
-          ) : error ? (
-            <div className="error-message">{error}</div>
-          ) : activeTab === 'flagged' ? (
-            flaggedMedicines.length === 0 ? (
-              <div className="no-data">No flagged medicines found.</div>
-            ) : (
-              <div className="medicines-list">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Name</th>
-                      <th>Manufacturer</th>
-                      <th>Current Owner</th>
-                      <th>Status</th>
-                      <th>Flag Notes</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {flaggedMedicines.map((medicine) => (
-                      <React.Fragment key={medicine.id}>
-                        <tr className="flagged-row">
-                          <td>{medicine.id}</td>
-                          <td>{medicine.name}</td>
-                          <td>{medicine.manufacturer}</td>
-                          <td>{medicine.currentOwner}</td>
-                          <td>{medicine.status}</td>
-                          <td>{medicine.flagNotes}</td>
-                          <td>
-                            <button 
-                              className="action-btn"
-                              onClick={() => toggleSupplyChain(medicine.id)}
-                            >
-                              {showSupplyChain[medicine.id] ? 'Hide History' : 'View History'}
-                            </button>
-                          </td>
+                    </thead>
+                    <tbody>
+                      {verifiedMedicine.supplyChain.map((entry, index) => (
+                        <tr key={index}>
+                          <td>{new Date(entry.timestamp).toLocaleString()}</td>
+                          <td>{entry.location}</td>
+                          <td>{entry.handler}</td>
+                          <td>{entry.status}</td>
+                          <td>{entry.notes}</td>
                         </tr>
-                        {showSupplyChain[medicine.id] && (
-                          <tr className="supply-chain-row">
-                            <td colSpan="7">
-                              <div className="supply-chain-details">
-                                <h4>Supply Chain History</h4>
-                                <table className="inner-table">
-                                  <thead>
-                                    <tr>
-                                      <th>Date</th>
-                                      <th>Location</th>
-                                      <th>Handler</th>
-                                      <th>Status</th>
-                                      <th>Notes</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {medicine.supplyChain.map((entry, index) => (
-                                      <tr key={index} className={entry.status === 'Flagged' ? 'flagged-row' : ''}>
-                                        <td>{new Date(entry.timestamp).toLocaleString()}</td>
-                                        <td>{entry.location}</td>
-                                        <td>{entry.handler}</td>
-                                        <td>{entry.status}</td>
-                                        <td>{entry.notes}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          ) : (
-            allMedicines.length === 0 ? (
-              <div className="no-data">No medicines found.</div>
-            ) : (
-              <div className="medicines-list">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Name</th>
-                      <th>Manufacturer</th>
-                      <th>Current Owner</th>
-                      <th>Status</th>
-                      <th>Expiration</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allMedicines.map((medicine) => (
-                      <React.Fragment key={medicine.id}>
-                        <tr className={medicine.flagged ? 'flagged-row' : isExpired(medicine.expirationDate) ? 'expired-row' : ''}>
-                          <td>{medicine.id}</td>
-                          <td>{medicine.name}</td>
-                          <td>{medicine.manufacturer}</td>
-                          <td>{medicine.currentOwner}</td>
-                          <td>{medicine.status}</td>
-                          <td>
-                            {new Date(medicine.expirationDate).toLocaleDateString()}
-                            {isExpired(medicine.expirationDate) && ' (EXPIRED)'}
-                          </td>
-                          <td>
-                            <button 
-                              className="action-btn"
-                              onClick={() => toggleSupplyChain(medicine.id)}
-                            >
-                              {showSupplyChain[medicine.id] ? 'Hide History' : 'View History'}
-                            </button>
-                          </td>
-                        </tr>
-                        {showSupplyChain[medicine.id] && (
-                          <tr className="supply-chain-row">
-                            <td colSpan="7">
-                              <div className="supply-chain-details">
-                                <h4>Supply Chain History</h4>
-                                <table className="inner-table">
-                                  <thead>
-                                    <tr>
-                                      <th>Date</th>
-                                      <th>Location</th>
-                                      <th>Handler</th>
-                                      <th>Status</th>
-                                      <th>Notes</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {medicine.supplyChain.map((entry, index) => (
-                                      <tr key={index} className={entry.status === 'Flagged' ? 'flagged-row' : ''}>
-                                        <td>{new Date(entry.timestamp).toLocaleString()}</td>
-                                        <td>{entry.location}</td>
-                                        <td>{entry.handler}</td>
-                                        <td>{entry.status}</td>
-                                        <td>{entry.notes}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          )}
-        </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {verifiedMedicine && (
+                <div className="dashboard-section">
+                  <h2>Update Supply Chain</h2>
+                  {successMessage && <div className="success-message">{successMessage}</div>}
+                  {error && <div className="error-message">{error}</div>}
+                  <form className="medicine-form" onSubmit={handleUpdateSubmit}>
+                    <div className="form-group">
+                      <label htmlFor="medicineId">Medicine ID:</label>
+                      <input type="text" id="medicineId" name="medicineId" value={updateForm.medicineId} readOnly />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="status">Status:</label>
+                      <select id="status" name="status" value={updateForm.status} onChange={handleUpdateInputChange}>
+                        <option value="">-- Select Status --</option>
+                        <option value="In Distribution">In Distribution</option>
+                        <option value="In Transit">In Transit</option>
+                        <option value="Delivered to Pharmacy">Delivered to Pharmacy</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="location">Location:</label>
+                      <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        value={updateForm.location}
+                        onChange={handleUpdateInputChange}
+                        disabled={isDetectingLocation}
+                      />
+                      <button
+                        type="button"
+                        onClick={detectLocation}
+                        disabled={isDetectingLocation}
+                      >
+                        {isDetectingLocation ? 'Detecting...' : 'Detect Location'}
+                      </button>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="notes">Notes:</label>
+                      <textarea id="notes" name="notes" value={updateForm.notes} onChange={handleUpdateInputChange} />
+                    </div>
+                    <button type="submit" className="submit-btn">Update Supply Chain</button>
+                  </form>
+                </div>
+              )}
+            </div>
+          } />
+          <Route path="inventory" element={<DistributorInventory />} />
+          <Route path="contact-order" element={<ContactAndOrder />} />
+          <Route path="register-order" element={<RegisterOrder />} />
+        </Routes>
       </main>
-      <Footer />
     </div>
   );
 };

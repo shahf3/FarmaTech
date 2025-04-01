@@ -48,36 +48,6 @@
     margin-bottom: 2rem;
   }
   
-  .header-spacer {
-    height: 80px; /* Match your header height */
-  }
-  
-  /* Remove the old header styles */
-  .home-header {
-    display: none;
-  }
-  
-  /* Adjust the about-hero section to account for the header */
-  .about-hero {
-    padding-top: 5rem;
-  }
-  
-  /* Make sure anchor links have correct offset due to fixed header */
-  html {
-    scroll-padding-top: 80px;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .header-spacer {
-      height: 70px;
-    }
-    
-    html {
-      scroll-padding-top: 70px;
-    }
-  }
-  
   .about-section:nth-child(odd) {
     background-color: var(--bg-secondary);
   }

@@ -69,7 +69,7 @@ const ManageDistributors = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:3000/api/communications/contact-distributor',
+        'http://localhost:3000/api/auth/contact-distributor',
         {
           distributorId: selectedDistributor._id,
           subject: contactForm.subject,

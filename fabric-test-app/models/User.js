@@ -26,6 +26,38 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Personal information
+  firstName: {
+    type: String
+  },
+  lastName: {
+    type: String
+  },
+  phoneNumber: {
+    type: String
+  },
+  // Address information
+  address: {
+    type: String
+  },
+  city: {
+    type: String
+  },
+  country: {
+    type: String
+  },
+  // Additional information
+  notes: {
+    type: String
+  },
+  // For distributors registered by manufacturers
+  registeredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  registeredByOrg: {
+    type: String
+  },
   isOrgAdmin: {
     type: Boolean,
     default: false

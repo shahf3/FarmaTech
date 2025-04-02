@@ -22,7 +22,6 @@ function isAuthorizedToScan(user, medicine) {
               entry.notes && entry.notes.includes(user.organization)));
   }
 
-  // End users can only scan dispensed medicines
   if (user.role === 'enduser') {
     return medicine.status === 'Dispensed';
   }
@@ -33,7 +32,6 @@ function isAuthorizedToScan(user, medicine) {
 
 async function flagMedicineForUnauthorizedAccess(medicineId, user, location) {
   try {
-    // Load the connection profile
     const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
     const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
 
@@ -123,17 +121,14 @@ async function recordSecurityIncident(medicine, user, scanDetails) {
 }
 
 function determineSeverity(medicine, user) {
-  // Critical severity for high-value medicines or controlled substances
   if (medicine.controlledSubstance || medicine.highValue) {
     return 'critical';
   }
   
-  // High severity for scans by distributors 
   if (user.role === 'distributor') {
     return 'high';
   }
   
-  // Medium severity for most cases
   return 'medium';
 }
 

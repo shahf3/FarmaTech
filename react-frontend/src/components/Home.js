@@ -3,6 +3,8 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import "../styles/Home.css";
+import Header from "./Header";
+import Footer from "./Footer";
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -125,6 +127,8 @@ const Home = () => {
 
   return (
     <div className="home-container">
+      <Header />
+
       {/* Animated Background */}
       <div className="animated-bg">
         <div className="shape shape-1"></div>
@@ -366,6 +370,7 @@ const Home = () => {
           </Link>
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

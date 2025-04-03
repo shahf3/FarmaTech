@@ -23,6 +23,14 @@ import DistributorDashboard from './components/dashboard/DistributorDashboard';
 import RegulatorDashboard from './components/dashboard/RegulatorDashboard';
 import EndUserDashboard from './components/dashboard/EndUserDashboard';
 
+// Medicine components
+import MedicineDetail from './components/medicine/MedicineDetail';
+import ScanMedicine from './components/medicine/ScanMedicine';
+import UpdateMedicineStatus from './components/medicine/UpdateMedicineStatus';
+import FlagMedicine from './components/medicine/FlagMedicine';
+import QRCodeGenerator from './components/medicine/QRCodeGenerator';
+import MedicineRoutes from './routes/MedicineRoutes';
+
 import AssetsList from './components/AssetsList';
 import AssetForm from './components/AssetForm';
 import LedgerInit from './components/LedgerInit';
@@ -124,7 +132,7 @@ function AppWithTheme() {
             }
           />
           <Route
-            path="/regulator/*" // Updated to support nested routes
+            path="/regulator/*" 
             element={
               <ProtectedRoute allowedRoles={['regulator']}>
                 <div style={{ display: 'flex' }}>
@@ -149,6 +157,94 @@ function AppWithTheme() {
               </ProtectedRoute>
             }
           />
+          
+          {/* New Medicine Routes */}
+          <Route
+            path="/medicine/*"
+            element={
+              <ProtectedRoute>
+                <div style={{ display: 'flex' }}>
+                  <Sidebar />
+                  <div style={{ flexGrow: 1, padding: '64px 20px 20px 20px' }}>
+                    <MedicineRoutes />
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Direct Medicine Component Routes */}
+          <Route
+            path="/medicine/:id"
+            element={
+              <ProtectedRoute>
+                <div style={{ display: 'flex' }}>
+                  <Sidebar />
+                  <div style={{ flexGrow: 1, padding: '64px 20px 20px 20px' }}>
+                    <MedicineDetail />
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/scan-medicine"
+            element={
+              <ProtectedRoute>
+                <div style={{ display: 'flex' }}>
+                  <Sidebar />
+                  <div style={{ flexGrow: 1, padding: '64px 20px 20px 20px' }}>
+                    <ScanMedicine />
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/update-medicine/:id"
+            element={
+              <ProtectedRoute>
+                <div style={{ display: 'flex' }}>
+                  <Sidebar />
+                  <div style={{ flexGrow: 1, padding: '64px 20px 20px 20px' }}>
+                    <UpdateMedicineStatus />
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/flag-medicine/:id"
+            element={
+              <ProtectedRoute>
+                <div style={{ display: 'flex' }}>
+                  <Sidebar />
+                  <div style={{ flexGrow: 1, padding: '64px 20px 20px 20px' }}>
+                    <FlagMedicine />
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/generate-qr/:id"
+            element={
+              <ProtectedRoute allowedRoles={['manufacturer']}>
+                <div style={{ display: 'flex' }}>
+                  <Sidebar />
+                  <div style={{ flexGrow: 1, padding: '64px 20px 20px 20px' }}>
+                    <QRCodeGenerator />
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Other routes */}
           <Route
             path="/assets"
             element={

@@ -1,17 +1,13 @@
 // src/components/Footer.js
 import React from "react";
 import { Link } from "react-router-dom";
+import "../styles/Footer.css";
 
 const Footer = () => {
   return (
     <footer className="home-footer">
       <div className="footer-content">
         <div className="footer-logo">
-          <img
-            src="/FarmatechLogo.jpg"
-            alt="FarmaTech Logo"
-            className="footer-logo-image"
-          />
           <span>FarmaTech</span>
         </div>
         <div className="footer-links">
@@ -25,7 +21,6 @@ const Footer = () => {
           <div className="footer-column">
             <h4>Company</h4>
             <Link to="/about">About Us</Link>
-            <a href="#">Careers</a>
             <a href="#contact">Contact</a>
             <a href="#">Blog</a>
           </div>

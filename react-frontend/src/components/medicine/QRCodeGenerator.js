@@ -40,7 +40,11 @@ import html2canvas from 'html2canvas';
 
 const API_URL = 'http://localhost:3000/api';
 
+<<<<<<< HEAD
 // Styled components
+=======
+
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
 const QRContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   marginBottom: theme.spacing(3),
@@ -95,7 +99,11 @@ const QRCodeGenerator = ({ medicine }) => {
   const secureQrCodeRef = useRef(null);
   const printPreviewRef = useRef(null);
   
+<<<<<<< HEAD
   // Dimensions for different QR code sizes in pixels
+=======
+
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
   const qrSizes = {
     small: 128,
     medium: 200,

@@ -18,14 +18,27 @@ import {
   AlertTitle,
   CircularProgress,
   IconButton,
+<<<<<<< HEAD
   Card,
   CardContent,
   Grid,
+=======
+  Divider,
+  Card,
+  CardContent,
+  Grid,
+  Radio,
+  RadioGroup,
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
+<<<<<<< HEAD
+=======
+  Chip,
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
   List,
   ListItem,
   ListItemIcon,
@@ -38,6 +51,10 @@ import { styled } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WarningIcon from '@mui/icons-material/Warning';
+<<<<<<< HEAD
+=======
+import FactoryIcon from '@mui/icons-material/Factory';
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
 import DirectionsIcon from '@mui/icons-material/Directions';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
@@ -227,7 +244,11 @@ const FlagMedicine = () => {
       return;
     }
     
+<<<<<<< HEAD
     // Open confirmation dialog
+=======
+
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
     setConfirmDialogOpen(true);
   };
   
@@ -236,14 +257,22 @@ const FlagMedicine = () => {
     setError(null);
     
     try {
+<<<<<<< HEAD
       // Get the readable reason text for the flag
+=======
+      
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
       let reasonText = 'Flagged for issue';
       if (flagForm.reason !== 'other') {
         const selectedReason = flagReasons.find(reason => reason.id === flagForm.reason);
         reasonText = selectedReason ? selectedReason.label : 'Flagged for issue';
       }
       
+<<<<<<< HEAD
       // Create the full reason text with description
+=======
+      
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
       const fullReason = `${reasonText}: ${flagForm.description}`;
       
       const response = await axios.post(
@@ -260,7 +289,11 @@ const FlagMedicine = () => {
       setMedicine(response.data.medicine);
       setFlagSuccess(true);
       
+<<<<<<< HEAD
       // Close dialog
+=======
+      
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
       setConfirmDialogOpen(false);
     } catch (err) {
       console.error('Error flagging medicine:', err);

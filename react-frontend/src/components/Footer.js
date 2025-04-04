@@ -8,8 +8,12 @@ const Footer = () => {
     <footer className="home-footer">
       <div className="footer-content">
         <div className="footer-logo">
+<<<<<<< HEAD
           <div className="logo-icon">FT</div>
           <span className="logo-text">FarmaTech</span>
+=======
+          <span>FarmaTech</span>
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
         </div>
         <div className="footer-links">
           <div className="footer-column">
@@ -20,7 +24,12 @@ const Footer = () => {
           <div className="footer-column">
             <h4>Team</h4>
             <Link to="/about">About Us</Link>
+<<<<<<< HEAD
             <Link to="/#blog">Blog</Link>
+=======
+            <a href="#contact">Contact</a>
+            <a href="#">Blog</a>
+>>>>>>> b365264884185a89af44261291a7b3d127a53130
           </div>
           <div className="footer-column">
             <h4>Resources</h4>

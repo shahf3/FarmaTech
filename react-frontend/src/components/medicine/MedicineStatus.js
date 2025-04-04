@@ -29,11 +29,6 @@ import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
 import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent';
 
-<<<<<<< HEAD
-// Custom styled components
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 const StatusContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   marginBottom: theme.spacing(3),
@@ -71,18 +66,9 @@ const StatusChip = styled(Chip)(({ theme, status }) => {
   };
 });
 
-<<<<<<< HEAD
-// Main component
 const MedicineStatus = ({ medicine }) => {
   if (!medicine) return null;
   
-  // Define the standard supply chain steps
-=======
-const MedicineStatus = ({ medicine }) => {
-  if (!medicine) return null;
-  
-  
->>>>>>> b365264884185a89af44261291a7b3d127a53130
   const supplyChainSteps = [
     { label: 'Manufactured', description: 'Created by manufacturer' },
     { label: 'Quality Check', description: 'Inspection completed' },

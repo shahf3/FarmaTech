@@ -49,10 +49,7 @@ const UpdateContainer = styled(Paper)(({ theme }) => ({
   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
 }));
 
-<<<<<<< HEAD
 // Helper function to get available status options based on user role and current medicine status
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 const getAvailableStatusOptions = (userRole, currentStatus) => {
   const statusFlow = {
     manufacturer: {
@@ -79,28 +76,18 @@ const getAvailableStatusOptions = (userRole, currentStatus) => {
       'default': ['Pharmacy', 'Dispensed']
     },
     enduser: {
-<<<<<<< HEAD
-      'default': [] // End users cannot update status
+      'default': []
     }
   };
 
   // Get options for the current role and status
-=======
-      'default': [] 
-    }
-  };
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
   const roleOptions = statusFlow[userRole] || statusFlow.enduser;
   const options = roleOptions[currentStatus] || roleOptions.default;
   
   return options;
 };
 
-<<<<<<< HEAD
 // Helper function to get icon for status
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 const getStatusIcon = (status) => {
   switch (status) {
     case 'Manufactured':
@@ -121,10 +108,7 @@ const getStatusIcon = (status) => {
   }
 };
 
-<<<<<<< HEAD
 // Helper function to get step index for status
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 const getStepIndexForStatus = (status) => {
   const statusMap = {
     'Manufactured': 0,
@@ -160,16 +144,8 @@ const UpdateMedicineStatus = () => {
     notes: ''
   });
   
-<<<<<<< HEAD
-  // Stepper state
   const [activeStep, setActiveStep] = useState(0);
-  
-  // Define the standard supply chain steps
-=======
-  const [activeStep, setActiveStep] = useState(0);
-  
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
+ 
   const supplyChainSteps = [
     { 
       label: 'Manufactured', 
@@ -230,11 +206,7 @@ const UpdateMedicineStatus = () => {
         
         setMedicine(response.data);
         
-<<<<<<< HEAD
         // Set active step based on current medicine status
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
         if (response.data.status) {
           setActiveStep(getStepIndexForStatus(response.data.status));
         }
@@ -250,19 +222,13 @@ const UpdateMedicineStatus = () => {
     detectLocation();
   }, [id, token]);
   
-<<<<<<< HEAD
   // Update available statuses when medicine is loaded
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
   useEffect(() => {
     if (medicine && user) {
       const options = getAvailableStatusOptions(user.role, medicine.status);
       setAvailableStatuses(options);
       
-<<<<<<< HEAD
       // Set default next status if available
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       if (options.length > 0) {
         setStatusUpdate(prev => ({ ...prev, status: options[0] }));
       }
@@ -349,26 +315,17 @@ const UpdateMedicineStatus = () => {
       setMedicine(response.data.medicine);
       setSuccess(`Medicine status updated to ${statusUpdate.status} successfully`);
       
-<<<<<<< HEAD
       // Set active step based on new status
       setActiveStep(getStepIndexForStatus(statusUpdate.status));
       
       // Clear form
-=======
-      setActiveStep(getStepIndexForStatus(statusUpdate.status));
-      
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       setStatusUpdate({
         status: '',
         location: currentLocation,
         notes: ''
       });
       
-<<<<<<< HEAD
       // Update available statuses for the new medicine status
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       const options = getAvailableStatusOptions(user.role, response.data.medicine.status);
       setAvailableStatuses(options);
       
@@ -383,10 +340,7 @@ const UpdateMedicineStatus = () => {
     }
   };
 
-<<<<<<< HEAD
   // Check if user is authorized to update this medicine
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
   const canUpdateMedicine = () => {
     if (!user || !medicine) return false;
     

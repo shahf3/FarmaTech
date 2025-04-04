@@ -127,10 +127,6 @@ const Home = () => {
     <div className="home-container">
       <Header />
 
-<<<<<<< HEAD
-=======
-      {/* Animated Background */}
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       <div className="animated-bg">
         <div className="shape shape-1"></div>
         <div className="shape shape-2"></div>

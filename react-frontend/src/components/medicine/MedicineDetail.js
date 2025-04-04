@@ -46,11 +46,6 @@ import MedicineStatus from './MedicineStatus';
 
 const API_URL = 'http://localhost:3000/api';
 
-<<<<<<< HEAD
-// Styled components
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 const DetailContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   marginBottom: theme.spacing(3),
@@ -134,11 +129,6 @@ const MedicineDetail = () => {
   
   const isExpired = medicine?.expirationDate && new Date(medicine.expirationDate) < new Date();
   
-<<<<<<< HEAD
-  // Check if user can update medicine status
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
   const canUpdateMedicine = () => {
     if (!user || !medicine) return false;
     

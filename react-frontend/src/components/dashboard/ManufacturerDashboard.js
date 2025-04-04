@@ -151,11 +151,7 @@ const ManufacturerDashboard = () => {
                                 Flag medicines with quality or authenticity issues in the blockchain.
                               </Typography>
                               <Button 
-<<<<<<< HEAD
                                 variant="contained" 
-=======
-                                variant="outlined" 
->>>>>>> b365264884185a89af44261291a7b3d127a53130
                                 color="error"
                                 fullWidth
                                 startIcon={<WarningIcon />}

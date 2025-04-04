@@ -34,11 +34,7 @@ import MedicineStatus from './MedicineStatus';
 
 const API_URL = 'http://localhost:3000/api';
 
-<<<<<<< HEAD
 // Styled components
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 const ScanContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   marginBottom: theme.spacing(3),
@@ -65,10 +61,6 @@ const QRScanContainer = styled(Box)(({ theme }) => ({
   }
 }));
 
-<<<<<<< HEAD
-// Helper function to get available status options based on user role and current medicine status
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 const getAvailableStatusOptions = (userRole, currentStatus) => {
   const statusFlow = {
     manufacturer: {
@@ -95,17 +87,6 @@ const getAvailableStatusOptions = (userRole, currentStatus) => {
       'default': ['Pharmacy', 'Dispensed']
     },
     enduser: {
-<<<<<<< HEAD
-      'default': [] // End users cannot update status
-    }
-  };
-
-  // Get options for the current role and status
-  const roleOptions = statusFlow[userRole] || statusFlow.enduser;
-  const options = roleOptions[currentStatus] || roleOptions.default;
-  
-  // Always allow flagging for authorized personnel
-=======
       'default': [] 
     }
   };
@@ -115,7 +96,6 @@ const getAvailableStatusOptions = (userRole, currentStatus) => {
   const options = roleOptions[currentStatus] || roleOptions.default;
   
 
->>>>>>> b365264884185a89af44261291a7b3d127a53130
   if (userRole !== 'enduser' && !options.includes('Flagged')) {
     options.push('Flagged');
   }
@@ -145,47 +125,26 @@ const ScanMedicine = () => {
   const html5QrCodeRef = useRef(null);
   const qrScannerDivId = "qr-scanner";
 
-<<<<<<< HEAD
-  // Detect location on component mount
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
   useEffect(() => {
     detectLocation();
   }, []);
 
-<<<<<<< HEAD
-  // Update available statuses when medicine is scanned
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
   useEffect(() => {
     if (scannedMedicine && user) {
       const options = getAvailableStatusOptions(user.role, scannedMedicine.status);
       setAvailableStatuses(options);
       
-<<<<<<< HEAD
       // Set the default next status based on current status and role
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       if (options.length > 0 && !statusUpdate.status) {
         setStatusUpdate(prev => ({ ...prev, status: options[0] }));
       }
     }
   }, [scannedMedicine, user]);
 
-<<<<<<< HEAD
-  // Initialize and cleanup QR scanner when dialog opens/closes
-  useEffect(() => {
-    if (scannerOpen) {
-      // Initialize QR scanner
-=======
 
   useEffect(() => {
     if (scannerOpen) {
 
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       html5QrCodeRef.current = new Html5Qrcode(qrScannerDivId);
       
       const config = { 
@@ -203,11 +162,6 @@ const ScanMedicine = () => {
           verifyMedicine(decodedText);
         },
         (errorMessage) => {
-<<<<<<< HEAD
-          // On error (but continue scanning)
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
           console.log(errorMessage);
         }
       ).catch((err) => {
@@ -294,29 +248,17 @@ const ScanMedicine = () => {
     setUpdateSuccess(false);
 
     try {
-<<<<<<< HEAD
-      // Determine if the QR is a standard QR or a secure QR (JSON format)
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       let isSecureQR = false;
       try {
         const parsed = JSON.parse(qrCode);
         isSecureQR = !!parsed.signature;
       } catch (e) {
-<<<<<<< HEAD
-        // Not a JSON, so it's a standard QR
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
         isSecureQR = false;
       }
 
       let response;
       if (isSecureQR) {
-<<<<<<< HEAD
         // Handle secure QR
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
         response = await axios.post(
           `${API_URL}/medicines/verify-secure`,
           { qrContent: qrCode, location: currentLocation },
@@ -334,10 +276,7 @@ const ScanMedicine = () => {
           setError(response.data.error || "Invalid QR code");
         }
       } else {
-<<<<<<< HEAD
         // Handle standard QR
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
         response = await axios.get(
           `${API_URL}/medicines/verify/${qrCode}`,
           {
@@ -350,10 +289,7 @@ const ScanMedicine = () => {
         setScannedMedicine(response.data);
       }
 
-<<<<<<< HEAD
       // Automatically record the scan if not in the medicine's supply chain
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       if (response.data.scanRecorded !== false) {
         console.log('Scan recorded successfully');
       }
@@ -385,10 +321,7 @@ const ScanMedicine = () => {
     setError(null);
     
     try {
-<<<<<<< HEAD
       // If status is "Flagged", use the flag endpoint
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       if (statusUpdate.status === 'Flagged') {
         const response = await axios.post(
           `${API_URL}/medicines/${scannedMedicine.id}/flag`,
@@ -421,10 +354,7 @@ const ScanMedicine = () => {
       
       setUpdateMode(false);
       setUpdateSuccess(true);
-<<<<<<< HEAD
       // Reset status update form
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
       setStatusUpdate({
         status: '',
         location: currentLocation,
@@ -450,10 +380,7 @@ const ScanMedicine = () => {
   const canUpdateMedicine = () => {
     if (!user || !scannedMedicine) return false;
     
-<<<<<<< HEAD
     // Check if user is authorized to update this medicine
-=======
->>>>>>> b365264884185a89af44261291a7b3d127a53130
     const isManufacturer = user.role === 'manufacturer' && user.organization === scannedMedicine.manufacturer;
     const isDistributor = user.role === 'distributor' && user.organization === scannedMedicine.currentOwner;
     const isRegulator = user.role === 'regulator';

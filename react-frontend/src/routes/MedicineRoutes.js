@@ -3,46 +3,27 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-<<<<<<< HEAD
 // Medicine components
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 import MedicineDetail from '../components/medicine/MedicineDetail';
 import ScanMedicine from '../components/medicine/ScanMedicine';
 import UpdateMedicineStatus from '../components/medicine/UpdateMedicineStatus';
 import FlagMedicine from '../components/medicine/FlagMedicine';
 import QRCodeGenerator from '../components/medicine/QRCodeGenerator';
 
-<<<<<<< HEAD
 // Dashboard components
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 import ManufacturerDashboard from '../components/dashboard/ManufacturerDashboard';
 import DistributorDashboard from '../components/dashboard/DistributorDashboard';
 import RegulatorDashboard from '../components/dashboard/RegulatorDashboard';
 import EndUserDashboard from '../components/dashboard/EndUserDashboard';
 
-<<<<<<< HEAD
 // Other components
-=======
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 import RegisterNewMedicine from '../components/dashboard/RegisterNewMedicine';
 import ViewRegisteredMedicines from '../components/dashboard/ViewRegisteredMedicines';
 import RegisterDistributor from '../components/dashboard/RegisterDistributor';
 import ManageDistributors from '../components/dashboard/ManageDistributors';
 import Unauthorized from '../components/common/Unauthorized';
-<<<<<<< HEAD
-//import NotFound from '../components/common/NotFound';
 
 // Role-based route guard component
-=======
-
-
-
->>>>>>> b365264884185a89af44261291a7b3d127a53130
 const RoleRoute = ({ element, allowedRoles }) => {
   const { user, isAuthenticated } = useAuth();
   

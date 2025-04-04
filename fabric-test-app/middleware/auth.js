@@ -1,4 +1,3 @@
-// fabric-test-app/middleware/auth.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Organization = require('../models/Organization');
@@ -56,17 +55,13 @@ exports.checkOrganization = (paramName) => {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      // If regulator, they can access any organization's resources
       if (req.user.role === 'regulator') {
         return next();
       }
 
-      // For manufacturer and distributor roles, check organization match
       if (['manufacturer', 'distributor'].includes(req.user.role)) {
-        // Get the medicine by ID or other param
         const id = req.params[paramName];
 
-        // Load the connection profile for Hyperledger Fabric
         const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
         const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
 
@@ -88,29 +83,24 @@ exports.checkOrganization = (paramName) => {
         const network = await gateway.getNetwork("mychannel");
         const contract = network.getContract("medicine-contract");
 
-        // Get the medicine to check organization
         const result = await contract.evaluateTransaction("GetMedicine", id);
         await gateway.disconnect();
         
         const medicine = JSON.parse(result.toString());
 
-        // Allow if user is from same organization as manufacturer
         if (req.user.organization === medicine.manufacturer) {
           return next();
         }
 
-        // Allow if user is distributor and medicine is owned by their organization
         if (req.user.role === 'distributor' && medicine.currentOwner === req.user.organization) {
           return next();
         }
 
-        // Otherwise, deny access
         return res.status(403).json({ 
           message: 'Access denied. You do not have permission to perform actions on medicines from other organizations.' 
         });
       }
 
-      // Default case - allow access
       next();
     } catch (error) {
       console.error('Organization check error:', error);

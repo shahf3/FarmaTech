@@ -1,4 +1,3 @@
-// enrollAdmin.js
 'use strict';
 
 const FabricCAServices = require('fabric-ca-client');
@@ -8,7 +7,6 @@ const path = require('path');
 
 async function main() {
     try {
-        // Load the connection profile
         const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
@@ -22,7 +20,6 @@ async function main() {
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
-        // Check if we've already enrolled the admin user
         const identity = await wallet.get('admin');
         if (identity) {
             console.log('An identity for the admin user "admin" already exists in the wallet');

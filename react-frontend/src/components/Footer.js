@@ -1,46 +1,30 @@
 // src/components/Footer.js
 import React from "react";
 import { Link } from "react-router-dom";
+import "../styles/Footer.css";
 
 const Footer = () => {
   return (
     <footer className="home-footer">
       <div className="footer-content">
         <div className="footer-logo">
-          <img
-            src="/FarmatechLogo.jpg"
-            alt="FarmaTech Logo"
-            className="footer-logo-image"
-          />
-          <span>FarmaTech</span>
+          <div className="logo-icon">FT</div>
+          <span className="logo-text">FarmaTech</span>
         </div>
         <div className="footer-links">
           <div className="footer-column">
             <h4>Platform</h4>
-            <a href="#features">How it Works</a>
-            <a href="#features">Features</a>
-            <a href="#">Security</a>
-            <a href="#">Pricing</a>
+            <Link to="/#features">How it Works</Link>
+            <Link to="/#features">Features</Link>
           </div>
           <div className="footer-column">
-            <h4>Company</h4>
+            <h4>Team</h4>
             <Link to="/about">About Us</Link>
-            <a href="#">Careers</a>
-            <a href="#contact">Contact</a>
-            <a href="#">Blog</a>
+            <Link to="/#blog">Blog</Link>
           </div>
           <div className="footer-column">
             <h4>Resources</h4>
-            <a href="#">Documentation</a>
-            <a href="#">API</a>
-            <a href="#">Support</a>
-            <a href="#">Community</a>
-          </div>
-          <div className="footer-column">
-            <h4>Legal</h4>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Compliance</a>
+            <Link to="/#">Documentation</Link>
           </div>
         </div>
       </div>

@@ -111,20 +111,27 @@
     border-radius: 50%;
     margin: 0 auto 1.5rem;
     background-color: var(--bg-secondary);
-    background-position: center;
-    background-size: cover;
     border: 4px solid white;
     box-shadow: var(--shadow-md);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .founder-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
   }
   
-  .founder-1 {
-    background-image: url('https://via.placeholder.com/200x200.png?text=Faizan');
+  .founder-1, .founder-2 {
+    background-position: center;
+    background-size: cover;
   }
-  
-  .founder-2 {
-    background-image: url('https://via.placeholder.com/200x200.png?text=Abhjit');
-  }
-  
+
   .founder-card h3 {
     font-size: 1.5rem;
     color: var(--primary-dark);

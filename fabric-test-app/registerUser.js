@@ -8,7 +8,6 @@ const path = require('path');
 
 async function main() {
     try {
-        // Load the connection profile
         const ccpPath = path.resolve(__dirname, 'config', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
@@ -21,14 +20,12 @@ async function main() {
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
-        // Check if we've already enrolled the user
         const userIdentity = await wallet.get('appUser');
         if (userIdentity) {
             console.log('An identity for the user "appUser" already exists in the wallet');
             return;
         }
 
-        // Check to see if we've already enrolled the admin user
         const adminIdentity = await wallet.get('admin');
         if (!adminIdentity) {
             console.log('An identity for the admin user "admin" does not exist in the wallet');

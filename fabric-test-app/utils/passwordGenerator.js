@@ -8,7 +8,6 @@ function generatePassword(length = 10) {
 
   let password = "";
 
-  // Ensure password has at least one character from each set
   password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
   password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
   password += numbers.charAt(Math.floor(Math.random() * numbers.length));

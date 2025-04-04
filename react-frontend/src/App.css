@@ -34,3 +34,31 @@ input, textarea {
   border-radius: 4px;
 }
 
+:root {
+  --primary-blue: #1e88e5;
+  --primary-gradient: linear-gradient(135deg, #1e88e5, #42a5f5);
+  
+  --text-primary: #333333;
+  --text-secondary: #555555;
+  --text-secondary-light: #666666;
+  --text-light: #ffffff;
+  
+  --background-primary: #ffffff;
+  --background-secondary: #f5f7fa;
+  --background-card: #ffffff;
+
+  --heading-color: #1a1a1a;
+  
+  --button-primary-text: #ffffff;
+}
+
+[data-theme="dark"] {
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --text-secondary-light: #a0a0a0;
+  --heading-color: #ffffff;
+  
+  --background-primary: #121212;
+  --background-secondary: #1e1e1e;
+  --background-card: #2a2a2a;
+}

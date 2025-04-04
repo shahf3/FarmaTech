@@ -14,7 +14,6 @@ function isAuthorizedToScan(user, medicine) {
     return user.organization === medicine.manufacturer;
   }
 
-  // Distributors can scan medicines they own or that are in transit to them
   if (user.role === 'distributor') {
     return user.organization === medicine.currentOwner || 
            (medicine.status === 'In Transit' && 
@@ -25,8 +24,6 @@ function isAuthorizedToScan(user, medicine) {
   if (user.role === 'enduser') {
     return medicine.status === 'Dispensed';
   }
-
-  // By default, unauthorized
   return false;
 }
 
@@ -54,11 +51,9 @@ async function flagMedicineForUnauthorizedAccess(medicineId, user, location) {
     const contract = network.getContract("medicine-contract");
 
     // First, get the medicine to record its state before flagging
-    // Using GetMedicine instead of VerifyMedicine
     const medicineBeforeResult = await contract.evaluateTransaction("GetMedicine", medicineId);
     const medicineBefore = JSON.parse(medicineBeforeResult.toString());
 
-    // Create detailed flag reason
     const reason = `Unauthorized scan by ${user.role} (${user.username}) from ${user.organization}`;
     
     // Submit the transaction to flag the medicine
@@ -70,7 +65,6 @@ async function flagMedicineForUnauthorizedAccess(medicineId, user, location) {
       location || "Unknown location"
     );
 
-    // Disconnect from gateway
     await gateway.disconnect();
 
     // Return the updated medicine

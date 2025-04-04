@@ -1,4 +1,3 @@
-// fabric-test-app/routes/medicines.js
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
@@ -13,17 +12,15 @@ const { isAuthorizedToScan, flagMedicineForUnauthorizedAccess, recordSecurityInc
 
 // Helper function to generate secure QR code
 function generateSecureQRCode(medicine, secretKey) {
-  // Create base content with medicine info
   const baseContent = {
     id: medicine.id,
     name: medicine.name,
     manufacturer: medicine.manufacturer,
     batchNumber: medicine.batchNumber,
-    blockchainQR: medicine.qrCode, // Original QR code from blockchain
+    blockchainQR: medicine.qrCode,
     timestamp: Date.now(),
   };
 
-  // Stringify the content
   const contentString = JSON.stringify(baseContent);
 
   // Create HMAC signature
@@ -32,7 +29,6 @@ function generateSecureQRCode(medicine, secretKey) {
     .update(contentString)
     .digest("hex");
 
-  // Return the combined content for QR code
   return JSON.stringify({
     ...baseContent,
     signature: hmac,
@@ -42,10 +38,8 @@ function generateSecureQRCode(medicine, secretKey) {
 // Helper function to verify QR code
 function verifyQRCode(qrContent, secretKey) {
   try {
-    // Parse QR content
     const data = JSON.parse(qrContent);
 
-    // Extract signature
     const { signature, ...baseContent } = data;
 
     // Re-compute HMAC
@@ -55,12 +49,10 @@ function verifyQRCode(qrContent, secretKey) {
       .update(contentString)
       .digest("hex");
 
-    // Verify signature matches
     if (signature !== expectedHmac) {
       return { valid: false, reason: "Invalid signature" };
     }
 
-    // Check for expired QR code (optional - e.g., codes older than 30 days)
     const now = Date.now();
     if (now - data.timestamp > 30 * 24 * 60 * 60 * 1000) {
       return { valid: false, reason: "QR code expired" };
@@ -90,10 +82,8 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
       });
     }
 
-    // Get location from headers or default to Unknown
     const location = req.headers['x-user-location'] || 'Unknown location';
 
-    // Load the connection profile
     const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
     const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
 
@@ -118,13 +108,10 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
       const network = await gateway.getNetwork("mychannel");
       const contract = network.getContract("medicine-contract");
       
-      // Find the medicine by QR code 
-      // First, get all medicines
       console.log(`Getting all medicines to find QR code: ${qrCode}`);
       const allMedicinesResult = await contract.evaluateTransaction("GetAllMedicines");
       const allMedicines = JSON.parse(allMedicinesResult.toString());
       
-      // Find the medicine with matching QR code
       const medicine = allMedicines.find(med => med.qrCode === qrCode);
       
       if (!medicine) {
@@ -134,11 +121,9 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
       
       console.log(`Found medicine: ${medicine.id} with QR code: ${qrCode}`);
       
-      // Now get the full medicine details by ID for consistency
       const result = await contract.evaluateTransaction("GetMedicine", medicine.id);
       let medicineData = JSON.parse(result.toString());
       
-      // Determine if the user is authorized to scan this medicine
       const isAuthorized = isAuthorizedScan(req.user, medicineData);
       console.log(`Scan authorization: ${isAuthorized ? 'Authorized' : 'UNAUTHORIZED'}`);
       
@@ -147,7 +132,6 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
         console.warn(`SECURITY ALERT: Unauthorized scan detected - User: ${req.user.username}, Role: ${req.user.role}, Org: ${req.user.organization}, Medicine: ${medicineData.id}`);
         
         try {
-          // Create detailed flag reason
           const flagReason = `Unauthorized scan by ${req.user.role} (${req.user.username}) from ${req.user.organization}`;
           
           // Submit the transaction to flag the medicine
@@ -162,7 +146,6 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
           // Update medicine with flag information from blockchain
           medicineData = JSON.parse(flagResult.toString());
           
-          // Add unauthorized scan details for frontend display
           medicineData.unauthorizedScanDetails = {
             scannerUsername: req.user.username,
             scannerRole: req.user.role,
@@ -203,26 +186,20 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
             await incident.save();
           } catch (incidentError) {
             console.error('Error recording security incident:', incidentError);
-            // Continue even if recording incident fails
           }
           
           console.log(`Medicine ${medicineData.id} auto-flagged due to unauthorized scan`);
         } catch (flagError) {
           console.error(`Error auto-flagging medicine:`, flagError);
-          // Continue with the response even if flagging fails
         }
       } else {
-        // For authorized scans, try to record the scan event
         try {
-          // Check if this is not a duplicate scan within a short time period
           if (!medicineData.supplyChain.some(entry => 
               entry.handler === req.user.organization &&
               entry.status === 'Scanned' &&
-              // Only consider scans in the last hour to be duplicates
               new Date(entry.timestamp) > new Date(Date.now() - 60 * 60 * 1000)
           )) {
             try {
-              // If the chaincode supports RecordScan
               await contract.submitTransaction(
                 "RecordScan",
                 medicineData.id,
@@ -232,13 +209,11 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
                 location
               );
               
-              // Get updated medicine after recording scan
               const updatedResult = await contract.evaluateTransaction("GetMedicine", medicineData.id);
               medicineData = JSON.parse(updatedResult.toString());
               
               console.log(`Scan recorded for medicine ${medicineData.id} by ${req.user.username}`);
             } catch (error) {
-              // If RecordScan is not implemented in chaincode
               console.error("Error recording scan:", error);
             }
           }
@@ -247,10 +222,8 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
         }
       }
 
-      // Disconnect from the gateway
       await gateway.disconnect();
 
-      // Prepare role-specific information
       let roleSpecificData = {};
       
       if (req.user.role === "manufacturer") {
@@ -303,7 +276,6 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
       try {
         await gateway.disconnect();
       } catch (e) {
-        // Ignore disconnect errors
       }
       
       res.status(500).json({ 
@@ -320,6 +292,7 @@ router.get('/verify/:qrCode', verifyToken, async (req, res) => {
     });
   }
 });
+
 // Helper function to determine if a user is authorized to scan a medicine
 function isAuthorizedScan(user, medicine) {
   // Regulators can scan any medicine

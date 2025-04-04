@@ -1,9 +1,11 @@
 // src/components/Header.js
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import "../styles/Header.css";
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,28 +22,57 @@ const Header = () => {
     };
   }, [scrolled]);
 
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
   return (
-    <header className={`home-header ${scrolled ? 'scrolled' : ''}`}
-           style={{
-             padding: scrolled ? '0.6rem 5%' : '0.8rem 5%',
-             boxShadow: scrolled ? '0 4px 12px rgba(0, 0, 0, 0.1)' : '0 2px 8px rgba(0, 0, 0, 0.05)'
-           }}>
-      <div className="logo">
-        <img
-          src="/FarmatechLogo.jpg"
-          alt="FarmaTech Logo"
-          className="header-logo-image"
-        />
-      </div>
-      <nav className="nav-links">
-        <a href="#features">Features</a>
-        <Link to="/about">About</Link>
-        <a href="#contact">Contact</a>
-        <Link to="/register" className="register-btn">
-          Register
-        </Link>
-      </nav>
-    </header>
+    <>
+      <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
+        <div className="header-container">
+          <div className="header-logo">
+            <Link to="/">
+              <div className="logo-container">
+                <div className="logo-icon">FT</div>
+                <div className="logo-text">FarmaTech</div>
+              </div>
+            </Link>
+          </div>
+          
+          <nav className={`header-nav ${menuOpen ? 'menu-open' : ''}`}>
+            <ul className="nav-list">
+              <li className="nav-item">
+                <Link to="/#features" className="nav-link">Features</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/about" className="nav-link">About</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/#" className="nav-link">Verify Your Medicines</Link>
+              </li>
+              <li className="nav-item mobile-only">
+                <Link to="/login" className="nav-link">Login</Link>
+              </li>
+              <li className="nav-item mobile-only">
+                <Link to="/register" className="nav-link">Register</Link>
+              </li>
+            </ul>
+          </nav>
+          
+          <div className="header-actions">
+            <Link to="/login" className="login-button">Login</Link>
+            <Link to="/register" className="register-button">Register</Link>
+          </div>
+          
+          <button 
+            className={`mobile-menu-toggle ${menuOpen ? 'active' : ''}`} 
+            onClick={toggleMenu}
+          >
+          </button>
+        </div>
+      </header>
+      <div className="header-spacer"></div>
+    </>
   );
 };
 

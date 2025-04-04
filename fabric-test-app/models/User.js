@@ -1,4 +1,3 @@
-// fabric-test-app/models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -26,7 +25,6 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  // Personal information
   firstName: {
     type: String
   },
@@ -36,7 +34,6 @@ const UserSchema = new mongoose.Schema({
   phoneNumber: {
     type: String
   },
-  // Address information
   address: {
     type: String
   },
@@ -46,11 +43,9 @@ const UserSchema = new mongoose.Schema({
   country: {
     type: String
   },
-  // Additional information
   notes: {
     type: String
   },
-  // For distributors registered by manufacturers
   registeredBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -78,7 +73,7 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-// Hash password before saving
+// Hash password
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
@@ -91,7 +86,6 @@ UserSchema.pre('save', async function(next) {
   }
 });
 
-// Method to compare passwords
 UserSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

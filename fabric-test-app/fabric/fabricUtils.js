@@ -1,4 +1,3 @@
-// fabric-test-app/fabric/fabricUtils.js
 const { Wallets } = require('fabric-network');
 const FabricCAServices = require('fabric-ca-client');
 const fs = require('fs');
@@ -7,7 +6,6 @@ const path = require('path');
 // Register and enroll user with Fabric CA
 async function registerUserOnFabric(username, org) {
   try {
-    // Load connection profile
     const ccpPath = path.resolve(__dirname, '..', 'config', 'connection-org1.json');
     const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 

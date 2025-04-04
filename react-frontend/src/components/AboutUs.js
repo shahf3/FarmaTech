@@ -2,42 +2,19 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/AboutUs.css";
+import Header from "./Header";
+import Footer from "./Footer";
 
 const AboutUs = () => {
   return (
     <div className="about-container">
+      <Header />
+      
       <div className="animated-bg">
         <div className="shape shape-1"></div>
         <div className="shape shape-2"></div>
         <div className="shape shape-3"></div>
       </div>
-
-      <header className="home-header">
-        <div className="logo">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="12" y1="8" x2="12" y2="16"></line>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
-          </svg>
-          <span>FarmaTech</span>
-        </div>
-        <nav className="nav-links">
-          <Link to="/#features">Features</Link>
-          <Link to="/about">About</Link>
-          <Link to="/#contact">Contact</Link>
-          <Link to="/register" className="register-btn">
-            Register
-          </Link>
-        </nav>
-      </header>
 
       <section className="about-hero">
         <div className="about-hero-content">
@@ -66,7 +43,6 @@ const AboutUs = () => {
         </div>
       </section>
 
-  
       <section className="about-section team-section">
         <div className="about-section-container">
           <div className="about-section-header">
@@ -75,7 +51,7 @@ const AboutUs = () => {
           </div>
           <div className="about-section-content">
             <p>
-              FarmaTech was founded by Faizan Ali Shah and Abhjit Mahal, technology innovators 
+              FarmaTech was founded by Faizan Ali Shah and Abhijit Mahal, technology innovators 
               with a passion for applying cutting-edge solutions to critical healthcare challenges. 
               Our team combines expertise in blockchain technology, pharmaceutical supply chain 
               management, and regulatory compliance to create a revolutionary system that addresses 
@@ -83,16 +59,36 @@ const AboutUs = () => {
             </p>
             <div className="founders-container">
               <div className="founder-card">
-                <div className="founder-photo founder-1"></div>
+                <div className="founder-photo founder-1">
+                  <img src="/faizan-profile.jpg" alt="Faizan Ali Shah" />
+                </div>
                 <h3>Faizan Ali Shah</h3>
                 <p>Co-Founder</p>
-                <p className="founder-id">Student ID: 21319001</p>
+                <p className="founder-id">shahfaizan2425@gmail.com</p>
+                <div className="founder-social">
+                  <a href="https://www.linkedin.com/in/shahf3/" target="_blank" rel="noopener noreferrer" className="linkedin-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    <span>LinkedIn Profile</span>
+                  </a>
+                </div>
               </div>
               <div className="founder-card">
-                <div className="founder-photo founder-2"></div>
-                <h3>Abhjit Mahal</h3>
+                <div className="founder-photo founder-2">
+                  <img src="/images/abhijit-profile.jpg" alt="Abhijit Mahal" />
+                </div>
+                <h3>Abhijit Mahal</h3>
                 <p>Co-Founder</p>
-                <p className="founder-id">Student ID: 21375106</p>
+                <p className="founder-id">abhijit.mahal2@mail.dcu.ie</p>
+                <div className="founder-social">
+                  <a href="https://www.linkedin.com/in/abhijit-mahal/" target="_blank" rel="noopener noreferrer" className="linkedin-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    <span>LinkedIn Profile</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -464,58 +460,7 @@ const AboutUs = () => {
         </div>
       </section>
 
-      <footer className="home-footer">
-        <div className="footer-content">
-          <div className="footer-logo">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="12" y1="8" x2="12" y2="16"></line>
-              <line x1="8" y1="12" x2="16" y2="12"></line>
-            </svg>
-            <span>FarmaTech</span>
-          </div>
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Platform</h4>
-              <a href="/#features">How it Works</a>
-              <a href="/#features">Features</a>
-              <a href="/#">Security</a>
-              <a href="/#">Pricing</a>
-            </div>
-            <div className="footer-column">
-              <h4>Company</h4>
-              <Link to="/about">About Us</Link>
-              <a href="/#">Careers</a>
-              <a href="/#contact">Contact</a>
-              <a href="/#">Blog</a>
-            </div>
-            <div className="footer-column">
-              <h4>Resources</h4>
-              <a href="/#">Documentation</a>
-              <a href="/#">API</a>
-              <a href="/#">Support</a>
-              <a href="/#">Community</a>
-            </div>
-            <div className="footer-column">
-              <h4>Legal</h4>
-              <a href="/#">Privacy Policy</a>
-              <a href="/#">Terms of Service</a>
-              <a href="/#">Compliance</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; 2025 FarmaTech. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

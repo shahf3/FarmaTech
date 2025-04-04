@@ -1,8 +1,9 @@
-// src/components/Home.js
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import "../styles/Home.css";
+import Header from "./Header";
+import Footer from "./Footer";
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,6 @@ const Home = () => {
   const { login, loading, error } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Auto-rotate features every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % 4);
@@ -125,14 +125,14 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      {/* Animated Background */}
+      <Header />
+
       <div className="animated-bg">
         <div className="shape shape-1"></div>
         <div className="shape shape-2"></div>
         <div className="shape shape-3"></div>
       </div>
 
-      {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
           <h1>Secure Medicine Authentication with Blockchain</h1>
@@ -190,7 +190,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section id="features" className="features-section">
         <h2>Blockchain-Powered Medicine Security</h2>
         <div className="features-container">
@@ -221,7 +220,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
       <section className="how-it-works">
         <h2>How FarmaTech Works</h2>
         <div className="steps-container">
@@ -260,7 +258,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* User Types Section */}
       <section className="user-types">
         <h2>Who Uses FarmaTech</h2>
         <div className="user-types-grid">
@@ -366,6 +363,7 @@ const Home = () => {
           </Link>
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

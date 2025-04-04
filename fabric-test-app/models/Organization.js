@@ -1,4 +1,3 @@
-// fabric-test-app/models/Organization.js
 const mongoose = require('mongoose');
 
 const OrganizationSchema = new mongoose.Schema({

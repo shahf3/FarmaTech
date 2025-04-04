@@ -19,10 +19,7 @@ const authRoutes = require("./routes/auth");
 // Helper function to verify QR code
 function verifyQRCode(qrContent, secretKey) {
     try {
-      // Parse QR content
       const data = JSON.parse(qrContent);
-  
-      // Extract signature
       const { signature, ...baseContent } = data;
   
       // Re-compute HMAC
@@ -37,7 +34,6 @@ function verifyQRCode(qrContent, secretKey) {
         return { valid: false, reason: "Invalid signature" };
       }
   
-      // Check for expired QR code (optional - e.g., codes older than 30 days)
       const now = Date.now();
       if (now - data.timestamp > 30 * 24 * 60 * 60 * 1000) {
         return { valid: false, reason: "QR code expired" };
@@ -49,7 +45,6 @@ function verifyQRCode(qrContent, secretKey) {
     }
   }
   
-  // Export the function if needed elsewhere
   module.exports.verifyQRCode = verifyQRCode;
 
 // Add this new endpoint for secure QR verification
@@ -110,7 +105,6 @@ app.post("/api/medicines/verify-secure", async (req, res) => {
     const network = await gateway.getNetwork("mychannel");
     const contract = network.getContract("medicine-contract");
 
-    // Verify medicine using the blockchain QR code
     const result = await contract.evaluateTransaction(
       "VerifyMedicine",
       verification.blockchainQR
@@ -120,7 +114,6 @@ app.post("/api/medicines/verify-secure", async (req, res) => {
 
     const medicine = JSON.parse(result.toString());
 
-    // Prepare role-specific information and actions
     let roleSpecificData = {};
 
     if (user.role === "manufacturer") {
@@ -141,7 +134,6 @@ app.post("/api/medicines/verify-secure", async (req, res) => {
         canVerifyAuthenticity: true,
       };
     } else if (user.role === "enduser") {
-      // Check expiration
       const isExpired = new Date(medicine.expirationDate) < new Date();
 
       roleSpecificData = {
@@ -165,7 +157,7 @@ app.post("/api/medicines/verify-secure", async (req, res) => {
   }
 });
 
-// Add request logging to debug route issues
+// debug route issues
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
@@ -234,18 +226,15 @@ app.get("/api/auth/user", async (req, res) => {
 });
 app.use('/api/medicines', medicineRoutes);
 
-// Serve static files (React frontend build and public folder)
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(path.join(__dirname, "..", "react-frontend", "build")));
 
-// Handle root route (serving React app)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // Handle all other non-API routes by serving the React app's index.html
 app.get("*", (req, res) => {
-  // Exclude API routes from this wildcard
   if (!req.url.startsWith("/api")) {
     res.sendFile(
       path.join(__dirname, "..", "react-frontend", "build", "index.html")
@@ -255,7 +244,6 @@ app.get("*", (req, res) => {
   }
 });
 
-// Start the server
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(

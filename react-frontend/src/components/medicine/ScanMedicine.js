@@ -1,4 +1,3 @@
-// src/components/medicine/ScanMedicine.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
@@ -134,7 +133,6 @@ const ScanMedicine = () => {
       const options = getAvailableStatusOptions(user.role, scannedMedicine.status);
       setAvailableStatuses(options);
       
-      // Set the default next status based on current status and role
       if (options.length > 0 && !statusUpdate.status) {
         setStatusUpdate(prev => ({ ...prev, status: options[0] }));
       }
@@ -144,34 +142,41 @@ const ScanMedicine = () => {
 
   useEffect(() => {
     if (scannerOpen) {
-
-      html5QrCodeRef.current = new Html5Qrcode(qrScannerDivId);
-      
-      const config = { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 } 
-      };
-      
-      html5QrCodeRef.current.start(
-        { facingMode: "environment" },
-        config,
-        (decodedText) => {
-          // On success
-          setQrValue(decodedText);
-          stopScanner();
-          verifyMedicine(decodedText);
-        },
-        (errorMessage) => {
-          console.log(errorMessage);
+      const timer = setTimeout(() => {
+        const scannerElement = document.getElementById(qrScannerDivId);
+        
+        if (scannerElement) {
+          html5QrCodeRef.current = new Html5Qrcode(qrScannerDivId);
+          
+          const config = { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 } 
+          };
+          
+          html5QrCodeRef.current.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText) => {
+              setQrValue(decodedText);
+              stopScanner();
+              verifyMedicine(decodedText);
+            },
+            (errorMessage) => {
+              console.log(errorMessage);
+            }
+          ).catch((err) => {
+            setError("Could not start scanner: " + err);
+          });
+        } else {
+          setError("Scanner element not found. Please try again.");
         }
-      ).catch((err) => {
-        setError("Could not start scanner: " + err);
-      });
+      }, 300);
+      
+      return () => {
+        clearTimeout(timer);
+        stopScanner();
+      };
     }
-    
-    return () => {
-      stopScanner();
-    };
   }, [scannerOpen]);
 
   const stopScanner = () => {
@@ -276,7 +281,6 @@ const ScanMedicine = () => {
           setError(response.data.error || "Invalid QR code");
         }
       } else {
-        // Handle standard QR
         response = await axios.get(
           `${API_URL}/medicines/verify/${qrCode}`,
           {

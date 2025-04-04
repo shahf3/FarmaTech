@@ -1,4 +1,3 @@
-// src/components/medicine/MedicineDetail.js
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -9,7 +8,6 @@ import {
   Typography,
   Grid,
   Chip,
-  Divider,
   Button,
   Card,
   CardContent,
@@ -18,25 +16,19 @@ import {
   Alert,
   Tabs,
   Tab,
-  Tooltip,
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
-  Stack
+  ListItemIcon
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import WarningIcon from '@mui/icons-material/Warning';
-import UpdateIcon from '@mui/icons-material/Update';
-import InfoIcon from '@mui/icons-material/Info';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import FactoryIcon from '@mui/icons-material/Factory';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import SummarizeIcon from '@mui/icons-material/Summarize';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';

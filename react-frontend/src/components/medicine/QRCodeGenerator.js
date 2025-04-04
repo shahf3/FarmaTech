@@ -1,4 +1,3 @@
-// src/components/medicine/QRCodeGenerator.js
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';

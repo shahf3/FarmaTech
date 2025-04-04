@@ -1,4 +1,3 @@
-// src/components/medicine/MedicineStatus.js
 import React from 'react';
 import {
   Box,
@@ -7,8 +6,7 @@ import {
   StepLabel,
   Typography,
   Paper,
-  Chip,
-  Tooltip
+  Chip
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';

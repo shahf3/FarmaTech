@@ -5,6 +5,8 @@ import "../styles/AboutUs.css";
 import Header from "./Header";
 import Footer from "./Footer";
 
+      //About us section
+
 const AboutUs = () => {
   return (
     <div className="about-container">
@@ -76,7 +78,7 @@ const AboutUs = () => {
               </div>
               <div className="founder-card">
                 <div className="founder-photo founder-2">
-                  <img src="/images/abhijit-profile.jpg" alt="Abhijit Mahal" />
+                  <img src="/abhijit-profile.jpg" alt="Abhijit Mahal" />
                 </div>
                 <h3>Abhijit Mahal</h3>
                 <p>Co-Founder</p>

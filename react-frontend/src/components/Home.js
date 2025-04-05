@@ -28,7 +28,7 @@ const Home = () => {
       [e.target.name]: e.target.value,
     });
   };
-
+  //This is working faizan
   const handleSubmit = async (e) => {
     e.preventDefault();
 

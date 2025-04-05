@@ -1,4 +1,3 @@
-/* Update in Home.css, in the :root section */
 :root {
   /* Light mode variables */
   --primary-blue: #1e88e5;
@@ -17,11 +16,10 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-  /* Additional variables for consistency */
   --background-primary: #f5f7fa;
   --background-secondary: #e8eaf6;
   --background-card: #ffffff;
-  --text-primary: #000000; /* Updated to pure black */
+  --text-primary: #000000; 
   --text-secondary-light: #607d8b;
   --button-primary-bg: #1e88e5;
   --button-primary-text: #ffffff;
@@ -33,15 +31,13 @@
   --success-bg: rgba(39, 174, 96, 0.1);
   --success-text: #27ae60;
   --disabled-bg: linear-gradient(135deg, #90caf9 0%, #80cbc4 100%);
-  /* New variables */
-  --heading-color: #000000; /* Updated to pure black */
+  --heading-color: #000000; 
   --input-bg: #ffffff;
   --vibrant-dark-blue: #1976d2;
   --label-color: #607d8b;
 }
 
 [data-theme="dark"] {
-  /* Dark mode variables */
   --primary-blue: #90caf9;
   --primary-green: #80cbc4;
   --primary-dark: #b0bec5;
@@ -104,7 +100,6 @@
   margin-bottom: 0;
 }
 
-/* Sidebar Headings (e.g., Manufacturer, Distributor) */
 .sidebar-heading {
   transition: background-color 0.3s, transform 0.2s;
 }
@@ -121,7 +116,6 @@
   font-size: 0.9rem;
 }
 
-/* Sidebar Register Medicines Button */
 .register-medicines-btn {
   background-color: var(--vibrant-dark-blue) !important;
   color: var(--button-primary-text) !important;

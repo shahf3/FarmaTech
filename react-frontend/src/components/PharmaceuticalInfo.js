@@ -1,4 +1,3 @@
-// src/components/PharmaceuticalInfo.js
 import React, { useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -6,7 +5,6 @@ import "../styles/PharmaceuticalInfo.css";
 
 const PharmaceuticalInfo = () => {
   useEffect(() => {
-    // Intersection Observer for scroll animations
     const observerOptions = {
       threshold: 0.1,
       rootMargin: "0px 0px -50px 0px"
@@ -21,13 +19,11 @@ const PharmaceuticalInfo = () => {
       });
     }, observerOptions);
 
-    // Observe all animated elements
     document.querySelectorAll('.animate-on-scroll').forEach(el => {
       observer.observe(el);
     });
 
     return () => {
-      // Cleanup
       document.querySelectorAll('.animate-on-scroll').forEach(el => {
         observer.unobserve(el);
       });

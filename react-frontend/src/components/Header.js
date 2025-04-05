@@ -15,10 +15,10 @@ const Header = () => {
       }
     };
 
-    document.addEventListener('scroll', handleScroll);
-    
+    document.addEventListener("scroll", handleScroll);
+
     return () => {
-      document.removeEventListener('scroll', handleScroll);
+      document.removeEventListener("scroll", handleScroll);
     };
   }, [scrolled]);
 
@@ -28,7 +28,7 @@ const Header = () => {
 
   return (
     <>
-      <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
+      <header className={`site-header ${scrolled ? "scrolled" : ""}`}>
         <div className="header-container">
           <div className="header-logo">
             <Link to="/">
@@ -38,37 +38,52 @@ const Header = () => {
               </div>
             </Link>
           </div>
-          
-          <nav className={`header-nav ${menuOpen ? 'menu-open' : ''}`}>
+
+          <nav className={`header-nav ${menuOpen ? "menu-open" : ""}`}>
             <ul className="nav-list">
               <li className="nav-item">
-                <Link to="/#features" className="nav-link">Features</Link>
+                <li className="nav-item">
+                  <Link to="/pharmaceutical-info" className="nav-link">
+                    Verification System
+                  </Link>
+                </li>
               </li>
               <li className="nav-item">
-                <Link to="/about" className="nav-link">About</Link>
+                <Link to="/about" className="nav-link">
+                  About
+                </Link>
               </li>
               <li className="nav-item">
-                <Link to="/#" className="nav-link">Verify Your Medicines</Link>
+                <Link to="/#" className="nav-link">
+                  Verify Your Medicines
+                </Link>
               </li>
               <li className="nav-item mobile-only">
-                <Link to="/login" className="nav-link">Login</Link>
+                <Link to="/login" className="nav-link">
+                  Login
+                </Link>
               </li>
               <li className="nav-item mobile-only">
-                <Link to="/register" className="nav-link">Register</Link>
+                <Link to="/register" className="nav-link">
+                  Register
+                </Link>
               </li>
             </ul>
           </nav>
-          
+
           <div className="header-actions">
-            <Link to="/login" className="login-button">Login</Link>
-            <Link to="/register" className="register-button">Register</Link>
+            <Link to="/login" className="login-button">
+              Login
+            </Link>
+            <Link to="/register" className="register-button">
+              Register
+            </Link>
           </div>
-          
-          <button 
-            className={`mobile-menu-toggle ${menuOpen ? 'active' : ''}`} 
+
+          <button
+            className={`mobile-menu-toggle ${menuOpen ? "active" : ""}`}
             onClick={toggleMenu}
-          >
-          </button>
+          ></button>
         </div>
       </header>
       <div className="header-spacer"></div>

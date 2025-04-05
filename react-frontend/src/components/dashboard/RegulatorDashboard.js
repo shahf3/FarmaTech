@@ -2,10 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import ScanQRCode from './ScanQRCode';
+//import ScanQRCode from './ScanQRCode';
 import DistributorInventory from './DistributorInventory';
 import ContactAndOrder from './ContactAndOrder';
-import RegisterOrder from './RegisterOrder'; // New component for registering orders
+import RegisterOrder from './RegisterOrder';
 import { Html5Qrcode } from 'html5-qrcode';
 import axios from 'axios';
 import '../../styles/Dashboard.css';

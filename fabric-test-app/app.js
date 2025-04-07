@@ -13,7 +13,7 @@ const User = require("./models/User");
 const medicineRoutes = require('./routes/medicines');
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const notificationRoutes = require('./routes/notifications');
 const authRoutes = require("./routes/auth");
 
 // Helper function to verify QR code
@@ -228,7 +228,7 @@ app.use('/api/medicines', medicineRoutes);
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(path.join(__dirname, "..", "react-frontend", "build")));
-
+app.use('/api/notifications', notificationRoutes);
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
@@ -243,6 +243,8 @@ app.get("*", (req, res) => {
     res.status(404).send("API route not found");
   }
 });
+
+
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on http://localhost:${PORT}`);

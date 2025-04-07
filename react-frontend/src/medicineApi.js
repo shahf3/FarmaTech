@@ -4,10 +4,9 @@ const API_BASE_URL = 'http://localhost:3000';
 
 const medicineApi = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  timeout: 15000, // 15 seconds
+  timeout: 15000,
 });
 
-// Add auth token to all requests
 medicineApi.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token');
@@ -15,7 +14,6 @@ medicineApi.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Always include Content-Type for POST/PUT requests
     if (config.method === 'post' || config.method === 'put') {
       config.headers['Content-Type'] = 'application/json';
     }
@@ -34,7 +32,6 @@ medicineApi.interceptors.request.use(
   }
 );
 
-// Handle response logging and errors
 medicineApi.interceptors.response.use(
   response => {
     console.log('Medicine API Response:', {
@@ -67,7 +64,6 @@ export const getMedicineById = (id) => {
 };
 
 export const verifyMedicine = (qrCode) => {
-  // Check if QR code is a JSON string (secure QR)
   let isSecureQR = false;
   
   try {
@@ -80,7 +76,6 @@ export const verifyMedicine = (qrCode) => {
   if (isSecureQR) {
     return medicineApi.post('/medicines/verify-secure', { qrContent: qrCode });
   } else {
-    // Make sure QR code is properly encoded for URL
     return medicineApi.get(`/medicines/verify/${encodeURIComponent(qrCode)}`);
   }
 };

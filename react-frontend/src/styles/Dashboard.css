@@ -1030,3 +1030,133 @@ tbody tr:hover {
   border-radius: 8px;
   margin: 20px 0;
 }
+
+/* Notification styles */
+.notification-badge {
+  position: relative;
+}
+
+.notification-badge .badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  padding: 3px 6px;
+  border-radius: 50%;
+  background-color: var(--error-red);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.notification-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  padding: 15px;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+}
+
+.notification-item.unread {
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+.notification-item .notification-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.notification-item .notification-subject {
+  font-weight: 500;
+  color: var(--heading-color);
+}
+
+.notification-item .notification-meta {
+  color: var(--text-secondary-light);
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+
+.notification-item .notification-message {
+  white-space: pre-line;
+}
+
+.notification-item .notification-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.notification-icon {
+  margin-right: 10px;
+  color: var(--primary-blue);
+}
+
+.notification-item.medicine .notification-icon {
+  color: var(--verification-green);
+}
+
+.notification-item.supply-chain .notification-icon {
+  color: var(--primary-blue);
+}
+
+.notification-item.account .notification-icon {
+  color: var(--alert-orange);
+}
+
+.notification-empty {
+  padding: 30px;
+  text-align: center;
+  color: var(--text-secondary-light);
+}
+
+.reply-form {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.original-message {
+  background-color: var(--background-secondary);
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  white-space: pre-line;
+}
+
+.original-message-header {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+/* Notification message buttons */
+.message-btn {
+  background-color: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.message-btn:hover {
+  opacity: 0.9;
+}
+
+.read-btn {
+  background-color: var(--text-secondary-light);
+}
+
+.reply-btn {
+  background-color: var(--primary-blue);
+}
+
+.delete-btn {
+  background-color: var(--error-red);
+}

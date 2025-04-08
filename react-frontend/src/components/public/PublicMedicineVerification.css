@@ -1,0 +1,247 @@
+/* src/components/public/PublicMedicineVerification.css */
+.public-verification-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .verification-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .verification-header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+  }
+  
+  .verification-header p {
+    color: #7f8c8d;
+    font-size: 16px;
+  }
+  
+  .verification-methods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+    margin-bottom: 30px;
+  }
+  
+  .manual-entry, .scan-section {
+    flex: 1;
+    min-width: 300px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .manual-entry h2, .scan-section h2 {
+    color: #34495e;
+    margin-bottom: 15px;
+    font-size: 18px;
+  }
+  
+  .manual-entry textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: monospace;
+    margin-bottom: 15px;
+    resize: vertical;
+  }
+  
+  .verify-btn, .scan-btn, .cancel-btn, .verify-another-btn, .login-btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s;
+  }
+  
+  .verify-btn, .scan-btn {
+    background-color: #3498db;
+    color: white;
+    width: 100%;
+  }
+  
+  .verify-btn:hover, .scan-btn:hover {
+    background-color: #2980b9;
+  }
+  
+  .cancel-btn {
+    background-color: #e74c3c;
+    color: white;
+    margin-top: 10px;
+    width: 100%;
+  }
+  
+  .cancel-btn:hover {
+    background-color: #c0392b;
+  }
+  
+  .scanner-container {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+  }
+  
+  .divider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #7f8c8d;
+    font-weight: bold;
+    flex: 0.1;
+  }
+  
+  .error-message {
+    padding: 10px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .medicine-details {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-top: 20px;
+  }
+  
+  .verification-result {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .status-indicator {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 10px;
+  }
+  
+  .status-indicator.safe {
+    background-color: #2ecc71;
+  }
+  
+  .status-indicator.warning {
+    background-color: #e74c3c;
+  }
+  
+  .medicine-details h2 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+  }
+  
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    border-left: 3px solid #3498db;
+  }
+  
+  .detail-item label {
+    font-weight: bold;
+    color: #7f8c8d;
+    margin-bottom: 5px;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  
+  .detail-item span {
+    color: #2c3e50;
+    font-size: 16px;
+  }
+  
+  .warning-box {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 15px;
+    border-radius: 4px;
+    margin: 20px 0;
+    border-left: 5px solid #ffc107;
+  }
+  
+  .warning-box h3 {
+    margin-top: 0;
+    font-size: 18px;
+  }
+  
+  .verification-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+  }
+  
+  .verify-another-btn {
+    background-color: #2ecc71;
+    color: white;
+  }
+  
+  .verify-another-btn:hover {
+    background-color: #27ae60;
+  }
+  
+  .login-btn {
+    background-color: #f39c12;
+    color: white;
+  }
+  
+  .login-btn:hover {
+    background-color: #e67e22;
+  }
+  
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eaeaea;
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 14px;
+  }
+  
+  @media (max-width: 768px) {
+    .verification-methods {
+      flex-direction: column;
+    }
+    
+    .divider {
+      padding: 10px 0;
+    }
+    
+    .verification-actions {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .verify-another-btn, .login-btn {
+      width: 100%;
+    }
+  }

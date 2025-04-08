@@ -18,6 +18,7 @@ import Login from "./components/Login";
 import AboutUs from "./components/AboutUs";
 import Register from "./components/auth/Register";
 import Unauthorized from "./components/common/Unauthorized";
+import PublicMedicineVerification from './components/public/PublicMedicineVerification';
 
 // Dashboard components
 import Dashboard from "./components/dashboard/Dashboard";
@@ -94,6 +95,8 @@ function AppWithTheme() {
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/health" element={<HealthCheck />} />
+          <Route path="/verify" element={<PublicMedicineVerification />} />
+          
 
           {/* Protected Routes (With Sidebar) */}
           <Route
@@ -295,6 +298,7 @@ function AppWithTheme() {
       </Router>
     </MuiThemeProvider>
   );
+  
 }
 
 export default App;

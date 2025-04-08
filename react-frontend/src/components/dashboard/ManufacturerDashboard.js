@@ -1,5 +1,5 @@
 // src/components/dashboard/ManufacturerDashboard.js
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import RegisterNewMedicine from "./RegisterNewMedicine";
@@ -16,6 +16,9 @@ import {
   Grid,
   Paper,
   Divider,
+  Container,
+  useTheme,
+  alpha,
 } from "@mui/material";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import MedicationIcon from "@mui/icons-material/Medication";
@@ -23,15 +26,15 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PeopleIcon from "@mui/icons-material/People";
 import WarningIcon from "@mui/icons-material/Warning";
-import UpdateIcon from "@mui/icons-material/Update";
-import NotificationBell from "../common/NotificationBell";
 import EmailIcon from "@mui/icons-material/Email";
+import NotificationBell from "../common/NotificationBell";
 import Notifications from "./Notifications";
 import NotificationForm from "./NotificationForm";
 
 const ManufacturerDashboard = () => {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   useEffect(() => {
     if (!user || user.role !== "manufacturer") {
@@ -42,9 +45,15 @@ const ManufacturerDashboard = () => {
   const cardStyle = {
     height: "100%",
     borderRadius: 2,
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+    boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+    transition: "transform 0.2s, box-shadow 0.2s",
+    "&:hover": {
+      transform: "translateY(-4px)",
+      boxShadow: "0 12px 32px rgba(0,0,0,0.1)",
+    },
     display: "flex",
     flexDirection: "column",
+    overflow: "hidden",
   };
 
   const cardContentStyle = {
@@ -57,6 +66,8 @@ const ManufacturerDashboard = () => {
   const buttonStyle = {
     mt: "auto",
     py: 1.5,
+    borderRadius: "8px",
+    fontWeight: 600,
   };
 
   const sectionHeaderStyle = {
@@ -65,399 +76,248 @@ const ManufacturerDashboard = () => {
     alignItems: "center",
     fontSize: "1.25rem",
     fontWeight: 600,
+    color: theme.palette.primary.main,
   };
+
+  const paperStyle = {
+    p: 4, 
+    borderRadius: 3, 
+    mb: 4,
+    boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
+    border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+  };
+
+  const DashboardCard = ({ title, description, icon, buttonText, onClick, color = "primary" }) => (
+    <Card sx={cardStyle}>
+      <Box 
+        sx={{ 
+          height: "8px", 
+          backgroundColor: theme.palette[color].main 
+        }} 
+      />
+      <CardContent sx={cardContentStyle}>
+        <Box 
+          sx={{ 
+            display: "flex", 
+            justifyContent: "center", 
+            mb: 2 
+          }}
+        >
+          {icon}
+        </Box>
+        <Typography
+          variant="h6"
+          color={color}
+          gutterBottom
+          align="center"
+          sx={{ fontWeight: 600 }}
+        >
+          {title}
+        </Typography>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: 3, lineHeight: 1.6 }}
+          align="center"
+        >
+          {description}
+        </Typography>
+        <Button
+          variant="contained"
+          color={color}
+          fullWidth
+          sx={buttonStyle}
+          onClick={onClick}
+        >
+          {buttonText}
+        </Button>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="dashboard-container">
       <main className="dashboard-main">
-        <Box className="dashboard-header" sx={{ mb: 4, textAlign: "center" }}>
-          <Typography variant="h4" component="h1">
-            Manufacturer Dashboard
-          </Typography>
-          <NotificationBell />
-        </Box>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <Box
-                className="dashboard-section"
-                sx={{ maxWidth: 1200, mx: "auto", px: 2 }}
-              >
-                <Typography
-                  variant="h5"
-                  component="h2"
-                  sx={{ mb: 2, textAlign: "center" }}
-                >
-                  Welcome to the Manufacturer Dashboard
-                </Typography>
-                <Typography sx={{ mb: 4, textAlign: "center" }}>
-                  Navigate to different sections of your dashboard using the
-                  cards below:
-                </Typography>
+        <Container maxWidth="lg">
+          <Box 
+            className="dashboard-header" 
+            sx={{ 
+              mb: 5, 
+              mt: 3, 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "space-between" 
+            }}
+          >
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              sx={{ 
+                fontWeight: 700, 
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent"
+              }}
+            >
+              Manufacturer Dashboard
+            </Typography>
+            <NotificationBell />
+          </Box>
 
-                <Grid container spacing={4}>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Box sx={{ maxWidth: 1200, mx: "auto" }}>
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: 4, 
+                      mb: 5, 
+                      borderRadius: 3,
+                      backgroundColor: alpha(theme.palette.primary.light, 0.1),
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      component="h2"
+                      sx={{ mb: 2, fontWeight: 600 }}
+                    >
+                      Welcome to the Manufacturer Dashboard
+                    </Typography>
+                    <Typography sx={{ color: "text.secondary" }}>
+                      Manage your medicines, supply chain, distributors, and communications all in one place.
+                    </Typography>
+                  </Paper>
+
                   {/* Medicine Management Section */}
-                  <Grid item xs={12}>
-                    <Paper sx={{ p: 3, borderRadius: 2, mb: 4 }}>
-                      <Typography variant="h6" sx={sectionHeaderStyle}>
-                        <MedicationIcon sx={{ mr: 1, color: "primary.main" }} />
-                        Medicine Management
-                      </Typography>
-                      <Divider sx={{ mb: 3 }} />
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                          <Card sx={cardStyle}>
-                            <CardContent sx={cardContentStyle}>
-                              <Typography
-                                variant="h6"
-                                color="primary"
-                                gutterBottom
-                                align="center"
-                              >
-                                Medicine Registration
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                                align="center"
-                              >
-                                Register new medicines in the blockchain and
-                                generate secure QR codes for tracking.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                fullWidth
-                                sx={buttonStyle}
-                                onClick={() =>
-                                  navigate("/manufacturer/register")
-                                }
-                              >
-                                Register Medicine
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <Card sx={cardStyle}>
-                            <CardContent sx={cardContentStyle}>
-                              <Typography
-                                variant="h6"
-                                color="primary"
-                                gutterBottom
-                                align="center"
-                              >
-                                View Medicines
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                                align="center"
-                              >
-                                View and manage your registered medicines,
-                                generate QR codes for tracking.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                fullWidth
-                                sx={buttonStyle}
-                                onClick={() => navigate("/manufacturer/view")}
-                              >
-                                View Medicines
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
+                  <Paper sx={paperStyle}>
+                    <Typography variant="h6" sx={sectionHeaderStyle}>
+                      <MedicationIcon sx={{ mr: 1.5 }} />
+                      Medicine Management
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="Medicine Registration"
+                          description="Register new medicines in the blockchain and generate secure QR codes for tracking."
+                          icon={<MedicationIcon fontSize="large" color="primary" />}
+                          buttonText="Register Medicine"
+                          onClick={() => navigate("/manufacturer/register")}
+                        />
                       </Grid>
-                    </Paper>
-                  </Grid>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="View Medicines"
+                          description="View and manage your registered medicines, generate QR codes for tracking."
+                          icon={<MedicationIcon fontSize="large" color="primary" />}
+                          buttonText="View Medicines"
+                          onClick={() => navigate("/manufacturer/view")}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
 
                   {/* Supply Chain Management Section */}
-                  <Grid item xs={12}>
-                    <Paper sx={{ p: 3, borderRadius: 2, mb: 4 }}>
-                      <Typography variant="h6" sx={sectionHeaderStyle}>
-                        <LocalShippingIcon
-                          sx={{ mr: 1, color: "primary.main" }}
+                  <Paper sx={paperStyle}>
+                    <Typography variant="h6" sx={sectionHeaderStyle}>
+                      <LocalShippingIcon sx={{ mr: 1.5 }} />
+                      Supply Chain Management
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="Scan QR Code"
+                          description="Scan medicine QR codes to verify authenticity and check supply chain status."
+                          icon={<QrCodeScannerIcon fontSize="large" color="primary" />}
+                          buttonText="Scan Medicine"
+                          onClick={() => navigate("/scan-medicine")}
                         />
-                        Supply Chain Management
-                      </Typography>
-                      <Divider sx={{ mb: 3 }} />
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={4}>
-                          <Card sx={cardStyle}>
-                            <CardContent sx={cardContentStyle}>
-                              <Typography
-                                variant="h6"
-                                color="primary"
-                                gutterBottom
-                                align="center"
-                              >
-                                Scan QR Code
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                                align="center"
-                              >
-                                Scan medicine QR codes to verify authenticity
-                                and update supply chain status.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                fullWidth
-                                sx={buttonStyle}
-                                startIcon={<QrCodeScannerIcon />}
-                                onClick={() => navigate("/scan-medicine")}
-                              >
-                                Scan Medicine
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                          <Card sx={cardStyle}>
-                            <CardContent sx={cardContentStyle}>
-                              <Typography
-                                variant="h6"
-                                color="primary"
-                                gutterBottom
-                                align="center"
-                              >
-                                Update Status
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                                align="center"
-                              >
-                                Update the supply chain status of medicines in
-                                your inventory.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                fullWidth
-                                sx={buttonStyle}
-                                startIcon={<UpdateIcon />}
-                                onClick={() => navigate("/manufacturer/view")}
-                              >
-                                View & Update
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                          <Card sx={cardStyle}>
-                            <CardContent sx={cardContentStyle}>
-                              <Typography
-                                variant="h6"
-                                color="error"
-                                gutterBottom
-                                align="center"
-                              >
-                                Flag Issues
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                                align="center"
-                              >
-                                Flag medicines with quality or authenticity
-                                issues in the blockchain.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                color="error"
-                                fullWidth
-                                sx={buttonStyle}
-                                startIcon={<WarningIcon />}
-                                onClick={() => navigate("/manufacturer/view")}
-                              >
-                                View & Flag
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
                       </Grid>
-                    </Paper>
-                  </Grid>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="Flag Issues"
+                          description="Flag medicines with quality or authenticity issues in the blockchain."
+                          icon={<WarningIcon fontSize="large" color="error" />}
+                          buttonText="View & Flag"
+                          color="error"
+                          onClick={() => navigate("/manufacturer/view")}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
 
                   {/* Distributor Management Section */}
-                  <Grid item xs={12}>
-                    <Paper sx={{ p: 3, borderRadius: 2 }}>
-                      <Typography variant="h6" sx={sectionHeaderStyle}>
-                        <PeopleIcon sx={{ mr: 1, color: "primary.main" }} />
-                        Distributor Management
-                      </Typography>
-                      <Divider sx={{ mb: 3 }} />
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                          <Card sx={cardStyle}>
-                            <CardContent sx={cardContentStyle}>
-                              <Typography
-                                variant="h6"
-                                color="primary"
-                                gutterBottom
-                                align="center"
-                              >
-                                Register Distributor
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                                align="center"
-                              >
-                                Register new distributors to your network of
-                                authorized partners.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                fullWidth
-                                sx={buttonStyle}
-                                startIcon={<PersonAddIcon />}
-                                onClick={() =>
-                                  navigate("/manufacturer/register-distributor")
-                                }
-                              >
-                                Register Distributor
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <Card sx={cardStyle}>
-                            <CardContent sx={cardContentStyle}>
-                              <Typography
-                                variant="h6"
-                                color="primary"
-                                gutterBottom
-                                align="center"
-                              >
-                                Manage Distributors
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                                align="center"
-                              >
-                                View and manage your network of authorized
-                                distributors.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                fullWidth
-                                sx={buttonStyle}
-                                startIcon={<PeopleIcon />}
-                                onClick={() =>
-                                  navigate("/manufacturer/manage-distributors")
-                                }
-                              >
-                                Manage Distributors
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
+                  <Paper sx={paperStyle}>
+                    <Typography variant="h6" sx={sectionHeaderStyle}>
+                      <PeopleIcon sx={{ mr: 1.5 }} />
+                      Distributor Management
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="Register Distributor"
+                          description="Register new distributors to your network of authorized partners."
+                          icon={<PersonAddIcon fontSize="large" color="primary" />}
+                          buttonText="Register Distributor"
+                          onClick={() => navigate("/manufacturer/register-distributor")}
+                        />
                       </Grid>
-                    </Paper>
-                  </Grid>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="Manage Distributors"
+                          description="View and manage your network of authorized distributors."
+                          icon={<PeopleIcon fontSize="large" color="primary" />}
+                          buttonText="Manage Distributors"
+                          onClick={() => navigate("/manufacturer/manage-distributors")}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
 
                   {/* Communications Section */}
-                  <Grid item xs={12}>
-                    <Paper sx={{ p: 3, borderRadius: 2 }}>
-                      <Typography variant="h6" sx={sectionHeaderStyle}>
-                        <EmailIcon sx={{ mr: 1, color: "primary.main" }} />
-                        Communications
-                      </Typography>
-                      <Divider sx={{ mb: 3 }} />
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                          <Card sx={cardStyle}>
-                            <CardContent sx={cardContentStyle}>
-                              <Typography
-                                variant="h6"
-                                color="primary"
-                                gutterBottom
-                                align="center"
-                              >
-                                Notifications
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                                align="center"
-                              >
-                                View and manage communication with your
-                                distributors.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                fullWidth
-                                sx={buttonStyle}
-                                onClick={() =>
-                                  navigate("/manufacturer/notifications")
-                                }
-                              >
-                                View Notifications
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <Card sx={cardStyle}>
-                            <CardContent sx={cardContentStyle}>
-                              <Typography
-                                variant="h6"
-                                color="primary"
-                                gutterBottom
-                                align="center"
-                              >
-                                Send Message
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                                align="center"
-                              >
-                                Send messages and updates to your distributors.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                fullWidth
-                                sx={buttonStyle}
-                                onClick={() =>
-                                  navigate("/manufacturer/send-message")
-                                }
-                              >
-                                Send Message
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
+                  <Paper sx={{ ...paperStyle, mb: 5 }}>
+                    <Typography variant="h6" sx={sectionHeaderStyle}>
+                      <EmailIcon sx={{ mr: 1.5 }} />
+                      Communications
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="Notifications"
+                          description="View and manage communication with your distributors."
+                          icon={<EmailIcon fontSize="large" color="primary" />}
+                          buttonText="View Notifications"
+                          onClick={() => navigate("/manufacturer/notifications")}
+                        />
                       </Grid>
-                    </Paper>
-                  </Grid>
-                </Grid>
-              </Box>
-            }
-          />
-          <Route path="register" element={<RegisterNewMedicine />} />
-          <Route path="view" element={<ViewRegisteredMedicines />} />
-          <Route
-            path="register-distributor"
-            element={<RegisterDistributor />}
-          />
-          <Route path="manage-distributors" element={<ManageDistributors />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="send-message" element={<NotificationForm />} />
-        </Routes>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="Send Message"
+                          description="Send messages and updates to your distributors."
+                          icon={<EmailIcon fontSize="large" color="primary" />}
+                          buttonText="Send Message"
+                          onClick={() => navigate("/manufacturer/send-message")}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Box>
+              }
+            />
+            <Route path="register" element={<RegisterNewMedicine />} />
+            <Route path="view" element={<ViewRegisteredMedicines />} />
+            <Route path="register-distributor" element={<RegisterDistributor />} />
+            <Route path="manage-distributors" element={<ManageDistributors />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="send-message" element={<NotificationForm />} />
+          </Routes>
+        </Container>
       </main>
     </div>
   );

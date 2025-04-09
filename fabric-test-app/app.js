@@ -1,5 +1,5 @@
 "use strict";
-
+require('dotenv').config({ path: './fabric-test-app/.env' });
 const crypto = require("crypto");
 const express = require("express");
 const { Gateway, Wallets } = require("fabric-network");
@@ -15,6 +15,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const notificationRoutes = require('./routes/notifications');
 const authRoutes = require("./routes/auth");
+
+
+console.log('API Key set:', process.env.SENDGRID_API_KEY ? 'API key exists' : 'API key is missing');
 
 // Configure CORS middleware FIRST before defining any routes
 app.use(

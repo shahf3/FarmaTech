@@ -6,6 +6,9 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const nodemailer = require('nodemailer');
 
+//contact and order
+
+
 const transporter = nodemailer.createTransport({
   host: "sandbox.smtp.mailtrap.io",
   port: 2525,

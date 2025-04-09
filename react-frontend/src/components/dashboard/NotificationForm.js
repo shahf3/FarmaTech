@@ -29,7 +29,7 @@ const NotificationForm = () => {
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
-    recipientId: '',
+    distributorId: '', // Changed from recipientId to match backend
     subject: '',
     message: '',
     relatedTo: 'General',
@@ -37,12 +37,11 @@ const NotificationForm = () => {
   });
   
   const [formErrors, setFormErrors] = useState({
-    recipientId: '',
+    distributorId: '', // Updated to match
     subject: '',
     message: ''
   });
 
-  // Fetch potential recipients based on user role
   useEffect(() => {
     const fetchRecipients = async () => {
       setLoading(true);
@@ -51,7 +50,6 @@ const NotificationForm = () => {
         if (user.role === 'manufacturer') {
           endpoint = `${API_URL}/auth/manufacturer-distributors`;
         } else if (user.role === 'distributor') {
-          // This endpoint needs to be created in your auth routes
           endpoint = `${API_URL}/auth/distributor-manufacturers`;
         }
         
@@ -76,7 +74,6 @@ const NotificationForm = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
-    // Clear error when user starts typing
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: '' });
     }
@@ -84,7 +81,7 @@ const NotificationForm = () => {
 
   const validateForm = () => {
     const errors = {
-      recipientId: formData.recipientId ? '' : 'Recipient is required',
+      distributorId: formData.distributorId ? '' : 'Recipient is required',
       subject: formData.subject ? '' : 'Subject is required',
       message: formData.message ? '' : 'Message is required'
     };
@@ -105,17 +102,24 @@ const NotificationForm = () => {
     
     setSending(true);
     try {
-      await axios.post(
-        `${API_URL}/notifications`,
-        formData,
+      // Map formData to match backend expectations
+      const payload = {
+        distributorId: formData.distributorId,
+        subject: formData.subject,
+        message: formData.message
+        // relatedTo and medicineId are omitted unless backend is updated to use them
+      };
+
+      const response = await axios.post(
+        `${API_URL}/auth/contact-distributor`, // Updated endpoint
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
       setSuccess('Message sent successfully!');
       
-      // Reset form
       setFormData({
-        recipientId: '',
+        distributorId: '',
         subject: '',
         message: '',
         relatedTo: 'General',
@@ -150,13 +154,13 @@ const NotificationForm = () => {
         )}
         
         <form onSubmit={handleSubmit}>
-          <FormControl fullWidth margin="normal" error={!!formErrors.recipientId}>
+          <FormControl fullWidth margin="normal" error={!!formErrors.distributorId}>
             <InputLabel id="recipient-label">Recipient</InputLabel>
             <Select
               labelId="recipient-label"
-              id="recipientId"
-              name="recipientId"
-              value={formData.recipientId}
+              id="distributorId" // Updated to match
+              name="distributorId" // Updated to match
+              value={formData.distributorId}
               onChange={handleInputChange}
               label="Recipient"
               disabled={loading || recipients.length === 0}
@@ -173,8 +177,8 @@ const NotificationForm = () => {
                 ))
               )}
             </Select>
-            {formErrors.recipientId && (
-              <FormHelperText>{formErrors.recipientId}</FormHelperText>
+            {formErrors.distributorId && (
+              <FormHelperText>{formErrors.distributorId}</FormHelperText>
             )}
           </FormControl>
           

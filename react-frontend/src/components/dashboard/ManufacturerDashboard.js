@@ -5,7 +5,9 @@ import { useAuth } from "../../context/AuthContext";
 import RegisterNewMedicine from "./RegisterNewMedicine";
 import ViewRegisteredMedicines from "./ViewRegisteredMedicines";
 import RegisterDistributor from "./RegisterDistributor";
+import RegisterRegulator from "./RegisterRegulator";
 import ManageDistributors from "./ManageDistributors";
+import ManageRegulators from "./ManageRegulators"; // New import
 import "../../styles/Dashboard.css";
 import {
   Box,
@@ -27,6 +29,7 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PeopleIcon from "@mui/icons-material/People";
 import WarningIcon from "@mui/icons-material/Warning";
 import EmailIcon from "@mui/icons-material/Email";
+import GavelIcon from "@mui/icons-material/Gavel";
 import NotificationBell from "../common/NotificationBell";
 import Notifications from "./Notifications";
 import NotificationForm from "./NotificationForm";
@@ -80,8 +83,8 @@ const ManufacturerDashboard = () => {
   };
 
   const paperStyle = {
-    p: 4, 
-    borderRadius: 3, 
+    p: 4,
+    borderRadius: 3,
     mb: 4,
     boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
     border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
@@ -187,7 +190,7 @@ const ManufacturerDashboard = () => {
                       Welcome to the Manufacturer Dashboard
                     </Typography>
                     <Typography sx={{ color: "text.secondary" }}>
-                      Manage your medicines, supply chain, distributors, and communications all in one place.
+                      Manage your medicines, supply chain, distributors, regulators, and communications all in one place.
                     </Typography>
                   </Paper>
 
@@ -279,6 +282,35 @@ const ManufacturerDashboard = () => {
                     </Grid>
                   </Paper>
 
+                  {/* Regulator Management Section */}
+                  <Paper sx={paperStyle}>
+                    <Typography variant="h6" sx={sectionHeaderStyle}>
+                      <GavelIcon sx={{ mr: 1.5 }} />
+                      Regulator Management
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="Register Regulator"
+                          description="Register new regulators to oversee your supply chain compliance."
+                          icon={<PersonAddIcon fontSize="large" color="primary" />}
+                          buttonText="Register Regulator"
+                          onClick={() => navigate("/manufacturer/register-regulator")}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <DashboardCard
+                          title="Manage Regulators"
+                          description="View and manage your network of authorized regulators."
+                          icon={<GavelIcon fontSize="large" color="primary" />}
+                          buttonText="Manage Regulators"
+                          onClick={() => navigate("/manufacturer/manage-regulators")}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
+
                   {/* Communications Section */}
                   <Paper sx={{ ...paperStyle, mb: 5 }}>
                     <Typography variant="h6" sx={sectionHeaderStyle}>
@@ -313,7 +345,9 @@ const ManufacturerDashboard = () => {
             <Route path="register" element={<RegisterNewMedicine />} />
             <Route path="view" element={<ViewRegisteredMedicines />} />
             <Route path="register-distributor" element={<RegisterDistributor />} />
+            <Route path="register-regulator" element={<RegisterRegulator />} />
             <Route path="manage-distributors" element={<ManageDistributors />} />
+            <Route path="manage-regulators" element={<ManageRegulators />} /> {/* New Route */}
             <Route path="notifications" element={<Notifications />} />
             <Route path="send-message" element={<NotificationForm />} />
           </Routes>

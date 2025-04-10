@@ -26,6 +26,7 @@ import ManufacturerDashboard from "./components/dashboard/ManufacturerDashboard"
 import DistributorDashboard from "./components/dashboard/DistributorDashboard";
 import RegulatorDashboard from "./components/dashboard/RegulatorDashboard";
 import EndUserDashboard from "./components/dashboard/EndUserDashboard";
+import RegisterRegulator from './components/dashboard/RegisterRegulator';
 
 // Medicine components
 import MedicineDetail from "./components/medicine/MedicineDetail";
@@ -96,6 +97,7 @@ function AppWithTheme() {
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/health" element={<HealthCheck />} />
           <Route path="/verify" element={<PublicMedicineVerification />} />
+          <Route path="/dashboard/register-regulator" element={<RegisterRegulator />} />
           
 
           {/* Protected Routes (With Sidebar) */}

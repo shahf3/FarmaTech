@@ -39,7 +39,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import WarningIcon from '@mui/icons-material/Warning';
-import {
+/*import {
   MANUFACTURING_STATUSES,
   EXPORT_STATUSES,
   TRANSIT_STATUSES,
@@ -51,7 +51,7 @@ import {
   MAIN_PHASES,
   FACILITY_TYPES,
   TRANSPORT_MODES
-} from '../dashboard/medicineStatusConstants';
+} from '../dashboard/medicineStatusConstants';*/
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -129,7 +129,7 @@ const getStatusIcon = (status) => {
 };
 
 // Helper function to get the phase for a given status
-const getPhaseForStatus = (status) => {
+/*const getPhaseForStatus = (status) => {
   if (MANUFACTURING_STATUSES.includes(status)) return 'Manufacturing Phase';
   if (EXPORT_STATUSES.includes(status)) return 'Export Phase';
   if (TRANSIT_STATUSES.includes(status)) return 'International Transit Phase';
@@ -139,8 +139,8 @@ const getPhaseForStatus = (status) => {
   if (LOCAL_DELIVERY_STATUSES.includes(status)) return 'Local Delivery Phase';
   if (DISPENSING_STATUSES.includes(status)) return 'Final Dispensing Phase';
   return '';
-};
-
+};*/
+/*
 const STATUS_FLOW = {
   manufacturer: { 
     allowedStatuses: [
@@ -356,10 +356,9 @@ const UpdateMedicineStatus = () => {
         <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
           {success}
         </Alert>
-      )}
-
+      )}*/
+/*
       <Grid container spacing={3}>
-        {/* Medicine Information Card */}
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom>Medicine Details</Typography>
@@ -401,8 +400,7 @@ const UpdateMedicineStatus = () => {
             </Stack>
           </Paper>
         </Grid>
-        
-        {/* Status Update Form */}
+
         <Grid item xs={12} md={8}>
           <UpdateContainer>
             <Typography variant="h6" gutterBottom>Update Supply Chain Status</Typography>
@@ -410,7 +408,7 @@ const UpdateMedicineStatus = () => {
             
             <Box component="form" onSubmit={handleUpdateStatus}>
               <Grid container spacing={2}>
-                {/* Status Selection */}
+        
                 <Grid item xs={12}>
                   <FormControl fullWidth required>
                     <InputLabel>Status</InputLabel>
@@ -431,7 +429,7 @@ const UpdateMedicineStatus = () => {
                   </FormControl>
                 </Grid>
                 
-                {/* Origin Country */}
+        
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -443,7 +441,7 @@ const UpdateMedicineStatus = () => {
                   />
                 </Grid>
                 
-                {/* Destination Country */}
+            
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -455,7 +453,7 @@ const UpdateMedicineStatus = () => {
                   />
                 </Grid>
                 
-                {/* Facility Type - Show conditionally */}
+        
                 {showFacilityField && (
                   <Grid item xs={12}>
                     <FormControl fullWidth>
@@ -475,7 +473,6 @@ const UpdateMedicineStatus = () => {
                   </Grid>
                 )}
                 
-                {/* Transport Mode - Show conditionally */}
                 {showTransportField && (
                   <Grid item xs={12}>
                     <FormControl fullWidth>
@@ -494,8 +491,7 @@ const UpdateMedicineStatus = () => {
                     </FormControl>
                   </Grid>
                 )}
-                
-                {/* Location */}
+     
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
@@ -518,7 +514,7 @@ const UpdateMedicineStatus = () => {
                   </Button>
                 </Grid>
                 
-                {/* Additional Notes */}
+            
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
@@ -533,7 +529,7 @@ const UpdateMedicineStatus = () => {
                   />
                 </Grid>
                 
-                {/* Form Buttons */}
+          
                 <Grid item xs={12} sx={{ mt: 2 }}>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <Button
@@ -558,7 +554,7 @@ const UpdateMedicineStatus = () => {
           </UpdateContainer>
         </Grid>
         
-        {/* Supply Chain Timeline */}
+
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>Supply Chain Timeline</Typography>
@@ -654,4 +650,4 @@ const UpdateMedicineStatus = () => {
   );
 };
 
-export default UpdateMedicineStatus;
+export default UpdateMedicineStatus;*/

@@ -31,7 +31,7 @@ import RegisterRegulator from './components/dashboard/RegisterRegulator';
 // Medicine components
 import MedicineDetail from "./components/medicine/MedicineDetail";
 import ScanMedicine from "./components/medicine/ScanMedicine";
-import UpdateMedicineStatus from "./components/medicine/UpdateMedicineStatus";
+//import UpdateMedicineStatus from "./components/medicine/UpdateMedicineStatus";
 import FlagMedicine from "./components/medicine/FlagMedicine";
 import QRCodeGenerator from "./components/medicine/QRCodeGenerator";
 import MedicineRoutes from "./routes/MedicineRoutes";
@@ -224,7 +224,7 @@ function AppWithTheme() {
                 <div style={{ display: "flex" }}>
                   <Sidebar />
                   <div style={{ flexGrow: 1, padding: "64px 20px 20px 20px" }}>
-                    <UpdateMedicineStatus />
+                    {/*<UpdateMedicineStatus />*/}
                   </div>
                 </div>
               </ProtectedRoute>

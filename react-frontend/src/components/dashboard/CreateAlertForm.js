@@ -17,10 +17,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 
-import {
+/*import {
     ALERT_TYPES,
     SEVERITY_LEVELS
-} from './medicineStatusConstants';
+} from './medicineStatusConstants';*/
 
 const CreateAlertForm = () => {
     const { id } = useParams();
@@ -102,7 +102,7 @@ const CreateAlertForm = () => {
 
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={3}>
-                        <Grid item xs={12}>
+                        {/*<Grid item xs={12}>
                             <FormControl fullWidth required>
                                 <InputLabel>Alert Type</InputLabel>
                                 <Select
@@ -118,9 +118,9 @@ const CreateAlertForm = () => {
                                     ))}
                                 </Select>
                             </FormControl>
-                        </Grid>
+                        </Grid>*/}
 
-                        <Grid item xs={12}>
+                        {/*<Grid item xs={12}>
                             <FormControl fullWidth required>
                                 <InputLabel>Severity</InputLabel>
                                 <Select
@@ -136,7 +136,7 @@ const CreateAlertForm = () => {
                                     ))}
                                 </Select>
                             </FormControl>
-                        </Grid>
+                        </Grid>*/}
 
                         <Grid item xs={12}>
                             <TextField

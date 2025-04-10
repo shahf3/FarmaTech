@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 // Medicine components
 import MedicineDetail from "../components/medicine/MedicineDetail";
 import ScanMedicine from "../components/medicine/ScanMedicine";
-import UpdateMedicineStatus from "../components/medicine/UpdateMedicineStatus";
+//import UpdateMedicineStatus from "../components/medicine/UpdateMedicineStatus";
 import FlagMedicine from "../components/medicine/FlagMedicine";
 import QRCodeGenerator from "../components/medicine/QRCodeGenerator";
 
@@ -129,7 +129,7 @@ const MedicineRoutes = () => {
         }
       />
 
-      <Route
+      {/*<Route
         path="/update-medicine/:id"
         element={
           <RoleRoute
@@ -137,7 +137,7 @@ const MedicineRoutes = () => {
             allowedRoles={["manufacturer", "distributor", "regulator"]}
           />
         }
-      />
+      />*/}
 
       <Route
         path="/flag-medicine/:id"

@@ -487,4 +487,4 @@ const MedicineDetail = () => {
   );
 };
 
-export default MedicineDetail;
+export default MedicineDetail; 

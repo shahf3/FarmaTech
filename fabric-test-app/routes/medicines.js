@@ -1149,4 +1149,150 @@ router.get('/manufacturer/:manufacturer', verifyToken, async (req, res) => {
     }
   });
 
+  router.post(
+    '/:id/assign-distributors',
+    [
+      verifyToken,
+      checkRole(['manufacturer']),
+      body('distributors', 'Distributors list is required').isArray(),
+    ],
+    async (req, res) => {
+      try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+        }
+  
+        const { id } = req.params;
+        const { distributors } = req.body;
+        
+        // Validate the medicine ID
+        if (!id || typeof id !== 'string' || id.trim() === '') {
+          return res.status(400).json({ error: 'Invalid medicine ID' });
+        }
+        
+        // Validate the distributors array
+        if (!Array.isArray(distributors) || distributors.length === 0) {
+          return res.status(400).json({ error: 'Distributors must be a non-empty array' });
+        }
+        
+        console.log('Assigning distributors to medicine:', id);
+        console.log('Distributors:', distributors);
+  
+        // Load the connection profile
+        const ccpPath = path.resolve(__dirname, "../config", "connection-org1.json");
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
+  
+        const walletPath = path.join(__dirname, "../wallet");
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+  
+        const identity = await wallet.get("appUser");
+        if (!identity) {
+          return res.status(400).json({ 
+            error: 'User "appUser" does not exist in the wallet' 
+          });
+        }
+  
+        const gateway = new Gateway();
+        try {
+          await gateway.connect(ccp, {
+            wallet,
+            identity: "appUser",
+            discovery: { enabled: true, asLocalhost: true },
+          });
+  
+          const network = await gateway.getNetwork("mychannel");
+          const contract = network.getContract("medicine-contract");
+  
+          // First, get the medicine to check if the user is the manufacturer
+          const medicineResult = await contract.evaluateTransaction("GetMedicine", id);
+          const medicine = JSON.parse(medicineResult.toString());
+          
+          // Check if the user's organization is the manufacturer
+          if (medicine.manufacturer !== req.user.organization) {
+            await gateway.disconnect();
+            return res.status(403).json({ 
+              error: 'Only the manufacturer can assign distributors to this medicine' 
+            });
+          }
+          
+          // Stringify the distributors array for the chaincode
+          const distributorsJSON = JSON.stringify(distributors);
+          console.log('Distributors JSON:', distributorsJSON);
+          
+          // Update the medicine with assigned distributors
+          const result = await contract.submitTransaction(
+            "AssignDistributorsToMedicine",
+            id,
+            distributorsJSON
+          );
+  
+          await gateway.disconnect();
+  
+          // Parse the result
+          let updatedMedicine;
+          try {
+            updatedMedicine = JSON.parse(result.toString());
+          } catch (parseError) {
+            console.error('Error parsing chaincode result:', parseError);
+            return res.status(500).json({ 
+              error: 'Failed to parse chaincode response',
+              details: parseError.message 
+            });
+          }
+          
+          // Send notifications to the assigned distributors
+          for (const distributorOrg of distributors) {
+            try {
+              const distributor = await User.findOne({ 
+                organization: distributorOrg,
+                role: 'distributor'
+              });
+              
+              if (distributor) {
+                // Create a notification
+                await axios.post(
+                  `${req.protocol}://${req.get('host')}/api/notifications`,
+                  {
+                    recipientId: distributor._id,
+                    subject: `New Delivery Assignment: ${medicine.name}`,
+                    message: `You have been assigned to deliver medicine ${medicine.name} (ID: ${medicine.id}, Batch: ${medicine.batchNumber}) by ${req.user.organization}. Please check your inventory for details.`,
+                    relatedTo: 'Medicine',
+                    medicineId: medicine.id
+                  },
+                  {
+                    headers: { Authorization: `Bearer ${req.headers.authorization}` }
+                  }
+                );
+              }
+            } catch (notificationErr) {
+              console.error(`Error sending notification to ${distributorOrg}:`, notificationErr);
+            }
+          }
+          
+          res.json({
+            success: true,
+            message: `Distributors assigned to medicine ${id} successfully`,
+            medicine: updatedMedicine,
+          });
+        } catch (error) {
+          console.error(`Assign Distributors Error:`, error);
+          
+          try {
+            await gateway.disconnect();
+          } catch (e) {
+            // Ignore disconnect errors
+          }
+          
+          res.status(500).json({ 
+            error: `Failed to assign distributors: ${error.message}`,
+            details: error.toString()
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to process assignment request: ${error}`);
+        res.status(500).json({ error: error.message });
+      }
+    }
+  );
 module.exports = router;

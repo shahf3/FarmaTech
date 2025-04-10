@@ -1,4 +1,3 @@
-// src/components/medicine/UpdateMedicineStatus.js
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -16,7 +15,6 @@ import {
   MenuItem,
   Stack,
   Alert,
-  AlertTitle,
   CircularProgress,
   Stepper,
   Step,
@@ -26,7 +24,9 @@ import {
   Divider,
   Card,
   CardContent,
-  Grid
+  Grid,
+  Chip,
+  Tooltip
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -38,7 +38,20 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import MedicineStatus from './MedicineStatus';
+import WarningIcon from '@mui/icons-material/Warning';
+import {
+  MANUFACTURING_STATUSES,
+  EXPORT_STATUSES,
+  TRANSIT_STATUSES,
+  IMPORT_STATUSES,
+  REGULATORY_STATUSES,
+  DISTRIBUTION_STATUSES,
+  LOCAL_DELIVERY_STATUSES,
+  DISPENSING_STATUSES,
+  MAIN_PHASES,
+  FACILITY_TYPES,
+  TRANSPORT_MODES
+} from '../dashboard/medicineStatusConstants';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -49,81 +62,116 @@ const UpdateContainer = styled(Paper)(({ theme }) => ({
   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
 }));
 
-// Helper function to get available status options based on user role and current medicine status
-const getAvailableStatusOptions = (userRole, currentStatus) => {
-  const statusFlow = {
-    manufacturer: {
-      'Manufactured': ['Quality Check', 'Dispatched'],
-      'Quality Check': ['Dispatched'],
-      'Dispatched': ['In Transit'],
-      'In Transit': ['In Transit', 'Distributor'],
-      'default': ['Manufactured', 'Quality Check', 'Dispatched', 'In Transit']
-    },
-    distributor: {
-      'In Transit': ['Distributor', 'In Distribution'],
-      'Distributor': ['In Distribution'],
-      'In Distribution': ['In Transit', 'Regulator', 'Pharmacy'],
-      'default': ['Distributor', 'In Distribution', 'In Transit', 'Pharmacy']
-    },
-    regulator: {
-      'In Distribution': ['Regulator', 'Approved'],
-      'Regulator': ['Approved', 'Flagged'],
-      'default': ['Regulator', 'Approved', 'Flagged']
-    },
-    pharmacy: {
-      'In Distribution': ['Pharmacy'],
-      'Pharmacy': ['Dispensed'],
-      'default': ['Pharmacy', 'Dispensed']
-    },
-    enduser: {
-      'default': []
-    }
+const getStatusColor = (status) => {
+  const colorMap = {
+    'Production Initiated': '#4caf50',
+    'Production Complete': '#2196f3',
+    'Quality Testing': '#ff9800',
+    'Quality Certification': '#9c27b0',
+    'Packaging & Labeling': '#673ab7',
+    'Export Documentation Processing': '#ff5722',
+    'Temperature-Controlled Warehouse': '#00bcd4',
+    'Customs Clearance (Export)': '#795548',
+    'International Shipping Initiated': '#3f51b5',
+    'In Transit (Air)': '#9c27b0',
+    'Arrived at Destination Country': '#607d8b',
+    'Customs Processing (Import)': '#ff9800',
+    'Customs Inspection': '#ff5722',
+    'Import Clearance': '#4caf50',
+    'Arrival at Regulatory Facility': '#2196f3',
+    'Regulatory Batch Testing': '#ff9800',
+    'Regulatory Inspection': '#ff5722',
+    'Regulatory Approval': '#4caf50',
+    'National Distribution Center': '#00bcd4',
+    'Regional Distribution Allocation': '#009688',
+    'Regional Hub Transfer': '#8bc34a',
+    'Local Delivery Preparation': '#ff9800',
+    'En Route to Healthcare Facility': '#9c27b0',
+    'Delivered to Healthcare Facility': '#4caf50',
+    'Available for Dispensing': '#2196f3',
+    'Dispensed to Patient': '#4caf50',
+    default: '#757575'
   };
-
-  // Get options for the current role and status
-  const roleOptions = statusFlow[userRole] || statusFlow.enduser;
-  const options = roleOptions[currentStatus] || roleOptions.default;
-  
-  return options;
+  return colorMap[status] || colorMap.default;
 };
 
-// Helper function to get icon for status
 const getStatusIcon = (status) => {
-  switch (status) {
-    case 'Manufactured':
-      return <FactoryIcon />;
-    case 'Quality Check':
-      return <VerifiedUserIcon />;
-    case 'Dispatched':
-    case 'In Transit':
-      return <LocalShippingIcon />;
-    case 'Distributor':
-    case 'In Distribution':
-      return <InventoryIcon />;
-    case 'Regulator':
-    case 'Approved':
-      return <AccountBalanceIcon />;
-    default:
-      return <CheckCircleIcon />;
+  const iconMap = {
+    'Production Initiated': <FactoryIcon />,
+    'Production Complete': <CheckCircleIcon />,
+    'Quality Testing': <VerifiedUserIcon />,
+    'Quality Certification': <VerifiedUserIcon />,
+    'Packaging & Labeling': <InventoryIcon />,
+    'Export Documentation Processing': <LocalShippingIcon />,
+    'Temperature-Controlled Warehouse': <InventoryIcon />,
+    'Customs Clearance (Export)': <AccountBalanceIcon />,
+    'International Shipping Initiated': <LocalShippingIcon />,
+    'In Transit (Air)': <LocalShippingIcon />,
+    'Arrived at Destination Country': <LocationOnIcon />,
+    'Customs Processing (Import)': <AccountBalanceIcon />,
+    'Customs Inspection': <AccountBalanceIcon />,
+    'Import Clearance': <AccountBalanceIcon />,
+    'Arrival at Regulatory Facility': <AccountBalanceIcon />,
+    'Regulatory Batch Testing': <VerifiedUserIcon />,
+    'Regulatory Inspection': <VerifiedUserIcon />,
+    'Regulatory Approval': <CheckCircleIcon />,
+    'National Distribution Center': <InventoryIcon />,
+    'Regional Distribution Allocation': <InventoryIcon />,
+    'Regional Hub Transfer': <LocalShippingIcon />,
+    'Local Delivery Preparation': <InventoryIcon />,
+    'En Route to Healthcare Facility': <LocalShippingIcon />,
+    'Delivered to Healthcare Facility': <CheckCircleIcon />,
+    'Available for Dispensing': <InventoryIcon />,
+    'Dispensed to Patient': <CheckCircleIcon />,
+    default: <CheckCircleIcon />
+  };
+  return iconMap[status] || iconMap.default;
+};
+
+// Helper function to get the phase for a given status
+const getPhaseForStatus = (status) => {
+  if (MANUFACTURING_STATUSES.includes(status)) return 'Manufacturing Phase';
+  if (EXPORT_STATUSES.includes(status)) return 'Export Phase';
+  if (TRANSIT_STATUSES.includes(status)) return 'International Transit Phase';
+  if (IMPORT_STATUSES.includes(status)) return 'Import Phase';
+  if (REGULATORY_STATUSES.includes(status)) return 'Regulatory Phase';
+  if (DISTRIBUTION_STATUSES.includes(status)) return 'National Distribution Phase';
+  if (LOCAL_DELIVERY_STATUSES.includes(status)) return 'Local Delivery Phase';
+  if (DISPENSING_STATUSES.includes(status)) return 'Final Dispensing Phase';
+  return '';
+};
+
+const STATUS_FLOW = {
+  manufacturer: { 
+    allowedStatuses: [
+      ...MANUFACTURING_STATUSES,
+      ...EXPORT_STATUSES,
+      'International Shipping Initiated' // Just the handoff to shipping
+    ] 
+  },
+  distributor: { 
+    allowedStatuses: [
+      ...TRANSIT_STATUSES.filter(s => s !== 'International Shipping Initiated'),
+      ...IMPORT_STATUSES,
+      ...DISTRIBUTION_STATUSES,
+      ...LOCAL_DELIVERY_STATUSES.slice(0, 2) // Exclude final delivery
+    ] 
+  },
+  regulator: { 
+    allowedStatuses: REGULATORY_STATUSES
+  },
+  pharmacy: { 
+    allowedStatuses: [
+      LOCAL_DELIVERY_STATUSES[2], // 'Delivered to Healthcare Facility'
+      ...DISPENSING_STATUSES
+    ]
   }
 };
 
-// Helper function to get step index for status
-const getStepIndexForStatus = (status) => {
-  const statusMap = {
-    'Manufactured': 0,
-    'Quality Check': 1,
-    'Dispatched': 2,
-    'In Transit': 3,
-    'Distributor': 4,
-    'In Distribution': 4,
-    'Regulator': 5,
-    'Approved': 5,
-    'Pharmacy': 6,
-    'Dispensed': 7
-  };
-  
-  return statusMap[status] !== undefined ? statusMap[status] : 0;
+const getAvailableStatusOptions = (userRole) => {
+  const roleConfig = STATUS_FLOW[userRole];
+  if (!roleConfig) return [];
+  return roleConfig.allowedStatuses;
 };
 
 const UpdateMedicineStatus = () => {
@@ -135,263 +183,158 @@ const UpdateMedicineStatus = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [currentLocation, setCurrentLocation] = useState('');
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [availableStatuses, setAvailableStatuses] = useState([]);
-  const [statusUpdate, setStatusUpdate] = useState({
-    status: '',
-    location: '',
-    notes: ''
+  const [statusUpdate, setStatusUpdate] = useState({ 
+    status: '', 
+    location: '', 
+    originCountry: '',
+    destinationCountry: '',
+    facilityType: '',
+    transportMode: '',
+    notes: '' 
   });
   
-  const [activeStep, setActiveStep] = useState(0);
- 
-  const supplyChainSteps = [
-    { 
-      label: 'Manufactured', 
-      description: 'Initial production at manufacturer facility',
-      icon: <FactoryIcon />
-    },
-    { 
-      label: 'Quality Check', 
-      description: 'Quality inspection and verification',
-      icon: <VerifiedUserIcon />
-    },
-    { 
-      label: 'Dispatched', 
-      description: 'Shipped from manufacturer facility',
-      icon: <LocalShippingIcon />
-    },
-    { 
-      label: 'In Transit', 
-      description: 'Being transported between facilities',
-      icon: <LocalShippingIcon />
-    },
-    { 
-      label: 'Distributor', 
-      description: 'Received at distribution center',
-      icon: <InventoryIcon />
-    },
-    { 
-      label: 'Regulator', 
-      description: 'Verification by regulatory authority',
-      icon: <AccountBalanceIcon />
-    },
-    { 
-      label: 'Pharmacy', 
-      description: 'Received at pharmacy',
-      icon: <InventoryIcon />
-    },
-    { 
-      label: 'Dispensed', 
-      description: 'Dispensed to end customer',
-      icon: <CheckCircleIcon />
-    }
-  ];
-  
+  // UI state for conditional field display
+  const [showFacilityField, setShowFacilityField] = useState(false);
+  const [showTransportField, setShowTransportField] = useState(false);
+
   useEffect(() => {
-    const fetchMedicineDetails = async () => {
-      if (!id || !token) return;
-      
-      setLoading(true);
-      setError(null);
-      
+    const fetchMedicine = async () => {
       try {
-        const response = await axios.get(
-          `${API_URL}/medicines/${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-        
+        const response = await axios.get(`${API_URL}/medicines/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setMedicine(response.data);
+        setAvailableStatuses(getAvailableStatusOptions(user.role));
         
-        // Set active step based on current medicine status
-        if (response.data.status) {
-          setActiveStep(getStepIndexForStatus(response.data.status));
+        // Prefill origin/destination if available in medicine data
+        if (response.data.originCountry) {
+          setStatusUpdate(prev => ({
+            ...prev,
+            originCountry: response.data.originCountry
+          }));
+        }
+        
+        if (response.data.destinationCountry) {
+          setStatusUpdate(prev => ({
+            ...prev,
+            destinationCountry: response.data.destinationCountry
+          }));
         }
       } catch (err) {
-        console.error('Error fetching medicine details:', err);
-        setError('Failed to fetch medicine details. Please try again later.');
+        setError('Failed to fetch medicine details.');
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchMedicineDetails();
-    detectLocation();
-  }, [id, token]);
+    if (id && token) fetchMedicine();
+  }, [id, token, user.role]);
   
-  // Update available statuses when medicine is loaded
+  // Show/hide conditional fields based on selected status
   useEffect(() => {
-    if (medicine && user) {
-      const options = getAvailableStatusOptions(user.role, medicine.status);
-      setAvailableStatuses(options);
+    if (statusUpdate.status) {
+      // Show facility type field for manufacturing, regulatory, and distribution statuses
+      setShowFacilityField(
+        MANUFACTURING_STATUSES.includes(statusUpdate.status) ||
+        REGULATORY_STATUSES.includes(statusUpdate.status) ||
+        DISTRIBUTION_STATUSES.includes(statusUpdate.status) ||
+        LOCAL_DELIVERY_STATUSES.includes(statusUpdate.status)
+      );
       
-      // Set default next status if available
-      if (options.length > 0) {
-        setStatusUpdate(prev => ({ ...prev, status: options[0] }));
-      }
-    }
-  }, [medicine, user]);
-  
-  const detectLocation = async () => {
-    setIsDetectingLocation(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-              {
-                headers: {
-                  "Accept-Language": "en",
-                  "User-Agent": "FarmaTech-MedicineApp/1.0",
-                },
-              }
-            );
-            if (!response.ok) {
-              throw new Error("Failed to get location name");
-            }
-            const data = await response.json();
-            const city = data.address?.city || data.address?.town || data.address?.village || "";
-            const state = data.address?.state || "";
-            const country = data.address?.country || "";
-            const locationString = [city, state, country].filter(Boolean).join(", ");
-            setCurrentLocation(locationString);
-            setStatusUpdate(prev => ({ ...prev, location: locationString }));
-          } catch (error) {
-            const locationString = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-            setCurrentLocation(locationString);
-            setStatusUpdate(prev => ({ ...prev, location: locationString }));
-          } finally {
-            setIsDetectingLocation(false);
-          }
-        },
-        (error) => {
-          setIsDetectingLocation(false);
-          setError("Failed to detect location. Please try again or enter manually.");
-        }
+      // Show transport mode field for transit statuses
+      setShowTransportField(
+        TRANSIT_STATUSES.includes(statusUpdate.status) ||
+        statusUpdate.status === 'En Route to Healthcare Facility'
       );
     } else {
-      setIsDetectingLocation(false);
-      setError("Geolocation is not supported by this browser.");
+      setShowFacilityField(false);
+      setShowTransportField(false);
     }
-  };
-  
+  }, [statusUpdate.status]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setStatusUpdate(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setStatusUpdate(prev => ({ ...prev, [name]: value }));
   };
-  
-  const handleUpdateStatus = async (e) => {
-    e.preventDefault();
-    
-    if (!statusUpdate.status || !statusUpdate.location) {
-      setError("Status and location are required");
+
+  const detectLocation = () => {
+    setIsDetectingLocation(true);
+    setError(null);
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported.');
+      setIsDetectingLocation(false);
       return;
     }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setStatusUpdate(prev => ({
+          ...prev,
+          location: `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
+        }));
+        setIsDetectingLocation(false);
+      },
+      () => {
+        setError('Location detection failed.');
+        setIsDetectingLocation(false);
+      }
+    );
+  };
 
+  const handleUpdateStatus = async (e) => {
+    e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setSuccess(null);
+    
+    // Determine if this is a domestic or international shipment
+    const isInternational = 
+      statusUpdate.originCountry && 
+      statusUpdate.destinationCountry && 
+      statusUpdate.originCountry !== statusUpdate.destinationCountry;
+    
+    // Determine the appropriate phase based on status
+    const phase = getPhaseForStatus(statusUpdate.status);
     
     try {
-      const response = await axios.post(
-        `${API_URL}/medicines/${medicine.id}/update`,
-        {
-          status: statusUpdate.status,
-          location: statusUpdate.location,
-          notes: statusUpdate.notes
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+      // Create enhanced status update object with all collected data
+      const enhancedStatusUpdate = {
+        ...statusUpdate,
+        phase,
+        isInternational: isInternational || false,
+        handler: user.organization,
+        role: user.role,
+        timestamp: new Date().toISOString()
+      };
+      
+      const response = await axios.put(
+        `${API_URL}/medicines/${id}/status`, 
+        enhancedStatusUpdate, 
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setMedicine(response.data.medicine);
-      setSuccess(`Medicine status updated to ${statusUpdate.status} successfully`);
-      
-      // Set active step based on new status
-      setActiveStep(getStepIndexForStatus(statusUpdate.status));
-      
-      // Clear form
-      setStatusUpdate({
-        status: '',
-        location: currentLocation,
-        notes: ''
+      setSuccess('Status updated successfully!');
+      setMedicine(response.data);
+      setStatusUpdate({ 
+        status: '', 
+        location: '', 
+        notes: '',
+        originCountry: statusUpdate.originCountry,
+        destinationCountry: statusUpdate.destinationCountry,
+        facilityType: '',
+        transportMode: ''
       });
-      
-      // Update available statuses for the new medicine status
-      const options = getAvailableStatusOptions(user.role, response.data.medicine.status);
-      setAvailableStatuses(options);
-      
-      if (options.length > 0) {
-        setStatusUpdate(prev => ({ ...prev, status: options[0], location: currentLocation }));
-      }
     } catch (err) {
-      console.error('Error updating medicine status:', err);
-      setError(err.response?.data?.error || 'Failed to update status. Please try again.');
+      setError(err.response?.data?.message || 'Failed to update status');
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Check if user is authorized to update this medicine
-  const canUpdateMedicine = () => {
-    if (!user || !medicine) return false;
-    
-    const isManufacturer = user.role === 'manufacturer' && user.organization === medicine.manufacturer;
-    const isDistributor = user.role === 'distributor' && user.organization === medicine.currentOwner;
-    const isRegulator = user.role === 'regulator';
-    
-    return isManufacturer || isDistributor || isRegulator;
-  };
-  
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  
-  if (!medicine) {
-    return (
-      <Box sx={{ py: 2 }}>
-        <Alert severity="info">Medicine not found</Alert>
-        <Button 
-          startIcon={<ArrowBackIcon />} 
-          onClick={() => navigate(-1)}
-          sx={{ mt: 2 }}
-        >
-          Go Back
-        </Button>
-      </Box>
-    );
-  }
-  
-  if (!canUpdateMedicine()) {
-    return (
-      <Box sx={{ py: 2 }}>
-        <Alert severity="warning">
-          <AlertTitle>Unauthorized</AlertTitle>
-          You are not authorized to update this medicine's status.
-        </Alert>
-        <Button 
-          startIcon={<ArrowBackIcon />} 
-          onClick={() => navigate(-1)}
-          sx={{ mt: 2 }}
-        >
-          Go Back
-        </Button>
-      </Box>
-    );
-  }
-  
+  if (loading) return <CircularProgress sx={{ mt: 4 }} />;
+  if (!medicine) return <Alert severity="info">Medicine not found.</Alert>;
+
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
@@ -402,203 +345,311 @@ const UpdateMedicineStatus = () => {
           Update Medicine Status
         </Typography>
       </Box>
-      
+
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
-      
+
       {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
+        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
           {success}
         </Alert>
       )}
-      
+
       <Grid container spacing={3}>
-        <Grid item xs={12} md={5}>
-          <UpdateContainer>
-            <Typography variant="h6" gutterBottom>
-              {medicine.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" paragraph>
-              ID: {medicine.id} | Batch: {medicine.batchNumber}
-            </Typography>
+        {/* Medicine Information Card */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" gutterBottom>Medicine Details</Typography>
+            <Divider sx={{ mb: 2 }} />
             
-            <Divider sx={{ my: 2 }} />
-            
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Current Status
-              </Typography>
+            <Stack spacing={1.5}>
+              <Box>
+                <Typography variant="body2" color="text.secondary">Medicine ID</Typography>
+                <Typography variant="subtitle1">{medicine.id}</Typography>
+              </Box>
               
-              <Card variant="outlined">
-                <CardContent>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    {getStatusIcon(medicine.status)}
-                    <Box>
-                      <Typography variant="h6" color="primary">
-                        {medicine.status}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        <AccessTimeIcon fontSize="inherit" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
-                        Last updated: {medicine.supplyChain && medicine.supplyChain.length > 0 
-                          ? new Date(medicine.supplyChain[medicine.supplyChain.length - 1].timestamp).toLocaleString() 
-                          : 'N/A'}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                        <LocationOnIcon fontSize="inherit" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
-                        {medicine.supplyChain && medicine.supplyChain.length > 0 
-                          ? medicine.supplyChain[medicine.supplyChain.length - 1].location 
-                          : 'Unknown location'}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">Name</Typography>
+                <Typography variant="subtitle1">{medicine.name}</Typography>
+              </Box>
+              
+              <Box>
+                <Typography variant="body2" color="text.secondary">Batch Number</Typography>
+                <Typography variant="subtitle1">{medicine.batchNumber}</Typography>
+              </Box>
+              
+              <Box>
+                <Typography variant="body2" color="text.secondary">Current Status</Typography>
+                <Chip 
+                  label={medicine.status} 
+                  size="small" 
+                  sx={{ 
+                    bgcolor: getStatusColor(medicine.status),
+                    color: 'white',
+                    mt: 0.5
+                  }} 
+                />
+              </Box>
+              
+              <Box>
+                <Typography variant="body2" color="text.secondary">Current Owner</Typography>
+                <Typography variant="subtitle1">{medicine.currentOwner || medicine.manufacturer}</Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+        
+        {/* Status Update Form */}
+        <Grid item xs={12} md={8}>
+          <UpdateContainer>
+            <Typography variant="h6" gutterBottom>Update Supply Chain Status</Typography>
+            <Divider sx={{ mb: 3 }} />
             
             <Box component="form" onSubmit={handleUpdateStatus}>
-              <Typography variant="subtitle1" gutterBottom>
-                Update Status
-              </Typography>
-              
-              <FormControl fullWidth sx={{ mb: 2 }} required>
-                <InputLabel id="status-label">New Status</InputLabel>
-                <Select
-                  labelId="status-label"
-                  name="status"
-                  value={statusUpdate.status}
-                  onChange={handleInputChange}
-                  label="New Status"
-                >
-                  {availableStatuses.map(status => (
-                    <MenuItem key={status} value={status}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        {getStatusIcon(status)}
-                        <Typography>{status}</Typography>
-                      </Stack>
-                    </MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText>
-                  Select the new status for this medicine
-                </FormHelperText>
-              </FormControl>
-              
-              <FormControl fullWidth sx={{ mb: 2 }} required>
-                <TextField
-                  name="location"
-                  label="Current Location"
-                  value={statusUpdate.location}
-                  onChange={handleInputChange}
-                  required
-                  InputProps={{
-                    endAdornment: (
-                      <IconButton 
-                        onClick={detectLocation}
-                        disabled={isDetectingLocation}
-                        edge="end"
+              <Grid container spacing={2}>
+                {/* Status Selection */}
+                <Grid item xs={12}>
+                  <FormControl fullWidth required>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      name="status"
+                      value={statusUpdate.status}
+                      onChange={handleInputChange}
+                      label="Status"
+                    >
+                      <MenuItem value="" disabled>Select the new status for this medicine</MenuItem>
+                      {availableStatuses.map(status => (
+                        <MenuItem key={status} value={status}>{status}</MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>
+                      Select the new status for this medicine
+                    </FormHelperText>
+                  </FormControl>
+                </Grid>
+                
+                {/* Origin Country */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    name="originCountry"
+                    label="Origin Country"
+                    value={statusUpdate.originCountry || ''}
+                    onChange={handleInputChange}
+                    placeholder="Country of manufacture/origin"
+                  />
+                </Grid>
+                
+                {/* Destination Country */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    name="destinationCountry"
+                    label="Destination Country"
+                    value={statusUpdate.destinationCountry || ''}
+                    onChange={handleInputChange}
+                    placeholder="Country of final destination"
+                  />
+                </Grid>
+                
+                {/* Facility Type - Show conditionally */}
+                {showFacilityField && (
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <InputLabel>Facility Type</InputLabel>
+                      <Select
+                        name="facilityType"
+                        value={statusUpdate.facilityType || ''}
+                        onChange={handleInputChange}
+                        label="Facility Type"
                       >
-                        <LocationOnIcon />
-                      </IconButton>
-                    ),
-                  }}
-                  helperText="Current location where the medicine is being updated"
-                />
-              </FormControl>
-              
-              <FormControl fullWidth sx={{ mb: 3 }}>
-                <TextField
-                  name="notes"
-                  label="Notes"
-                  value={statusUpdate.notes}
-                  onChange={handleInputChange}
-                  multiline
-                  rows={3}
-                  helperText="Additional notes about this status change (optional)"
-                />
-              </FormControl>
-              
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                fullWidth
-                disabled={submitting || !statusUpdate.status || !statusUpdate.location}
-                sx={{ py: 1.5 }}
-              >
-                {submitting ? <CircularProgress size={24} /> : 'Update Status'}
-              </Button>
+                        <MenuItem value="">Select facility type</MenuItem>
+                        {FACILITY_TYPES.map(type => (
+                          <MenuItem key={type} value={type}>{type}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+                
+                {/* Transport Mode - Show conditionally */}
+                {showTransportField && (
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <InputLabel>Transport Mode</InputLabel>
+                      <Select
+                        name="transportMode"
+                        value={statusUpdate.transportMode || ''}
+                        onChange={handleInputChange}
+                        label="Transport Mode"
+                      >
+                        <MenuItem value="">Select transport mode</MenuItem>
+                        {TRANSPORT_MODES.map(mode => (
+                          <MenuItem key={mode} value={mode}>{mode}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+                
+                {/* Location */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    required
+                    name="location"
+                    label="Location"
+                    value={statusUpdate.location}
+                    onChange={handleInputChange}
+                    placeholder="Current location where the status is being updated"
+                    helperText="Current location where the status is being updated"
+                  />
+                  <Button
+                    size="small"
+                    startIcon={<LocationOnIcon />}
+                    onClick={detectLocation}
+                    disabled={isDetectingLocation}
+                    sx={{ mt: 1 }}
+                  >
+                    {isDetectingLocation ? 'Detecting...' : 'Detect Current Location'}
+                  </Button>
+                </Grid>
+                
+                {/* Additional Notes */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    name="notes"
+                    label="Notes"
+                    value={statusUpdate.notes}
+                    onChange={handleInputChange}
+                    placeholder="Additional notes about this status change"
+                    helperText="Additional notes about this status change"
+                  />
+                </Grid>
+                
+                {/* Form Buttons */}
+                <Grid item xs={12} sx={{ mt: 2 }}>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={submitting || !statusUpdate.status || !statusUpdate.location}
+                      sx={{ flexGrow: 1 }}
+                    >
+                      {submitting ? <CircularProgress size={24} /> : 'Update Status'}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => navigate(-1)}
+                      disabled={submitting}
+                    >
+                      Cancel
+                    </Button>
+                  </Box>
+                </Grid>
+              </Grid>
             </Box>
           </UpdateContainer>
         </Grid>
         
-        <Grid item xs={12} md={7}>
-          <UpdateContainer>
-            <Typography variant="h6" gutterBottom>
-              Supply Chain Journey
-            </Typography>
+        {/* Supply Chain Timeline */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>Supply Chain Timeline</Typography>
+            <Divider sx={{ mb: 3 }} />
             
-            <Stepper activeStep={activeStep} orientation="vertical">
-              {supplyChainSteps.map((step, index) => (
-                <Step key={step.label}>
-                  <StepLabel StepIconComponent={() => step.icon}>
-                    <Typography variant="subtitle1">{step.label}</Typography>
-                  </StepLabel>
-                  <StepContent>
-                    <Typography variant="body2">{step.description}</Typography>
-                    
-                    {medicine.supplyChain && medicine.supplyChain.some(item => {
-                      // Find events related to this step
-                      return (
-                        item.status === step.label ||
-                        (step.label === 'Distributor' && item.status === 'In Distribution') ||
-                        (step.label === 'Regulator' && item.status === 'Approved')
-                      );
-                    }) ? (
-                      <Box sx={{ mt: 1, ml: 1, p: 1, bgcolor: 'background.paper', borderLeft: '2px solid #1976d2' }}>
-                        {medicine.supplyChain.filter(item => {
-                          return (
-                            item.status === step.label ||
-                            (step.label === 'Distributor' && item.status === 'In Distribution') ||
-                            (step.label === 'Regulator' && item.status === 'Approved')
-                          );
-                        }).map((event, eventIndex) => (
-                          <Box key={eventIndex} sx={{ mb: eventIndex < medicine.supplyChain.length - 1 ? 1 : 0 }}>
-                            <Typography variant="caption" color="text.secondary">
-                              {new Date(event.timestamp).toLocaleString()}
-                            </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                              Handler: {event.handler}
+            {medicine.supplyChain && medicine.supplyChain.length > 0 ? (
+              <Stepper orientation="vertical">
+                {medicine.supplyChain.map((event, index) => (
+                  <Step key={index} active={true} completed={true}>
+                    <StepLabel 
+                      StepIconComponent={() => (
+                        <Box 
+                          sx={{ 
+                            width: 40, 
+                            height: 40, 
+                            borderRadius: '50%', 
+                            bgcolor: getStatusColor(event.status), 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            color: 'white'
+                          }}
+                        >
+                          {getStatusIcon(event.status)}
+                        </Box>
+                      )}
+                    >
+                      <Typography variant="subtitle1">{event.status}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(event.timestamp).toLocaleString()}
+                      </Typography>
+                    </StepLabel>
+                    <StepContent>
+                      <Box sx={{ mb: 2 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6}>
+                            <Typography variant="body2">
+                              <strong>Handler:</strong> {event.handler || 'Unknown'}
                             </Typography>
                             <Typography variant="body2">
-                              Location: {event.location}
+                              <strong>Location:</strong> {event.location || 'Unknown location'}
                             </Typography>
-                            {event.notes && (
+                            {event.originCountry && (
                               <Typography variant="body2">
-                                Notes: {event.notes}
+                                <strong>Origin:</strong> {event.originCountry}
                               </Typography>
                             )}
-                          </Box>
-                        ))}
+                            {event.destinationCountry && (
+                              <Typography variant="body2">
+                                <strong>Destination:</strong> {event.destinationCountry}
+                              </Typography>
+                            )}
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            {event.facilityType && (
+                              <Typography variant="body2">
+                                <strong>Facility:</strong> {event.facilityType}
+                              </Typography>
+                            )}
+                            {event.transportMode && (
+                              <Typography variant="body2">
+                                <strong>Transport:</strong> {event.transportMode}
+                              </Typography>
+                            )}
+                            {event.phase && (
+                              <Typography variant="body2">
+                                <strong>Phase:</strong> {event.phase}
+                              </Typography>
+                            )}
+                          </Grid>
+                          {event.notes && (
+                            <Grid item xs={12}>
+                              <Typography variant="body2">
+                                <strong>Notes:</strong> {event.notes}
+                              </Typography>
+                            </Grid>
+                          )}
+                        </Grid>
                       </Box>
-                    ) : (
-                      index <= activeStep && (
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
-                          No detailed information available
-                        </Typography>
-                      )
-                    )}
-                  </StepContent>
-                </Step>
-              ))}
-            </Stepper>
-          </UpdateContainer>
+                    </StepContent>
+                  </Step>
+                ))}
+              </Stepper>
+            ) : (
+              <Typography color="text.secondary" align="center">
+                No supply chain history available yet.
+              </Typography>
+            )}
+          </Paper>
         </Grid>
       </Grid>
-      
-      <MedicineStatus medicine={medicine} />
     </Box>
   );
 };

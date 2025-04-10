@@ -35,6 +35,8 @@ import UpdateMedicineStatus from "./components/medicine/UpdateMedicineStatus";
 import FlagMedicine from "./components/medicine/FlagMedicine";
 import QRCodeGenerator from "./components/medicine/QRCodeGenerator";
 import MedicineRoutes from "./routes/MedicineRoutes";
+import CreateAlertForm from './components/dashboard/CreateAlertForm';
+import ResolveAlertForm from './components/dashboard/ResolveAlertForm';
 
 import AssetsList from "./components/AssetsList";
 import AssetForm from "./components/AssetForm";
@@ -284,6 +286,36 @@ function AppWithTheme() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/medicines/:id/create-alert"
+            element={
+              <ProtectedRoute
+                allowedRoles={["manufacturer", "distributor", "regulator"]}
+              >
+                <div style={{ display: "flex" }}>
+                  <Sidebar />
+                  <div style={{ flexGrow: 1, padding: "64px 20px 20px 20px" }}>
+                    <CreateAlertForm />
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/medicines/:id/resolve-alerts"
+            element={
+              <ProtectedRoute allowedRoles={["manufacturer", "regulator"]}>
+                <div style={{ display: "flex" }}>
+                  <Sidebar />
+                  <div style={{ flexGrow: 1, padding: "64px 20px 20px 20px" }}>
+                    <ResolveAlertForm />
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/init-ledger"
             element={

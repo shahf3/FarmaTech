@@ -29,7 +29,7 @@ const NotificationForm = () => {
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
-    distributorId: '', // Changed from recipientId to match backend
+    recipientId: '', 
     subject: '',
     message: '',
     relatedTo: 'General',
@@ -37,7 +37,7 @@ const NotificationForm = () => {
   });
   
   const [formErrors, setFormErrors] = useState({
-    distributorId: '', // Updated to match
+    recipientId: '',
     subject: '',
     message: ''
   });
@@ -46,19 +46,24 @@ const NotificationForm = () => {
     const fetchRecipients = async () => {
       setLoading(true);
       try {
-        let endpoint;
+        let endpoints = [];
         if (user.role === 'manufacturer') {
-          endpoint = `${API_URL}/auth/manufacturer-distributors`;
+          endpoints = [
+            `${API_URL}/auth/manufacturer-distributors`,
+            `${API_URL}/auth/manufacturer-regulators`
+          ];
         } else if (user.role === 'distributor') {
-          endpoint = `${API_URL}/auth/distributor-manufacturers`;
+          endpoints = [`${API_URL}/auth/distributor-manufacturers`];
+        } else if (user.role === 'regulator') {
+          endpoints = [`${API_URL}/auth/regulator-manufacturers`];
         }
-        
-        if (endpoint) {
-          const response = await axios.get(endpoint, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setRecipients(response.data);
-        }
+
+        const recipientPromises = endpoints.map(endpoint =>
+          axios.get(endpoint, { headers: { Authorization: `Bearer ${token}` } })
+        );
+        const responses = await Promise.all(recipientPromises);
+        const allRecipients = responses.flatMap(response => response.data);
+        setRecipients(allRecipients);
       } catch (err) {
         console.error('Error fetching recipients:', err);
         setError('Failed to load recipient list. Please try again.');
@@ -81,7 +86,7 @@ const NotificationForm = () => {
 
   const validateForm = () => {
     const errors = {
-      distributorId: formData.distributorId ? '' : 'Recipient is required',
+      recipientId: formData.recipientId ? '' : 'Recipient is required',
       subject: formData.subject ? '' : 'Subject is required',
       message: formData.message ? '' : 'Message is required'
     };
@@ -92,40 +97,49 @@ const NotificationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     setSuccess('');
     setError('');
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+    if (!validateForm()) return;
     setSending(true);
     try {
-      // Map formData to match backend expectations
+      const selectedRecipient = recipients.find(r => r._id === formData.recipientId);
+      console.log('Selected Recipient:', {
+        id: formData.recipientId,
+        role: selectedRecipient.role,
+        organization: selectedRecipient.organization,
+        username: selectedRecipient.username
+      });
+      let endpoint;
       const payload = {
-        distributorId: formData.distributorId,
         subject: formData.subject,
         message: formData.message
-        // relatedTo and medicineId are omitted unless backend is updated to use them
       };
-
-      const response = await axios.post(
-        `${API_URL}/auth/contact-distributor`, // Updated endpoint
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
+      if (user.role === 'manufacturer') {
+        if (selectedRecipient.role === 'distributor') {
+          endpoint = `${API_URL}/auth/contact-distributor`;
+          payload.distributorId = formData.recipientId;
+        } else if (selectedRecipient.role === 'regulator') {
+          endpoint = `${API_URL}/auth/contact-regulator`;
+          payload.regulatorId = formData.recipientId;
+        }
+      } else if (user.role === 'distributor' || user.role === 'regulator') {
+        endpoint = `${API_URL}/notifications`;
+        payload.recipientId = formData.recipientId;
+        payload.relatedTo = formData.relatedTo;
+        payload.medicineId = formData.medicineId || null;
+      }
+      console.log('Sending to:', { endpoint, payload });
+      const response = await axios.post(endpoint, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setSuccess('Message sent successfully!');
-      
       setFormData({
-        distributorId: '',
+        recipientId: '',
         subject: '',
         message: '',
         relatedTo: 'General',
         medicineId: ''
       });
-      
     } catch (err) {
       console.error('Error sending notification:', err);
       setError(err.response?.data?.error || 'Failed to send message. Please try again.');
@@ -154,13 +168,13 @@ const NotificationForm = () => {
         )}
         
         <form onSubmit={handleSubmit}>
-          <FormControl fullWidth margin="normal" error={!!formErrors.distributorId}>
+          <FormControl fullWidth margin="normal" error={!!formErrors.recipientId}>
             <InputLabel id="recipient-label">Recipient</InputLabel>
             <Select
               labelId="recipient-label"
-              id="distributorId" // Updated to match
-              name="distributorId" // Updated to match
-              value={formData.distributorId}
+              id="recipientId"
+              name="recipientId"
+              value={formData.recipientId}
               onChange={handleInputChange}
               label="Recipient"
               disabled={loading || recipients.length === 0}
@@ -172,13 +186,13 @@ const NotificationForm = () => {
               ) : (
                 recipients.map(recipient => (
                   <MenuItem key={recipient._id} value={recipient._id}>
-                    {recipient.organization} ({recipient.username})
+                    {recipient.organization} ({recipient.username}) - {recipient.role}
                   </MenuItem>
                 ))
               )}
             </Select>
-            {formErrors.distributorId && (
-              <FormHelperText>{formErrors.distributorId}</FormHelperText>
+            {formErrors.recipientId && (
+              <FormHelperText>{formErrors.recipientId}</FormHelperText>
             )}
           </FormControl>
           

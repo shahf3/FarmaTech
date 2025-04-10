@@ -98,6 +98,7 @@ function AppWithTheme() {
           <Route path="/health" element={<HealthCheck />} />
           <Route path="/verify" element={<PublicMedicineVerification />} />
           <Route path="/dashboard/register-regulator" element={<RegisterRegulator />} />
+          <Route path="/regulator/*" element={<RegulatorDashboard />} />
           
 
           {/* Protected Routes (With Sidebar) */}

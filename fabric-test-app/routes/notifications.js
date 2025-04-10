@@ -48,20 +48,28 @@ router.post(
       // Check permissions: Manufacturers can contact distributors they've registered, 
       // Distributors can contact manufacturers who registered them
       let authorized = false;
-      
-      if (sender.role === 'manufacturer' && recipient.role === 'distributor') {
-        if (String(recipient.registeredBy) === String(sender._id)) {
-          authorized = true;
-        }
-      } else if (sender.role === 'distributor' && recipient.role === 'manufacturer') {
-        if (String(sender.registeredBy) === String(recipient._id)) {
-          authorized = true;
-        }
-      }
-      
-      if (!authorized) {
-        return res.status(403).json({ error: 'You are not authorized to message this user' });
-      }
+
+if (sender.role === 'manufacturer' && recipient.role === 'distributor') {
+  if (String(recipient.registeredBy) === String(sender._id)) {
+    authorized = true;
+  }
+} else if (sender.role === 'distributor' && recipient.role === 'manufacturer') {
+  if (String(sender.registeredBy) === String(recipient._id)) {
+    authorized = true;
+  }
+} else if (sender.role === 'manufacturer' && recipient.role === 'regulator') {
+  if (String(recipient.registeredBy) === String(sender._id)) {
+    authorized = true;
+  }
+} else if (sender.role === 'regulator' && recipient.role === 'manufacturer') {
+  if (String(sender.registeredBy) === String(recipient._id)) {
+    authorized = true;
+  }
+}
+
+if (!authorized) {
+  return res.status(403).json({ error: 'You are not authorized to message this user' });
+}
       
       const notification = new Notification({
         sender: sender._id,

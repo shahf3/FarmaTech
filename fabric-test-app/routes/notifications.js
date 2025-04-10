@@ -128,19 +128,24 @@ router.post(
 // @route   GET api/notifications
 // @desc    Get all notifications for the current user
 // @access  Private
+// @route   GET api/notifications
+// @desc    Get all notifications for the current user
+// @access  Private
 router.get('/', verifyToken, async (req, res) => {
+  console.log(`${new Date().toISOString()} - GET /api/notifications - User ID: ${req.user.id}`);
   try {
     const notifications = await Notification.find({ 
       recipient: req.user.id,
       isArchived: false 
     })
     .sort({ createdAt: -1 })
-    .populate('sender', 'username organization');
-    
+    .populate('sender', 'username organization'); // Ensure 'sender' matches the ref in Notification schema
+
+    console.log(`Notifications fetched: ${notifications.length} found`);
     res.json(notifications);
   } catch (err) {
-    console.error('Error fetching notifications:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error fetching notifications:', err.stack);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 

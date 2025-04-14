@@ -1,5 +1,5 @@
 // src/components/dashboard/ManufacturerDashboard.js
-import React, { useEffect, useState } from "react"; // Added useState import
+import React, { useEffect, useState } from "react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import RegisterNewMedicine from "./RegisterNewMedicine";
@@ -7,7 +7,7 @@ import ViewRegisteredMedicines from "./ViewRegisteredMedicines";
 import RegisterDistributor from "./RegisterDistributor";
 import RegisterRegulator from "./RegisterRegulator";
 import ManageDistributors from "./ManageDistributors";
-import ManageRegulators from "./ManageRegulators"; // New import
+import ManageRegulators from "./ManageRegulators";
 import AssignDistributors from "./AssignDistributors";
 import DeliveryHistory from "./DeliveryHistory";
 import "../../styles/Dashboard.css";
@@ -19,14 +19,17 @@ import {
   Typography,
   Grid,
   Paper,
-  Divider,
   Container,
   useTheme,
   alpha,
   Chip,
   Alert,
   CircularProgress,
+  Collapse,
+  IconButton,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import MedicationIcon from "@mui/icons-material/Medication";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
@@ -39,17 +42,36 @@ import NotificationBell from "../common/NotificationBell";
 import Notifications from "./Notifications";
 import NotificationForm from "./NotificationForm";
 import HistoryIcon from "@mui/icons-material/History";
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import TimelineIcon from '@mui/icons-material/Timeline';
-import UpdateIcon from '@mui/icons-material/Update'; // Add UpdateIcon import
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import TimelineIcon from "@mui/icons-material/Timeline";
+import UpdateIcon from "@mui/icons-material/Update";
 import axios from "axios";
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = "http://localhost:3000/api";
 
 const ManufacturerDashboard = () => {
-  const { user, token } = useAuth(); // Added token
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
+
+  // Color palette
+  const colors = {
+    darkGreen: "#169976",
+    lightGreen: "#1DCD9F",
+    lightBlack: "#222222",
+    darkBlack: "#000000",
+    background: isDarkMode ? "#1a1a1a" : "#ffffff",
+    cardBackground: isDarkMode ? "#2a2a2a" : "#ffffff",
+    textPrimary: isDarkMode ? "#ffffff" : "#222222",
+    textSecondary: isDarkMode ? "#cccccc" : "#666666",
+    buttonBackground: isDarkMode ? "#1DCD9F" : "#169976",
+    buttonText: isDarkMode ? "#000000" : "#ffffff",
+    error: "#f5222d",
+    warning: "#fa8c16",
+    success: isDarkMode ? "#169976" : "#1DCD9F",
+  };
+
   const [supplyChainStats, setSupplyChainStats] = useState({
     totalMedicines: 0,
     medicinesWithDistributors: 0,
@@ -58,6 +80,14 @@ const ManufacturerDashboard = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [openSections, setOpenSections] = useState({
+    supplyChain: true,
+    medicine: false,
+    supplyChainManagement: false,
+    distributor: false,
+    regulator: false,
+    communications: false,
+  });
 
   useEffect(() => {
     if (!user || user.role !== "manufacturer") {
@@ -69,52 +99,46 @@ const ManufacturerDashboard = () => {
 
   const fetchSupplyChainStats = async () => {
     if (!token) return;
-    
     setLoading(true);
     try {
-      // Fetch medicines with their distributors
       const response = await axios.get(
         `${API_URL}/medicines/manufacturer/${user.organization}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
       const medicines = response.data;
-      
-      // Process medicines to ensure assignedDistributors is always an array
-      const processedMedicines = medicines.map(medicine => ({
+      const processedMedicines = medicines.map((medicine) => ({
         ...medicine,
-        assignedDistributors: medicine.assignedDistributors || []
+        assignedDistributors: medicine.assignedDistributors || [],
       }));
-      
-      // Calculate statistics
       const totalMedicines = processedMedicines.length;
-      const medicinesWithDistributors = processedMedicines.filter(m => 
-        m.assignedDistributors && m.assignedDistributors.length > 0
+      const medicinesWithDistributors = processedMedicines.filter(
+        (m) => m.assignedDistributors && m.assignedDistributors.length > 0
       ).length;
-      
-      // Count unique distributors assigned across all medicines
       const allAssignedDistributors = new Set();
-      processedMedicines.forEach(medicine => {
+      processedMedicines.forEach((medicine) => {
         if (medicine.assignedDistributors && medicine.assignedDistributors.length > 0) {
-          medicine.assignedDistributors.forEach(distributor => {
+          medicine.assignedDistributors.forEach((distributor) => {
             allAssignedDistributors.add(distributor);
           });
         }
       });
-      
-      const avgDistributors = medicinesWithDistributors > 0 
-        ? (processedMedicines.reduce((sum, med) => sum + (med.assignedDistributors?.length || 0), 0) / medicinesWithDistributors).toFixed(1) 
-        : 0;
-      
+      const avgDistributors =
+        medicinesWithDistributors > 0
+          ? (
+              processedMedicines.reduce(
+                (sum, med) => sum + (med.assignedDistributors?.length || 0),
+                0
+              ) / medicinesWithDistributors
+            ).toFixed(1)
+          : 0;
       setSupplyChainStats({
         totalMedicines,
         medicinesWithDistributors,
         totalDistributors: allAssignedDistributors.size,
-        avgDistributors: parseFloat(avgDistributors)
+        avgDistributors: parseFloat(avgDistributors),
       });
-      
     } catch (err) {
       console.error("Error fetching supply chain stats:", err);
       setError("Failed to fetch supply chain statistics");
@@ -123,91 +147,119 @@ const ManufacturerDashboard = () => {
     }
   };
 
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  // Styles for cards
   const cardStyle = {
     height: "100%",
-    borderRadius: 2,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-    transition: "transform 0.2s, box-shadow 0.2s",
+    borderRadius: "12px",
+    boxShadow: `0 2px 8px ${alpha(colors.darkBlack, 0.08)}`,
+    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+    backgroundColor: colors.cardBackground,
     "&:hover": {
       transform: "translateY(-4px)",
-      boxShadow: "0 12px 32px rgba(0,0,0,0.1)",
+      boxShadow: `0 4px 16px ${alpha(colors.darkBlack, 0.12)}`,
     },
-    display: "flex",
-    flexDirection: "column",
     overflow: "hidden",
   };
 
   const cardContentStyle = {
-    padding: 3,
-    flexGrow: 1,
+    padding: "20px",
     display: "flex",
     flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    minHeight: "180px",
   };
 
   const buttonStyle = {
-    mt: "auto",
-    py: 1.5,
+    mt: 2,
+    py: 1,
+    px: 3,
     borderRadius: "8px",
     fontWeight: 600,
+    fontSize: "0.9rem",
+    backgroundColor: colors.buttonBackground,
+    color: colors.buttonText,
+    textTransform: "none",
+    "&:hover": {
+      backgroundColor: colors.lightGreen,
+      boxShadow: `0 2px 8px ${alpha(colors.darkGreen, 0.2)}`,
+    },
   };
 
   const sectionHeaderStyle = {
-    mb: 2,
     display: "flex",
     alignItems: "center",
-    fontSize: "1.25rem",
-    fontWeight: 600,
-    color: theme.palette.primary.main,
+    justifyContent: "space-between",
+    p: "16px 20px",
+    cursor: "pointer",
+    borderRadius: "10px",
+    backgroundColor: alpha(colors.darkGreen, 0.05),
+    transition: "background-color 0.3s ease",
+    "&:hover": {
+      backgroundColor: alpha(colors.darkGreen, 0.1),
+    },
   };
 
-  const paperStyle = {
-    p: 4,
-    borderRadius: 3,
-    mb: 4,
-    boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
-    border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+  const sectionContainerStyle = {
+    mb: 3,
+    borderRadius: "12px",
+    overflow: "hidden",
+    backgroundColor: colors.cardBackground,
+    boxShadow: `0 2px 8px ${alpha(colors.darkBlack, 0.06)}`,
+    transition: "box-shadow 0.3s ease",
   };
 
-  const DashboardCard = ({ title, description, icon, buttonText, onClick, color = "primary" }) => (
+  const DashboardCard = ({
+    title,
+    description,
+    icon,
+    buttonText,
+    onClick,
+    color = "primary",
+  }) => (
     <Card sx={cardStyle}>
-      <Box 
-        sx={{ 
-          height: "8px", 
-          backgroundColor: theme.palette[color].main 
-        }} 
-      />
       <CardContent sx={cardContentStyle}>
-        <Box 
-          sx={{ 
-            display: "flex", 
-            justifyContent: "center", 
-            mb: 2 
-          }}
-        >
-          {icon}
+        <Box sx={{ mb: 1.5, color: color === "error" ? colors.error : colors.darkGreen }}>
+          {React.cloneElement(icon, { fontSize: "large" })}
         </Box>
         <Typography
           variant="h6"
-          color={color}
-          gutterBottom
-          align="center"
-          sx={{ fontWeight: 600 }}
+          sx={{
+            color: colors.textPrimary,
+            fontWeight: 600,
+            mb: 1,
+            fontSize: "1.1rem",
+          }}
         >
           {title}
         </Typography>
         <Typography
           variant="body2"
-          color="text.secondary"
-          sx={{ mb: 3, lineHeight: 1.6 }}
-          align="center"
+          sx={{
+            color: colors.textSecondary,
+            mb: 2,
+            lineHeight: 1.6,
+            fontSize: "0.85rem",
+          }}
         >
           {description}
         </Typography>
         <Button
           variant="contained"
-          color={color}
-          fullWidth
-          sx={buttonStyle}
+          sx={{
+            ...buttonStyle,
+            backgroundColor: color === "error" ? colors.error : colors.buttonBackground,
+            "&:hover": {
+              backgroundColor: color === "error" ? colors.error : colors.lightGreen,
+            },
+          }}
           onClick={onClick}
         >
           {buttonText}
@@ -219,144 +271,179 @@ const ManufacturerDashboard = () => {
   const renderSupplyChainStats = () => {
     if (loading) {
       return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-          <CircularProgress size={30} />
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress size={32} sx={{ color: colors.darkGreen }} />
         </Box>
       );
     }
-    
     if (error) {
       return (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert
+          severity="error"
+          sx={{
+            m: 2,
+            backgroundColor: alpha(colors.error, 0.1),
+            color: colors.error,
+            borderRadius: "8px",
+          }}
+          onClose={() => setError(null)}
+        >
           {error}
         </Alert>
       );
     }
-    
     return (
-      <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
-        <Typography variant="h6" sx={sectionHeaderStyle}>
-          <TimelineIcon sx={{ mr: 1, color: "primary.main" }} />
-          Supply Chain Overview
-        </Typography>
-        <Divider sx={{ mb: 3 }} />
-        
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} lg={3}>
-            <Card sx={{ ...cardStyle, borderLeft: '4px solid #2196f3' }}>
-              <CardContent sx={cardContentStyle}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+      <Box sx={{ p: 3 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ ...cardStyle, borderTop: `3px solid ${colors.lightGreen}` }}>
+              <CardContent sx={{ ...cardContentStyle, py: 3 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.85rem" }}
+                >
                   Medicines with Distributors
                 </Typography>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                <Typography
+                  variant="h5"
+                  sx={{ color: colors.textPrimary, fontWeight: 700, mb: 1 }}
+                >
                   {supplyChainStats.medicinesWithDistributors}/{supplyChainStats.totalMedicines}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {Math.round((supplyChainStats.medicinesWithDistributors / supplyChainStats.totalMedicines) * 100) || 0}% assigned
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.darkGreen, fontWeight: 500 }}
+                >
+                  {Math.round(
+                    (supplyChainStats.medicinesWithDistributors / supplyChainStats.totalMedicines) *
+                      100
+                  ) || 0}
+                  % Assigned
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-          
-          <Grid item xs={12} sm={6} lg={3}>
-            <Card sx={{ ...cardStyle, borderLeft: '4px solid #4caf50' }}>
-              <CardContent sx={cardContentStyle}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ ...cardStyle, borderTop: `3px solid ${colors.darkGreen}` }}>
+              <CardContent sx={{ ...cardContentStyle, py: 3 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.85rem" }}
+                >
                   Active Distributors
                 </Typography>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                <Typography
+                  variant="h5"
+                  sx={{ color: colors.textPrimary, fontWeight: 700, mb: 1 }}
+                >
                   {supplyChainStats.totalDistributors}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  In your supply chain
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.darkGreen, fontWeight: 500 }}
+                >
+                  In Your Network
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-          
-          <Grid item xs={12} sm={6} lg={3}>
-            <Card sx={{ ...cardStyle, borderLeft: '4px solid #ff9800' }}>
-              <CardContent sx={cardContentStyle}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Avg Number of .
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ ...cardStyle, borderTop: `3px solid ${colors.lightBlack}` }}>
+              <CardContent sx={{ ...cardContentStyle, py: 3 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.85rem" }}
+                >
+                  Avg Distributors per Medicine
                 </Typography>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                <Typography
+                  variant="h5"
+                  sx={{ color: colors.textPrimary, fontWeight: 700, mb: 1 }}
+                >
                   {supplyChainStats.avgDistributors}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Distributors per medicine
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.darkGreen, fontWeight: 500 }}
+                >
+                  Per Medicine
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-          
-          <Grid item xs={12} sm={6} lg={3}>
-            <Card sx={{ ...cardStyle, borderLeft: '4px solid #9c27b0' }}>
-              <CardContent sx={cardContentStyle}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ ...cardStyle, borderTop: `3px solid ${colors.darkBlack}` }}>
+              <CardContent sx={{ ...cardContentStyle, py: 3 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.85rem" }}
+                >
                   Supply Chain Complexity
                 </Typography>
-                <Box sx={{ mt: 2, mb: 2 }}>
-                  <Box sx={{ width: '100%', mb: 1 }}>
-                    <Box sx={{ height: 8, bgcolor: 'grey.300', borderRadius: 4 }}>
-                      <Box
-                        sx={{
-                          height: '100%',
-                          width: `${Math.min(100, (supplyChainStats.avgDistributors / 5) * 100)}%`,
-                          bgcolor: 'primary.main',
-                          borderRadius: 4
-                        }}
-                      />
-                    </Box>
+                <Box sx={{ width: "100%", mt: 1, mb: 2 }}>
+                  <Box sx={{ height: 6, bgcolor: alpha(colors.textSecondary, 0.2), borderRadius: 4 }}>
+                    <Box
+                      sx={{
+                        height: "100%",
+                        width: `${Math.min(100, (supplyChainStats.avgDistributors / 5) * 100)}%`,
+                        bgcolor: colors.darkGreen,
+                        borderRadius: 4,
+                        transition: "width 0.5s ease",
+                      }}
+                    />
                   </Box>
-                  <Chip 
-                    label={supplyChainStats.avgDistributors > 3 ? 'High' : supplyChainStats.avgDistributors > 1 ? 'Medium' : 'Low'} 
-                    size="small"
-                    color={supplyChainStats.avgDistributors > 3 ? 'primary' : supplyChainStats.avgDistributors > 1 ? 'warning' : 'success'}
-                  />
                 </Box>
+                <Chip
+                  label={
+                    supplyChainStats.avgDistributors > 3
+                      ? "High"
+                      : supplyChainStats.avgDistributors > 1
+                      ? "Medium"
+                      : "Low"
+                  }
+                  size="small"
+                  sx={{
+                    backgroundColor:
+                      supplyChainStats.avgDistributors > 3
+                        ? colors.darkGreen
+                        : supplyChainStats.avgDistributors > 1
+                        ? colors.warning
+                        : colors.success,
+                    color: colors.buttonText,
+                    fontWeight: 600,
+                    px: 1,
+                  }}
+                />
               </CardContent>
             </Card>
           </Grid>
         </Grid>
-        
-        <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            The number of distributors affects your supply chain visualization. 
-            Higher values create more complex tracking stages.
-          </Typography>
-        </Box>
-      </Paper>
+      </Box>
     );
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" style={{ backgroundColor: colors.background }}>
       <main className="dashboard-main">
         <Container maxWidth="lg">
-          <Box 
-            className="dashboard-header" 
-            sx={{ 
-              mb: 5, 
-              mt: 3, 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "space-between" 
+          <Box
+            className="dashboard-header"
+            sx={{
+              mb: 4,
+              mt: 3,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            <Typography 
-              variant="h4" 
-              component="h1" 
-              sx={{ 
-                fontWeight: 700, 
-                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent"
-              }}
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{ fontWeight: 700, color: colors.textPrimary }}
             >
               Manufacturer Dashboard
             </Typography>
-            <NotificationBell />
+            <NotificationBell sx={{ color: colors.darkGreen }} />
           </Box>
 
           <Routes>
@@ -364,344 +451,349 @@ const ManufacturerDashboard = () => {
               path="/"
               element={
                 <Box sx={{ maxWidth: 1200, mx: "auto" }}>
-                  <Paper 
-                    elevation={0} 
-                    sx={{ 
-                      p: 4, 
-                      mb: 5, 
-                      borderRadius: 3,
-                      backgroundColor: alpha(theme.palette.primary.light, 0.1),
-                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      mb: 4,
+                      borderRadius: "12px",
+                      backgroundColor: colors.cardBackground,
+                      boxShadow: `0 2px 8px ${alpha(colors.darkBlack, 0.06)}`,
                     }}
                   >
                     <Typography
                       variant="h5"
                       component="h2"
-                      sx={{ mb: 2, fontWeight: 600 }}
+                      sx={{ mb: 1, fontWeight: 600, color: colors.textPrimary }}
                     >
                       Welcome to the Manufacturer Dashboard
                     </Typography>
-                    <Typography sx={{ color: "text.secondary" }}>
-                      Manage your medicines, supply chain, distributors, regulators, and communications all in one place.
+                    <Typography
+                      sx={{ color: colors.textSecondary, fontSize: "0.95rem" }}
+                    >
+                      Manage your medicines, supply chain, distributors, regulators, and
+                      communications seamlessly.
                     </Typography>
                   </Paper>
 
-                  {/* Supply Chain Stats Section */}
-                  {renderSupplyChainStats()}
+                  {/* Supply Chain Overview Dropdown */}
+                  <Paper sx={sectionContainerStyle}>
+                    <Box
+                      sx={sectionHeaderStyle}
+                      onClick={() => toggleSection("supplyChain")}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        <TimelineIcon sx={{ mr: 1.5, color: colors.darkGreen }} />
+                        Supply Chain Overview
+                      </Typography>
+                      <IconButton size="small">
+                        {openSections.supplyChain ? (
+                          <ExpandLessIcon sx={{ color: colors.textPrimary }} />
+                        ) : (
+                          <ExpandMoreIcon sx={{ color: colors.textPrimary }} />
+                        )}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={openSections.supplyChain} timeout={400}>
+                      {renderSupplyChainStats()}
+                    </Collapse>
+                  </Paper>
 
-                  <Grid container spacing={4}>
-                    {/* Medicine Management Section */}
-                    <Grid item xs={12}>
-                      <Paper sx={paperStyle}>
-                        <Typography variant="h6" sx={sectionHeaderStyle}>
-                          <MedicationIcon sx={{ mr: 1.5 }} />
-                          Medicine Management
-                        </Typography>
-                        <Divider sx={{ mb: 3 }} />
-                        <Grid container spacing={3}>
-                          <Grid item xs={12} md={6}>
+                  {/* Medicine Management Dropdown */}
+                  <Paper sx={sectionContainerStyle}>
+                    <Box
+                      sx={sectionHeaderStyle}
+                      onClick={() => toggleSection("medicine")}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        <MedicationIcon sx={{ mr: 1.5, color: colors.darkGreen }} />
+                        Medicine Management
+                      </Typography>
+                      <IconButton size="small">
+                        {openSections.medicine ? (
+                          <ExpandLessIcon sx={{ color: colors.textPrimary }} />
+                        ) : (
+                          <ExpandMoreIcon sx={{ color: colors.textPrimary }} />
+                        )}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={openSections.medicine} timeout={400}>
+                      <Box sx={{ p: 3 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6}>
                             <DashboardCard
-                              title="Medicine Registration"
-                              description="Register new medicines in the blockchain and generate secure QR codes for tracking."
-                              icon={<MedicationIcon fontSize="large" color="primary" />}
-                              buttonText="Register Medicine"
+                              title="Register Medicine"
+                              description="Add new medicines to the blockchain with secure QR code tracking."
+                              icon={<MedicationIcon />}
+                              buttonText="Register Now"
                               onClick={() => navigate("/manufacturer/register")}
                             />
                           </Grid>
-                          <Grid item xs={12} md={6}>
+                          <Grid item xs={12} sm={6}>
                             <DashboardCard
                               title="View Medicines"
-                              description="View and manage your registered medicines, generate QR codes for tracking."
-                              icon={<MedicationIcon fontSize="large" color="primary" />}
-                              buttonText="View Medicines"
+                              description="Manage and track your registered medicines."
+                              icon={<MedicationIcon />}
+                              buttonText="View All"
                               onClick={() => navigate("/manufacturer/view")}
                             />
                           </Grid>
                         </Grid>
-                      </Paper>
-                    </Grid>
+                      </Box>
+                    </Collapse>
+                  </Paper>
 
-                    {/* Supply Chain Management Section */}
-                    <Grid item xs={12}>
-                      <Paper sx={{ p: 3, borderRadius: 2, mb: 4 }}>
-                        <Typography variant="h6" sx={sectionHeaderStyle}>
-                          <LocalShippingIcon
-                            sx={{ mr: 1, color: "primary.main" }}
-                          />
-                          Supply Chain Management
-                        </Typography>
-                        <Divider sx={{ mb: 3 }} />
-                        <Grid container spacing={3}>
-                          <Grid item xs={12} md={4}>
-                            <Card sx={cardStyle}>
-                              <CardContent sx={cardContentStyle}>
-                                <Typography
-                                  variant="h6"
-                                  color="primary"
-                                  gutterBottom
-                                  align="center"
-                                >
-                                  Scan QR Code
-                                </Typography>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ mb: 3 }}
-                                  align="center"
-                                >
-                                  Scan medicine QR codes to verify authenticity
-                                  and update supply chain status.
-                                </Typography>
-                                <Button
-                                  variant="contained"
-                                  fullWidth
-                                  sx={buttonStyle}
-                                  startIcon={<QrCodeScannerIcon />}
-                                  onClick={() => navigate("/scan-medicine")}
-                                >
-                                  Scan Medicine
-                                </Button>
-                              </CardContent>
-                            </Card>
+                  {/* Supply Chain Management Dropdown */}
+                  <Paper sx={sectionContainerStyle}>
+                    <Box
+                      sx={sectionHeaderStyle}
+                      onClick={() => toggleSection("supplyChainManagement")}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        <LocalShippingIcon sx={{ mr: 1.5, color: colors.darkGreen }} />
+                        Supply Chain Management
+                      </Typography>
+                      <IconButton size="small">
+                        {openSections.supplyChainManagement ? (
+                          <ExpandLessIcon sx={{ color: colors.textPrimary }} />
+                        ) : (
+                          <ExpandMoreIcon sx={{ color: colors.textPrimary }} />
+                        )}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={openSections.supplyChainManagement} timeout={400}>
+                      <Box sx={{ p: 3 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Scan QR Code"
+                              description="Verify medicine authenticity via QR code scanning."
+                              icon={<QrCodeScannerIcon />}
+                              buttonText="Scan Now"
+                              onClick={() => navigate("/scan-medicine")}
+                            />
                           </Grid>
-                          <Grid item xs={12} md={4}>
-                            <Card sx={cardStyle}>
-                              <CardContent sx={cardContentStyle}>
-                                <Typography
-                                  variant="h6"
-                                  color="primary"
-                                  gutterBottom
-                                  align="center"
-                                >
-                                  Assign Distributors
-                                </Typography>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ mb: 3 }}
-                                  align="center"
-                                >
-                                  Assign distributors to medicines for delivery
-                                  and tracking in the supply chain.
-                                </Typography>
-                                <Box sx={{ textAlign: 'center', mb: 2 }}>
-                                  <Chip 
-                                    size="small" 
-                                    color="primary" 
-                                    variant="outlined" 
-                                  />
-                                </Box>
-                                <Button
-                                  variant="contained"
-                                  fullWidth
-                                  sx={buttonStyle}
-                                  startIcon={<AssignmentIcon />}
-                                  onClick={() =>
-                                    navigate("/manufacturer/assign-distributors")
-                                  }
-                                >
-                                  Assign Distributors
-                                </Button>
-                              </CardContent>
-                            </Card>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Assign Distributors"
+                              description="Link distributors to medicines for efficient tracking."
+                              icon={<AssignmentIcon />}
+                              buttonText="Assign Now"
+                              onClick={() => navigate("/manufacturer/assign-distributors")}
+                            />
                           </Grid>
-
-                          <Grid item xs={12} md={4}>
-                            <Card sx={cardStyle}>
-                              <CardContent sx={cardContentStyle}>
-                                <Typography
-                                  variant="h6"
-                                  color="primary"
-                                  gutterBottom
-                                  align="center"
-                                >
-                                  Delivery History
-                                </Typography>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ mb: 3 }}
-                                  align="center"
-                                >
-                                  View delivery history and tracking details of
-                                  your medicines.
-                                </Typography>
-                                <Button
-                                  variant="contained"
-                                  fullWidth
-                                  sx={buttonStyle}
-                                  startIcon={<HistoryIcon />}
-                                  onClick={() =>
-                                    navigate("/manufacturer/delivery-history")
-                                  }
-                                >
-                                  View History
-                                </Button>
-                              </CardContent>
-                            </Card>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Delivery History"
+                              description="Track the delivery status of your medicines."
+                              icon={<HistoryIcon />}
+                              buttonText="View History"
+                              onClick={() => navigate("/manufacturer/delivery-history")}
+                            />
                           </Grid>
-                          <Grid item xs={12} md={4}>
-                            <Card sx={cardStyle}>
-                              <CardContent sx={cardContentStyle}>
-                                <Typography
-                                  variant="h6"
-                                  color="primary"
-                                  gutterBottom
-                                  align="center"
-                                >
-                                  Update Status
-                                </Typography>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ mb: 3 }}
-                                  align="center"
-                                >
-                                  Update the supply chain status of medicines in
-                                  your inventory.
-                                </Typography>
-                                <Button
-                                  variant="contained"
-                                  fullWidth
-                                  sx={buttonStyle}
-                                  startIcon={<UpdateIcon />}
-                                  onClick={() => navigate("/manufacturer/view")}
-                                >
-                                  View & Update
-                                </Button>
-                              </CardContent>
-                            </Card>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Update Status"
+                              description="Modify supply chain statuses as needed."
+                              icon={<UpdateIcon />}
+                              buttonText="Update Now"
+                              onClick={() => navigate("/manufacturer/view")}
+                            />
                           </Grid>
-                          <Grid item xs={12} md={4}>
-                            <Card sx={cardStyle}>
-                              <CardContent sx={cardContentStyle}>
-                                <Typography
-                                  variant="h6"
-                                  color="error"
-                                  gutterBottom
-                                  align="center"
-                                >
-                                  Flag Issues
-                                </Typography>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ mb: 3 }}
-                                  align="center"
-                                >
-                                  Flag medicines with quality or authenticity
-                                  issues in the blockchain.
-                                </Typography>
-                                <Button
-                                  variant="contained"
-                                  color="error"
-                                  fullWidth
-                                  sx={buttonStyle}
-                                  startIcon={<WarningIcon />}
-                                  onClick={() => navigate("/manufacturer/view")}
-                                >
-                                  View & Flag
-                                </Button>
-                              </CardContent>
-                            </Card>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Flag Issues"
+                              description="Report quality or authenticity concerns."
+                              icon={<WarningIcon />}
+                              buttonText="Flag Issue"
+                              color="error"
+                              onClick={() => navigate("/manufacturer/view")}
+                            />
                           </Grid>
                         </Grid>
-                      </Paper>
-                    </Grid>
+                      </Box>
+                    </Collapse>
+                  </Paper>
 
-                    {/* Distributor Management Section */}
-                    <Grid item xs={12}>
-                      <Paper sx={paperStyle}>
-                        <Typography variant="h6" sx={sectionHeaderStyle}>
-                          <PeopleIcon sx={{ mr: 1.5 }} />
-                          Distributor Management
-                        </Typography>
-                        <Divider sx={{ mb: 3 }} />
-                        <Grid container spacing={3}>
-                          <Grid item xs={12} md={6}>
+                  {/* Distributor Management Dropdown */}
+                  <Paper sx={sectionContainerStyle}>
+                    <Box
+                      sx={sectionHeaderStyle}
+                      onClick={() => toggleSection("distributor")}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        <PeopleIcon sx={{ mr: 1.5, color: colors.darkGreen }} />
+                        Distributor Management
+                      </Typography>
+                      <IconButton size="small">
+                        {openSections.distributor ? (
+                          <ExpandLessIcon sx={{ color: colors.textPrimary }} />
+                        ) : (
+                          <ExpandMoreIcon sx={{ color: colors.textPrimary }} />
+                        )}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={openSections.distributor} timeout={400}>
+                      <Box sx={{ p: 3 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6}>
                             <DashboardCard
                               title="Register Distributor"
-                              description="Register new distributors to your network of authorized partners."
-                              icon={<PersonAddIcon fontSize="large" color="primary" />}
-                              buttonText="Register Distributor"
+                              description="Onboard new distributors to your network."
+                              icon={<PersonAddIcon />}
+                              buttonText="Register Now"
                               onClick={() => navigate("/manufacturer/register-distributor")}
                             />
                           </Grid>
-                          <Grid item xs={12} md={6}>
+                          <Grid item xs={12} sm={6}>
                             <DashboardCard
                               title="Manage Distributors"
-                              description="View and manage your network of authorized distributors."
-                              icon={<PeopleIcon fontSize="large" color="primary" />}
-                              buttonText="Manage Distributors"
+                              description="Oversee your distributor network."
+                              icon={<PeopleIcon />}
+                              buttonText="Manage Now"
                               onClick={() => navigate("/manufacturer/manage-distributors")}
                             />
                           </Grid>
                         </Grid>
-                      </Paper>
-                    </Grid>
+                      </Box>
+                    </Collapse>
+                  </Paper>
 
-                    {/* Regulator Management Section */}
-                    <Grid item xs={12}>
-                      <Paper sx={paperStyle}>
-                        <Typography variant="h6" sx={sectionHeaderStyle}>
-                          <GavelIcon sx={{ mr: 1.5 }} />
-                          Regulator Management
-                        </Typography>
-                        <Divider sx={{ mb: 3 }} />
-                        <Grid container spacing={3}>
-                          <Grid item xs={12} md={6}>
+                  {/* Regulator Management Dropdown */}
+                  <Paper sx={sectionContainerStyle}>
+                    <Box
+                      sx={sectionHeaderStyle}
+                      onClick={() => toggleSection("regulator")}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        <GavelIcon sx={{ mr: 1.5, color: colors.darkGreen }} />
+                        Regulator Management
+                      </Typography>
+                      <IconButton size="small">
+                        {openSections.regulator ? (
+                          <ExpandLessIcon sx={{ color: colors.textPrimary }} />
+                        ) : (
+                          <ExpandMoreIcon sx={{ color: colors.textPrimary }} />
+                        )}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={openSections.regulator} timeout={400}>
+                      <Box sx={{ p: 3 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6}>
                             <DashboardCard
                               title="Register Regulator"
-                              description="Register new regulators to oversee your supply chain compliance."
-                              icon={<PersonAddIcon fontSize="large" color="primary" />}
-                              buttonText="Register Regulator"
+                              description="Add regulators for compliance oversight."
+                              icon={<PersonAddIcon />}
+                              buttonText="Register Now"
                               onClick={() => navigate("/manufacturer/register-regulator")}
                             />
                           </Grid>
-                          <Grid item xs={12} md={6}>
+                          <Grid item xs={12} sm={6}>
                             <DashboardCard
                               title="Manage Regulators"
-                              description="View and manage your network of authorized regulators."
-                              icon={<GavelIcon fontSize="large" color="primary" />}
-                              buttonText="Manage Regulators"
+                              description="Control your regulator network."
+                              icon={<GavelIcon />}
+                              buttonText="Manage Now"
                               onClick={() => navigate("/manufacturer/manage-regulators")}
                             />
                           </Grid>
                         </Grid>
-                      </Paper>
-                    </Grid>
+                      </Box>
+                    </Collapse>
+                  </Paper>
 
-                    {/* Communications Section */}
-                    <Grid item xs={12}>
-                      <Paper sx={{ ...paperStyle, mb: 5 }}>
-                        <Typography variant="h6" sx={sectionHeaderStyle}>
-                          <EmailIcon sx={{ mr: 1.5 }} />
-                          Communications
-                        </Typography>
-                        <Divider sx={{ mb: 3 }} />
-                        <Grid container spacing={3}>
-                          <Grid item xs={12} md={6}>
+                  {/* Communications Dropdown */}
+                  <Paper sx={sectionContainerStyle}>
+                    <Box
+                      sx={sectionHeaderStyle}
+                      onClick={() => toggleSection("communications")}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        <EmailIcon sx={{ mr: 1.5, color: colors.darkGreen }} />
+                        Communications
+                      </Typography>
+                      <IconButton size="small">
+                        {openSections.communications ? (
+                          <ExpandLessIcon sx={{ color: colors.textPrimary }} />
+                        ) : (
+                          <ExpandMoreIcon sx={{ color: colors.textPrimary }} />
+                        )}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={openSections.communications} timeout={400}>
+                      <Box sx={{ p: 3 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6}>
                             <DashboardCard
                               title="Notifications"
-                              description="View and manage communication with your distributors."
-                              icon={<EmailIcon fontSize="large" color="primary" />}
+                              description="Review and manage your communications."
+                              icon={<EmailIcon />}
                               buttonText="View Notifications"
                               onClick={() => navigate("/manufacturer/notifications")}
                             />
                           </Grid>
-                          <Grid item xs={12} md={6}>
+                          <Grid item xs={12} sm={6}>
                             <DashboardCard
                               title="Send Message"
-                              description="Send messages and updates to your distributors."
-                              icon={<EmailIcon fontSize="large" color="primary" />}
-                              buttonText="Send Message"
+                              description="Communicate with your distributors."
+                              icon={<EmailIcon />}
+                              buttonText="Send Now"
                               onClick={() => navigate("/manufacturer/send-message")}
                             />
                           </Grid>
                         </Grid>
-                      </Paper>
-                    </Grid>
-                  </Grid>
+                      </Box>
+                    </Collapse>
+                  </Paper>
                 </Box>
               }
             />

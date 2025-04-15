@@ -38,7 +38,7 @@ import MedicationIcon from "@mui/icons-material/Medication";
 import ContactMailIcon from "@mui/icons-material/ContactMail";
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PeopleIcon from '@mui/icons-material/People';
-//import AssignmentIcon from '@mui/icons-material/Assignment';
+import CloseIcon from "@mui/icons-material/Close"; // Added for collapse button
 
 function Sidebar() {
   const { user, logout } = useAuth();
@@ -58,6 +58,10 @@ function Sidebar() {
     setOpen(!open);
   };
 
+  const closeDrawer = () => {
+    setOpen(false);
+  };
+
   const toggleSection = (section) => {
     setSections({
       ...sections,
@@ -68,7 +72,7 @@ function Sidebar() {
   const handleLogout = () => {
     logout();
     navigate("/login");
-    toggleDrawer();
+    setOpen(false); // Changed from toggleDrawer to setOpen(false) for consistency
   };
 
   const getInitial = () => {
@@ -95,7 +99,7 @@ function Sidebar() {
       button
       component={Link}
       to={to}
-      onClick={onClick || toggleDrawer}
+      onClick={onClick}
       sx={{
         pl: 4,
         borderRadius: "0 20px 20px 0",
@@ -152,7 +156,7 @@ function Sidebar() {
       <Drawer
         anchor="left"
         open={open}
-        onClose={toggleDrawer}
+        variant="persistent" // Changed to persistent to make content accessible
         sx={{
           "& .MuiDrawer-paper": {
             width: 280,
@@ -163,6 +167,8 @@ function Sidebar() {
               themeMode === "light"
                 ? "linear-gradient(to bottom, #ffffff, #f8f9fa)"
                 : "linear-gradient(to bottom, #121212, #1e1e1e)",
+            position: "fixed", // Ensure it doesn't affect layout
+            zIndex: 1100, // Lower than menu button but above content
           },
         }}
       >
@@ -177,13 +183,18 @@ function Sidebar() {
             }`,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <MedicationIcon
-              sx={{ fontSize: 28, mr: 1, color: getRoleColor() }}
-            />
-            <Typography variant="h5" fontWeight="bold">
-              FarmaTech
-            </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1, width: "100%", justifyContent: "space-between" }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <MedicationIcon
+                sx={{ fontSize: 28, mr: 1, color: getRoleColor() }}
+              />
+              <Typography variant="h5" fontWeight="bold">
+                FarmaTech
+              </Typography>
+            </Box>
+            <IconButton onClick={closeDrawer} aria-label="close sidebar">
+              <CloseIcon />
+            </IconButton>
           </Box>
 
           {user && (
@@ -262,7 +273,6 @@ function Sidebar() {
             button
             component={Link}
             to="/dashboard"
-            onClick={toggleDrawer}
             sx={{
               borderRadius: "0 20px 20px 0",
               mx: 1,
@@ -343,7 +353,6 @@ function Sidebar() {
                     icon={<ListAltIcon />}
                     primary="View Registered Medicines"
                   />
-                  {/* Add these two new items */}
                   <NestedListItem
                     to="/manufacturer/register-distributor"
                     icon={<PersonAddIcon color="success" />}
@@ -555,7 +564,6 @@ function Sidebar() {
             button
             component={Link}
             to="/assets"
-            onClick={toggleDrawer}
             sx={{
               borderRadius: "0 20px 20px 0",
               mx: 1,
@@ -582,7 +590,6 @@ function Sidebar() {
               button
               component={Link}
               to="/create-asset"
-              onClick={toggleDrawer}
               sx={{
                 borderRadius: "0 20px 20px 0",
                 mx: 1,
@@ -610,7 +617,6 @@ function Sidebar() {
               button
               component={Link}
               to="/init-ledger"
-              onClick={toggleDrawer}
               sx={{
                 borderRadius: "0 20px 20px 0",
                 mx: 1,

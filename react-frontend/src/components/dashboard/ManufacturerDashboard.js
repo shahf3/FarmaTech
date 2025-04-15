@@ -35,7 +35,6 @@ import MedicationIcon from "@mui/icons-material/Medication";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PeopleIcon from "@mui/icons-material/People";
-import WarningIcon from "@mui/icons-material/Warning";
 import EmailIcon from "@mui/icons-material/Email";
 import GavelIcon from "@mui/icons-material/Gavel";
 import NotificationBell from "../common/NotificationBell";
@@ -44,7 +43,6 @@ import NotificationForm from "./NotificationForm";
 import HistoryIcon from "@mui/icons-material/History";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import TimelineIcon from "@mui/icons-material/Timeline";
-import UpdateIcon from "@mui/icons-material/Update";
 import axios from "axios";
 
 const API_URL = "http://localhost:3000/api";
@@ -55,7 +53,7 @@ const ManufacturerDashboard = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
 
-  // Color palette
+
   const colors = {
     darkGreen: "#169976",
     lightGreen: "#1DCD9F",
@@ -154,9 +152,10 @@ const ManufacturerDashboard = () => {
     }));
   };
 
-  // Styles for cards
+
   const cardStyle = {
-    height: "100%",
+    width: "300px",
+    height: "200px",
     borderRadius: "12px",
     boxShadow: `0 2px 8px ${alpha(colors.darkBlack, 0.08)}`,
     transition: "transform 0.3s ease, box-shadow 0.3s ease",
@@ -169,21 +168,22 @@ const ManufacturerDashboard = () => {
   };
 
   const cardContentStyle = {
-    padding: "20px",
+    padding: "16px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     textAlign: "center",
-    minHeight: "180px",
+    height: "100%",
+    justifyContent: "space-between",
   };
 
   const buttonStyle = {
-    mt: 2,
-    py: 1,
-    px: 3,
+    mt: 1,
+    py: 0.5,
+    px: 2,
     borderRadius: "8px",
     fontWeight: 600,
-    fontSize: "0.9rem",
+    fontSize: "0.85rem",
     backgroundColor: colors.buttonBackground,
     color: colors.buttonText,
     textTransform: "none",
@@ -226,7 +226,7 @@ const ManufacturerDashboard = () => {
   }) => (
     <Card sx={cardStyle}>
       <CardContent sx={cardContentStyle}>
-        <Box sx={{ mb: 1.5, color: color === "error" ? colors.error : colors.darkGreen }}>
+        <Box sx={{ mb: 1, color: color === "error" ? colors.error : colors.darkGreen }}>
           {React.cloneElement(icon, { fontSize: "large" })}
         </Box>
         <Typography
@@ -235,7 +235,7 @@ const ManufacturerDashboard = () => {
             color: colors.textPrimary,
             fontWeight: 600,
             mb: 1,
-            fontSize: "1.1rem",
+            fontSize: "1rem",
           }}
         >
           {title}
@@ -244,9 +244,14 @@ const ManufacturerDashboard = () => {
           variant="body2"
           sx={{
             color: colors.textSecondary,
-            mb: 2,
-            lineHeight: 1.6,
-            fontSize: "0.85rem",
+            mb: 1,
+            lineHeight: 1.5,
+            fontSize: "0.8rem",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
           }}
         >
           {description}
@@ -294,13 +299,13 @@ const ManufacturerDashboard = () => {
     }
     return (
       <Box sx={{ p: 3 }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Grid container spacing={2} justifyContent="center">
+          <Grid item xs={12} sm={6} md={4}>
             <Card sx={{ ...cardStyle, borderTop: `3px solid ${colors.lightGreen}` }}>
-              <CardContent sx={{ ...cardContentStyle, py: 3 }}>
+              <CardContent sx={{ ...cardContentStyle, py: 2 }}>
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.85rem" }}
+                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.8rem" }}
                 >
                   Medicines with Distributors
                 </Typography>
@@ -312,7 +317,7 @@ const ManufacturerDashboard = () => {
                 </Typography>
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.darkGreen, fontWeight: 500 }}
+                  sx={{ color: colors.darkGreen, fontWeight: 500, fontSize: "0.8rem" }}
                 >
                   {Math.round(
                     (supplyChainStats.medicinesWithDistributors / supplyChainStats.totalMedicines) *
@@ -323,12 +328,12 @@ const ManufacturerDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <Card sx={{ ...cardStyle, borderTop: `3px solid ${colors.darkGreen}` }}>
-              <CardContent sx={{ ...cardContentStyle, py: 3 }}>
+              <CardContent sx={{ ...cardContentStyle, py: 2 }}>
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.85rem" }}
+                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.8rem" }}
                 >
                   Active Distributors
                 </Typography>
@@ -340,19 +345,19 @@ const ManufacturerDashboard = () => {
                 </Typography>
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.darkGreen, fontWeight: 500 }}
+                  sx={{ color: colors.darkGreen, fontWeight: 500, fontSize: "0.8rem" }}
                 >
                   In Your Network
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <Card sx={{ ...cardStyle, borderTop: `3px solid ${colors.lightBlack}` }}>
-              <CardContent sx={{ ...cardContentStyle, py: 3 }}>
+              <CardContent sx={{ ...cardContentStyle, py: 2 }}>
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.85rem" }}
+                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.8rem" }}
                 >
                   Avg Distributors per Medicine
                 </Typography>
@@ -364,23 +369,23 @@ const ManufacturerDashboard = () => {
                 </Typography>
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.darkGreen, fontWeight: 500 }}
+                  sx={{ color: colors.darkGreen, fontWeight: 500, fontSize: "0.8rem" }}
                 >
                   Per Medicine
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <Card sx={{ ...cardStyle, borderTop: `3px solid ${colors.darkBlack}` }}>
-              <CardContent sx={{ ...cardContentStyle, py: 3 }}>
+              <CardContent sx={{ ...cardContentStyle, py: 2 }}>
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.85rem" }}
+                  sx={{ color: colors.textSecondary, mb: 1, fontSize: "0.8rem" }}
                 >
                   Supply Chain Complexity
                 </Typography>
-                <Box sx={{ width: "100%", mt: 1, mb: 2 }}>
+                <Box sx={{ width: "100%", mt: 0.5, mb: 1 }}>
                   <Box sx={{ height: 6, bgcolor: alpha(colors.textSecondary, 0.2), borderRadius: 4 }}>
                     <Box
                       sx={{
@@ -412,6 +417,7 @@ const ManufacturerDashboard = () => {
                     color: colors.buttonText,
                     fontWeight: 600,
                     px: 1,
+                    fontSize: "0.75rem",
                   }}
                 />
               </CardContent>
@@ -535,8 +541,8 @@ const ManufacturerDashboard = () => {
                     </Box>
                     <Collapse in={openSections.medicine} timeout={400}>
                       <Box sx={{ p: 3 }}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} sm={6}>
+                        <Grid container spacing={2} justifyContent="center">
+                          <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Register Medicine"
                               description="Add new medicines to the blockchain with secure QR code tracking."
@@ -545,7 +551,7 @@ const ManufacturerDashboard = () => {
                               onClick={() => navigate("/manufacturer/register")}
                             />
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="View Medicines"
                               description="Manage and track your registered medicines."
@@ -587,7 +593,7 @@ const ManufacturerDashboard = () => {
                     </Box>
                     <Collapse in={openSections.supplyChainManagement} timeout={400}>
                       <Box sx={{ p: 3 }}>
-                        <Grid container spacing={2}>
+                        <Grid container spacing={2} justifyContent="center">
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Scan QR Code"
@@ -613,25 +619,6 @@ const ManufacturerDashboard = () => {
                               icon={<HistoryIcon />}
                               buttonText="View History"
                               onClick={() => navigate("/manufacturer/delivery-history")}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6} md={4}>
-                            <DashboardCard
-                              title="Update Status"
-                              description="Modify supply chain statuses as needed."
-                              icon={<UpdateIcon />}
-                              buttonText="Update Now"
-                              onClick={() => navigate("/manufacturer/view")}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6} md={4}>
-                            <DashboardCard
-                              title="Flag Issues"
-                              description="Report quality or authenticity concerns."
-                              icon={<WarningIcon />}
-                              buttonText="Flag Issue"
-                              color="error"
-                              onClick={() => navigate("/manufacturer/view")}
                             />
                           </Grid>
                         </Grid>
@@ -667,8 +654,8 @@ const ManufacturerDashboard = () => {
                     </Box>
                     <Collapse in={openSections.distributor} timeout={400}>
                       <Box sx={{ p: 3 }}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} sm={6}>
+                        <Grid container spacing={2} justifyContent="center">
+                          <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Register Distributor"
                               description="Onboard new distributors to your network."
@@ -677,7 +664,7 @@ const ManufacturerDashboard = () => {
                               onClick={() => navigate("/manufacturer/register-distributor")}
                             />
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Manage Distributors"
                               description="Oversee your distributor network."
@@ -719,8 +706,8 @@ const ManufacturerDashboard = () => {
                     </Box>
                     <Collapse in={openSections.regulator} timeout={400}>
                       <Box sx={{ p: 3 }}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} sm={6}>
+                        <Grid container spacing={2} justifyContent="center">
+                          <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Register Regulator"
                               description="Add regulators for compliance oversight."
@@ -729,7 +716,7 @@ const ManufacturerDashboard = () => {
                               onClick={() => navigate("/manufacturer/register-regulator")}
                             />
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Manage Regulators"
                               description="Control your regulator network."
@@ -771,8 +758,8 @@ const ManufacturerDashboard = () => {
                     </Box>
                     <Collapse in={openSections.communications} timeout={400}>
                       <Box sx={{ p: 3 }}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} sm={6}>
+                        <Grid container spacing={2} justifyContent="center">
+                          <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Notifications"
                               description="Review and manage your communications."
@@ -781,7 +768,7 @@ const ManufacturerDashboard = () => {
                               onClick={() => navigate("/manufacturer/notifications")}
                             />
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Send Message"
                               description="Communicate with your distributors."

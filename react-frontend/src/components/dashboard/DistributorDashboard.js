@@ -1,4 +1,4 @@
-// src/components/dashboard/DistributorDashboard.js (Updated)
+// src/components/dashboard/DistributorDashboard.js
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -7,16 +7,55 @@ import DistributorInventory from "./DistributorInventory";
 import ContactAndOrder from "./ContactAndOrder";
 import { Html5Qrcode } from "html5-qrcode";
 import axios from "axios";
-import "../../styles/Dashboard.css";
 import NotificationBell from "../common/NotificationBell";
 import Notifications from "./Notifications";
 import NotificationForm from "./NotificationForm";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Paper,
+  Container,
+  useTheme,
+  alpha,
+  Alert,
+  CircularProgress,
+  Collapse,
+  IconButton,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import MedicationIcon from "@mui/icons-material/Medication";
+import EmailIcon from "@mui/icons-material/Email";
 
 const API_URL = "http://localhost:3000/api";
 
 const DistributorDashboard = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
+
+  const colors = {
+    darkGreen: "#169976",
+    lightGreen: "#1DCD9F",
+    lightBlack: "#222222",
+    darkBlack: "#000000",
+    background: isDarkMode ? "#1a1a1a" : "#ffffff",
+    cardBackground: isDarkMode ? "#2a2a2a" : "#ffffff",
+    textPrimary: isDarkMode ? "#ffffff" : "#222222",
+    textSecondary: isDarkMode ? "#cccccc" : "#666666",
+    buttonBackground: isDarkMode ? "#1DCD9F" : "#169976",
+    buttonText: isDarkMode ? "#000000" : "#ffffff",
+    error: "#f5222d",
+    warning: "#fa8c16",
+    success: isDarkMode ? "#169976" : "#1DCD9F",
+  };
+
   const [qrCode, setQrCode] = useState("");
   const [verifiedMedicine, setVerifiedMedicine] = useState(null);
   const [scanResult, setScanResult] = useState({
@@ -37,6 +76,9 @@ const DistributorDashboard = () => {
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState(null);
+  const [openSections, setOpenSections] = useState({
+    actions: true,
+  });
 
   const scannerRef = useRef(null);
   const scannerContainerId = "qr-reader";
@@ -242,69 +284,246 @@ const DistributorDashboard = () => {
     }
   };
 
+
+  const cardStyle = {
+    width: "300px",
+    height: "200px",
+    borderRadius: "12px",
+    boxShadow: `0 2px 8px ${alpha(colors.darkBlack, 0.08)}`,
+    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+    backgroundColor: colors.cardBackground,
+    "&:hover": {
+      transform: "translateY(-4px)",
+      boxShadow: `0 4px 16px ${alpha(colors.darkBlack, 0.12)}`,
+    },
+    overflow: "hidden",
+  };
+
+  const cardContentStyle = {
+    padding: "16px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    height: "100%",
+    justifyContent: "space-between",
+  };
+
+  const buttonStyle = {
+    mt: 1,
+    py: 0.5,
+    px: 2,
+    borderRadius: "8px",
+    fontWeight: 600,
+    fontSize: "0.85rem",
+    backgroundColor: colors.buttonBackground,
+    color: colors.buttonText,
+    textTransform: "none",
+    "&:hover": {
+      backgroundColor: colors.lightGreen,
+      boxShadow: `0 2px 8px ${alpha(colors.darkGreen, 0.2)}`,
+    },
+  };
+
+  const sectionHeaderStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    p: "16px 20px",
+    cursor: "pointer",
+    borderRadius: "10px",
+    backgroundColor: alpha(colors.darkGreen, 0.05),
+    transition: "background-color 0.3s ease",
+    "&:hover": {
+      backgroundColor: alpha(colors.darkGreen, 0.1),
+    },
+  };
+
+  const sectionContainerStyle = {
+    mb: 3,
+    borderRadius: "12px",
+    overflow: "hidden",
+    backgroundColor: colors.cardBackground,
+    boxShadow: `0 2px 8px ${alpha(colors.darkBlack, 0.06)}`,
+    transition: "box-shadow 0.3s ease",
+  };
+
+  const DashboardCard = ({
+    title,
+    description,
+    icon,
+    buttonText,
+    onClick,
+  }) => (
+    <Card sx={cardStyle}>
+      <CardContent sx={cardContentStyle}>
+        <Box sx={{ mb: 1, color: colors.darkGreen }}>
+          {React.cloneElement(icon, { fontSize: "large" })}
+        </Box>
+        <Typography
+          variant="h6"
+          sx={{
+            color: colors.textPrimary,
+            fontWeight: 600,
+            mb: 1,
+            fontSize: "1rem",
+          }}
+        >
+          {title}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            color: colors.textSecondary,
+            mb: 1,
+            lineHeight: 1.5,
+            fontSize: "0.8rem",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+          }}
+        >
+          {description}
+        </Typography>
+        <Button
+          variant="contained"
+          sx={buttonStyle}
+          onClick={onClick}
+        >
+          {buttonText}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" style={{ backgroundColor: colors.background }}>
       <main className="dashboard-main">
-        <div className="dashboard-header">
-          <h1>Distributor Dashboard</h1>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <NotificationBell />
-          </div>
-        </div>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <div className="dashboard-section">
-                <h2>Welcome to the Distributor Dashboard</h2>
-                <p>
-                  Your role is to ensure safe and timely delivery of medicines from manufacturers to pharmacies.
-                </p>
-                <div className="dashboard-cards">
-                  <div className="dashboard-card">
-                    <h3>Scan Medicines</h3>
-                    <p>Scan QR codes to verify medicines and update their delivery status.</p>
-                    <button onClick={() => navigate("/distributor/scan")}>
-                      Scan Now
-                    </button>
-                  </div>
-                  <div className="dashboard-card">
-                    <h3>Delivery Inventory</h3>
-                    <p>View and manage all medicines assigned to you for delivery.</p>
-                    <button onClick={() => navigate("/distributor/inventory")}>
-                      View Inventory
-                    </button>
-                  </div>
-                  <div className="dashboard-card">
-                    <h3>Contact Manufacturer</h3>
-                    <p>Communicate with manufacturers about delivery issues or updates.</p>
-                    <button onClick={() => navigate("/distributor/contact-order")}>
-                      Contact
-                    </button>
-                  </div>
-                </div>
-                <div className="dashboard-info">
-                  <h3>Your Role as a Distributor</h3>
-                  <ul>
-                    <li>Scan medicines to verify their authenticity</li>
-                    <li>Update delivery status as medicines move through the supply chain</li>
-                    <li>Flag any issues or concerns about medicines</li>
-                    <li>Ensure timely delivery to pharmacies</li>
-                    <li>Maintain communication with manufacturers</li>
-                  </ul>
-                </div>
-              </div>
-            }
-          />
-          <Route
-            path="scan"
-            element={<ScanQRCode />}
-          />
-          <Route path="inventory" element={<DistributorInventory />} />
-          <Route path="contact-order" element={<ContactAndOrder />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="send-message" element={<NotificationForm />} />
-        </Routes>
+        <Container maxWidth="lg">
+          <Box
+            className="dashboard-header"
+            sx={{
+              mb: 4,
+              mt: 3,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{ fontWeight: 700, color: colors.textPrimary }}
+            >
+              Distributor Dashboard
+            </Typography>
+            <NotificationBell sx={{ color: colors.darkGreen }} />
+          </Box>
+
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Box sx={{ maxWidth: 1200, mx: "auto" }}>
+                  
+
+                  {/* Distributor Actions Dropdown */}
+                  <Paper sx={sectionContainerStyle}>
+                    <Box
+                      sx={sectionHeaderStyle}
+                      onClick={() => toggleSection("actions")}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        <MedicationIcon sx={{ mr: 1.5, color: colors.darkGreen }} />
+                        Distributor Actions
+                      </Typography>
+                      <IconButton size="small">
+                        {openSections.actions ? (
+                          <ExpandLessIcon sx={{ color: colors.textPrimary }} />
+                        ) : (
+                          <ExpandMoreIcon sx={{ color: colors.textPrimary }} />
+                        )}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={openSections.actions} timeout={400}>
+                      <Box sx={{ p: 3 }}>
+                        <Grid container spacing={2} justifyContent="center">
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Scan Medicines"
+                              description=""
+                              icon={<QrCodeScannerIcon />}
+                              buttonText="Scan Now"
+                              onClick={() => navigate("/distributor/scan")}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Delivery Inventory"
+                              description=""
+                              icon={<MedicationIcon />}
+                              buttonText="View Inventory"
+                              onClick={() => navigate("/distributor/inventory")}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Contact Manufacturer"
+                              description=""
+                              icon={<EmailIcon />}
+                              buttonText="Contact"
+                              onClick={() => navigate("/distributor/contact-order")}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Notifications"
+                              description=""
+                              icon={<EmailIcon />}
+                              buttonText="View Notifications"
+                              onClick={() => navigate("/distributor/notifications")}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <DashboardCard
+                              title="Send Message"
+                              description=""
+                              icon={<EmailIcon />}
+                              buttonText="Send Now"
+                              onClick={() => navigate("/distributor/send-message")}
+                            />
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    </Collapse>
+                  </Paper>
+                </Box>
+              }
+            />
+            <Route path="scan" element={<ScanQRCode />} />
+            <Route path="inventory" element={<DistributorInventory />} />
+            <Route path="contact-order" element={<ContactAndOrder />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="send-message" element={<NotificationForm />} />
+          </Routes>
+        </Container>
       </main>
     </div>
   );

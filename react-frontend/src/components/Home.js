@@ -2253,15 +2253,6 @@ const Home = () => {
                 <span className="btn-glow"></span>
               </Link>
             </motion.div>
-
-            <motion.div
-              whileHover={{ y: -5, scale: 1.03 }}
-              whileTap={{ y: 2, scale: 0.98 }}
-            >
-              <Link to="/demo" className="cta-secondary">
-                Schedule Demo
-              </Link>
-            </motion.div>
           </motion.div>
 
           <motion.div
@@ -2273,7 +2264,7 @@ const Home = () => {
           >
             <span>Trusted by:</span>
             <div className="trusted-logos">
-              {["PharmaCorp", "MediTrust", "HealthGuard", "SafeMeds"].map(
+              {["PharmaCorp", "MedIrish", "HSE", "DCU"].map(
                 (company, index) => (
                   <motion.div
                     key={index}

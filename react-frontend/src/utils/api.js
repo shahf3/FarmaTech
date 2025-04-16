@@ -5,7 +5,7 @@ const API_BASE_URL = 'http://localhost:3000';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000, // 10 seconds timeout
+  timeout: 10000,
 });
 
 // Add request interceptor for logging
@@ -44,6 +44,21 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const assignDistributorsToMedicine = (medicineId, distributors, token) => {
+  return apiClient.post(`/api/medicines/${medicineId}/assign-distributors`, 
+    { distributors },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+};
+
+export const registerManufacturerDistributorRelationship = (manufacturer, distributor, token) => {
+  return apiClient.post(
+    '/api/medicines/register-manufacturer-distributor-relationship',
+    { manufacturer, distributor },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+};
 
 export const getAssets = () => axios.get(`${API_BASE_URL}/api/assets`);
 export const initLedger = () => axios.post(`${API_BASE_URL}/api/init`);

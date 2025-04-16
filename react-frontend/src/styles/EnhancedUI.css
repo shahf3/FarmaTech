@@ -1,4 +1,3 @@
-/* src/styles/EnhancedUI.css */
 body {
   margin: 0;
   font-family: 'Roboto', sans-serif;
@@ -23,6 +22,6 @@ input,
 select,
 textarea {
   font-family: 'Roboto', sans-serif;
-  background-color: var(--input-bg); /* Updated */
+  background-color: var(--input-bg);
   color: var(--text-primary);
 }

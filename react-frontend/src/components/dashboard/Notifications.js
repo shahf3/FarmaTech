@@ -7,8 +7,6 @@ import {
   Paper,
   Divider,
   List,
-  ListItem,
-  ListItemText,
   Tabs,
   Tab,
   Button,

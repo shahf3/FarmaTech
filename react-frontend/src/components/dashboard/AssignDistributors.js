@@ -36,9 +36,10 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import WarningIcon from '@mui/icons-material/Warning';
 import InfoIcon from '@mui/icons-material/Info';
 import CloseIcon from '@mui/icons-material/Close';
+import { assignDistributorsToMedicine } from '../../utils/api';
+
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -153,7 +154,6 @@ const AssignDistributors = () => {
   const handleOpenAssignDialog = (medicine) => {
     setSelectedMedicine(medicine);
     
-    // Pre-select distributors that are already assigned to this medicine
     const preselectedDistributors = [];
     if (medicine.assignedDistributors && medicine.assignedDistributors.length > 0) {
       medicine.assignedDistributors.forEach(assigned => {
@@ -181,25 +181,20 @@ const AssignDistributors = () => {
   const simulateSupplyChainImpact = () => {
     if (!selectedMedicine) return;
     
-    // Get distributor organizations from their IDs
     const distributorOrgs = selectedDistributors.map(id => {
       const distributor = distributors.find(d => d._id === id);
       return distributor ? distributor.organization : null;
     }).filter(Boolean);
     
-    // Current number of distributors
     const currentCount = selectedMedicine.assignedDistributors ? selectedMedicine.assignedDistributors.length : 0;
     const newCount = distributorOrgs.length;
     
-    // If no change in count, no need to show impact
     if (currentCount === newCount) {
       handleAssignDistributors();
       return;
     }
     
-    // Generate typical stages with current number
     const generateStages = (count) => {
-      // Base stages
       const baseStages = ['Manufactured', 'Quality Check', 'Dispatched'];
       let allStages = [...baseStages];
       
@@ -245,28 +240,23 @@ const AssignDistributors = () => {
       setError('Please select at least one distributor');
       return;
     }
-
+  
     setAssigning(true);
     setError(null);
-
+  
     try {
-      // Get distributor organizations from their IDs
       const distributorOrgs = selectedDistributors.map(id => {
         const distributor = distributors.find(d => d._id === id);
         return distributor ? distributor.organization : null;
       }).filter(Boolean);
-
-      // Call API to assign distributors
-      const response = await axios.post(
-        `${API_URL}/medicines/${selectedMedicine.id}/assign-distributors`,
-        {
-          distributors: distributorOrgs
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+  
+      const response = await assignDistributorsToMedicine(
+        selectedMedicine.id, 
+        distributorOrgs,
+        token
       );
-
+  
+      console.log('Assignment response:', response.data);
       // Update the local state with the updated medicine
       const updatedMedicines = medicines.map(med => 
         med.id === selectedMedicine.id ? { ...med, assignedDistributors: distributorOrgs } : med
@@ -287,7 +277,6 @@ const AssignDistributors = () => {
       setAssignDialogOpen(false);
       setSupplyChainImpactDialogOpen(false);
       
-      // Clear success message after 5 seconds
       setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
       console.error('Error assigning distributors:', err);
@@ -600,7 +589,6 @@ const AssignDistributors = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Supply Chain Impact Dialog */}
       <Dialog
         open={supplyChainImpactDialogOpen}
         onClose={() => !assigning && setSupplyChainImpactDialogOpen(false)}

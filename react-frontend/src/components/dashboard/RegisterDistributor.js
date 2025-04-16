@@ -1,4 +1,3 @@
-// src/components/dashboard/RegisterDistributor.js
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
@@ -88,7 +87,6 @@ const RegisterDistributor = () => {
       });
   
     } catch (err) {
-      // Detailed error logging and user-friendly message
       console.error('Full error object:', err);
       
       const errorMessage = err.response?.data?.error || 
@@ -97,7 +95,6 @@ const RegisterDistributor = () => {
       
       setError(errorMessage);
       
-      // Log specific error details
       console.error('Registration Error:', {
         status: err.response?.status,
         data: err.response?.data,

@@ -1,4 +1,3 @@
-// src/components/dashboard/RegisterNewMedicine.js
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
@@ -15,7 +14,7 @@ const RegisterNewMedicine = () => {
     expirationDate: '',
     registrationLocation: '',
     manufacturer: user ? user.organization : '',
-    status: 'Active', // Default status
+    status: 'Active', 
   });
   const [currentLocation, setCurrentLocation] = useState('');
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);

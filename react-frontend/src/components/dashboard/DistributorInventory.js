@@ -1,4 +1,3 @@
-// src/components/dashboard/DistributorInventory.js (Updated)
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -27,7 +26,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -36,11 +34,8 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import SortIcon from "@mui/icons-material/Sort";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import QrCodeIcon from "@mui/icons-material/QrCode";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import UpdateIcon from "@mui/icons-material/Update";
 import WarningIcon from "@mui/icons-material/Warning";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { AlertTitle } from "@mui/material";
@@ -70,7 +65,6 @@ const StatusChip = styled(Chip)(({ theme, statuscolor }) => ({
   color: "#fff",
 }));
 
-// Helper function for status colors
 const getStatusColor = (status) => {
   const statusColors = {
     Manufactured: "#4caf50",
@@ -137,12 +131,28 @@ const DistributorInventory = () => {
     setError(null);
 
     try {
+      console.log(`Fetching inventory for distributor: ${user.organization}`);
       const response = await axios.get(
-        `${API_URL}/medicines/owner/${user.organization}`,
+        `${API_URL}/medicines/`,
+
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      console.log(`Received ${response.data.length} medicines from API`);
+
+      if (response.data.length > 0) {
+        response.data.forEach((med) => {
+          console.log(
+            `Medicine ${med.id}: assignedDistributors=${JSON.stringify(
+              med.assignedDistributors || []
+            )}, includes ${user.organization}=${(
+              med.assignedDistributors || []
+            ).includes(user.organization)}`
+          );
+        });
+      }
 
       setMedicines(response.data);
     } catch (err) {
@@ -167,25 +177,35 @@ const DistributorInventory = () => {
               throw new Error("Failed to get location");
             }
             const data = await response.json();
-            const city = data.address?.city || data.address?.town || data.address?.village || "";
+            const city =
+              data.address?.city ||
+              data.address?.town ||
+              data.address?.village ||
+              "";
             const state = data.address?.state || "";
             const country = data.address?.country || "";
-            const locationString = [city, state, country].filter(Boolean).join(", ");
+            const locationString = [city, state, country]
+              .filter(Boolean)
+              .join(", ");
             setCurrentLocation(locationString);
-            setUpdateForm(prev => ({ ...prev, location: locationString }));
-            setFlagForm(prev => ({ ...prev, location: locationString }));
+            setUpdateForm((prev) => ({ ...prev, location: locationString }));
+            setFlagForm((prev) => ({ ...prev, location: locationString }));
           } catch (error) {
-            const locationString = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+            const locationString = `${latitude.toFixed(6)}, ${longitude.toFixed(
+              6
+            )}`;
             setCurrentLocation(locationString);
-            setUpdateForm(prev => ({ ...prev, location: locationString }));
-            setFlagForm(prev => ({ ...prev, location: locationString }));
+            setUpdateForm((prev) => ({ ...prev, location: locationString }));
+            setFlagForm((prev) => ({ ...prev, location: locationString }));
           } finally {
             setIsDetectingLocation(false);
           }
         },
         (error) => {
           setIsDetectingLocation(false);
-          setError("Failed to detect location. Please try again or enter manually.");
+          setError(
+            "Failed to detect location. Please try again or enter manually."
+          );
         }
       );
     } else {
@@ -214,7 +234,6 @@ const DistributorInventory = () => {
       filtered = filtered.filter((med) => med.status === statusFilter);
     }
 
-    // Apply sorting
     if (sortBy === "name-asc") {
       filtered.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortBy === "name-desc") {
@@ -291,9 +310,9 @@ const DistributorInventory = () => {
 
   const handleFormChange = (e, formSetter) => {
     const { name, value } = e.target;
-    formSetter(prev => ({
+    formSetter((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -312,29 +331,34 @@ const DistributorInventory = () => {
         {
           status: updateForm.status,
           location: updateForm.location,
-          notes: updateForm.notes || `Updated by ${user.organization}`
+          notes: updateForm.notes || `Updated by ${user.organization}`,
         },
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       // Update medicine in local state
-      const updatedMedicines = medicines.map(med => 
+      const updatedMedicines = medicines.map((med) =>
         med.id === selectedMedicine.id ? response.data.medicine : med
       );
-      
+
       setMedicines(updatedMedicines);
       applyFilters();
-      
-      setSuccess(`Medicine status updated to ${updateForm.status} successfully`);
+
+      setSuccess(
+        `Medicine status updated to ${updateForm.status} successfully`
+      );
       setUpdateDialogOpen(false);
-      
+
       // Clear success message after 5 seconds
       setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
       console.error("Error updating medicine status:", err);
-      setError(err.response?.data?.error || "Failed to update status. Please try again.");
+      setError(
+        err.response?.data?.error ||
+          "Failed to update status. Please try again."
+      );
     } finally {
       setUpdatingStatus(false);
     }
@@ -354,29 +378,34 @@ const DistributorInventory = () => {
         `${API_URL}/medicines/${selectedMedicine.id}/flag`,
         {
           reason: flagForm.reason,
-          location: flagForm.location
+          location: flagForm.location,
         },
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       // Update medicine in local state
-      const updatedMedicines = medicines.map(med => 
+      const updatedMedicines = medicines.map((med) =>
         med.id === selectedMedicine.id ? response.data.medicine : med
       );
-      
+
       setMedicines(updatedMedicines);
       applyFilters();
-      
-      setSuccess("Medicine has been flagged. Manufacturer and regulatory authorities have been notified.");
+
+      setSuccess(
+        "Medicine has been flagged. Manufacturer and regulatory authorities have been notified."
+      );
       setFlagDialogOpen(false);
-      
+
       // Clear success message after 5 seconds
       setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
       console.error("Error flagging medicine:", err);
-      setError(err.response?.data?.error || "Failed to flag medicine. Please try again.");
+      setError(
+        err.response?.data?.error ||
+          "Failed to flag medicine. Please try again."
+      );
     } finally {
       setUpdatingStatus(false);
     }
@@ -392,23 +421,23 @@ const DistributorInventory = () => {
     setError(null);
 
     try {
-      // Find the manufacturer of the selected medicine
       const manufacturerOrg = selectedMedicine.manufacturer;
-      
-      // Get manufacturer user ID (requires an API endpoint)
+
       const manufacturerResponse = await axios.get(
         `${API_URL}/auth/distributor-manufacturers`,
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
-      const manufacturer = manufacturerResponse.data.find(m => m.organization === manufacturerOrg);
-      
+
+      const manufacturer = manufacturerResponse.data.find(
+        (m) => m.organization === manufacturerOrg
+      );
+
       if (!manufacturer) {
         throw new Error("Manufacturer not found");
       }
-      
+
       // Send notification
       await axios.post(
         `${API_URL}/notifications`,
@@ -416,29 +445,31 @@ const DistributorInventory = () => {
           recipientId: manufacturer._id,
           subject: notifyForm.subject,
           message: notifyForm.message,
-          relatedTo: 'Medicine',
-          medicineId: selectedMedicine.id
+          relatedTo: "Medicine",
+          medicineId: selectedMedicine.id,
         },
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       setSuccess(`Notification sent to ${manufacturerOrg} successfully`);
       setNotifyDialogOpen(false);
-      
+
       // Clear success message after 5 seconds
       setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
       console.error("Error sending notification:", err);
-      setError(err.response?.data?.error || "Failed to send notification. Please try again.");
+      setError(
+        err.response?.data?.error ||
+          "Failed to send notification. Please try again."
+      );
     } finally {
       setUpdatingStatus(false);
     }
   };
 
   const handleCardClick = (medicineId) => {
-    // Navigate to view detailed information
     navigate(`/medicine/${medicineId}`);
   };
 
@@ -453,18 +484,33 @@ const DistributorInventory = () => {
   // Available status options for distributors
   const getAvailableStatusOptions = (currentStatus) => {
     switch (currentStatus) {
-      case 'Dispatched':
-        return ['In Transit', 'Distributor'];
-      case 'In Transit':
-        return ['Distributor', 'In Distribution'];
-      case 'Distributor':
-        return ['In Distribution', 'In Transit'];
-      case 'In Distribution':
-        return ['In Transit', 'Delivered to Pharmacy'];
+      case "Dispatched":
+        return ["In Transit", "Distributor"];
+      case "In Transit":
+        return ["Distributor", "In Distribution"];
+      case "Distributor":
+        return ["In Distribution", "In Transit"];
+      case "In Distribution":
+        return ["In Transit", "Delivered to Pharmacy"];
       default:
-        return ['In Transit', 'Distributor', 'In Distribution', 'Delivered to Pharmacy'];
+        return [
+          "In Transit",
+          "Distributor",
+          "In Distribution",
+          "Delivered to Pharmacy",
+        ];
     }
   };
+
+  console.log("Raw medicines from API:", medicines);
+  console.log("Filtered medicines after search/status:", filteredMedicines);
+  console.log("Current user/org:", user);
+  console.log(
+    "Sample medicine distributor IDs:",
+    medicines && medicines.length > 0 && medicines[0]?.assignedDistributors
+      ? medicines[0].assignedDistributors
+      : "No medicines available"
+  );
 
   return (
     <div className="distributor-inventory">
@@ -474,7 +520,8 @@ const DistributorInventory = () => {
         </Typography>
 
         <Typography variant="body1" color="text.secondary" paragraph>
-          Manage medicines assigned to you for delivery. Update delivery status and location as you transport medicines.
+          Manage medicines assigned to you for delivery. Update delivery status
+          and location as you transport medicines.
         </Typography>
 
         {error && (
@@ -484,7 +531,11 @@ const DistributorInventory = () => {
         )}
 
         {success && (
-          <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
+          <Alert
+            severity="success"
+            sx={{ mb: 3 }}
+            onClose={() => setSuccess(null)}
+          >
             {success}
           </Alert>
         )}
@@ -558,11 +609,24 @@ const DistributorInventory = () => {
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        ) : filteredMedicines.length === 0 ? (
+        ) : medicines.length === 0 ? (
           <Box sx={{ py: 4, textAlign: "center" }}>
-            <Typography variant="body1" color="text.secondary">
-              No medicines found matching your criteria
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No Assigned Medicines
             </Typography>
+            <Typography variant="body1" color="text.secondary" paragraph>
+              You don't have any medicines assigned to you by manufacturers yet.
+              Please contact your manufacturer partner to get medicines assigned
+              to your distribution account.
+            </Typography>
+            <Button
+              variant="outlined"
+              sx={{ mt: 2 }}
+              startIcon={<QrCodeIcon />}
+              onClick={() => navigate("/distributor/scan")}
+            >
+              Scan a Medicine QR Code
+            </Button>
           </Box>
         ) : (
           <Grid container spacing={3}>
@@ -723,7 +787,6 @@ const DistributorInventory = () => {
         )}
       </InventoryContainer>
 
-      {/* Action Menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -743,7 +806,6 @@ const DistributorInventory = () => {
         </MenuItem>
       </Menu>
 
-      {/* Update Status Dialog */}
       <Dialog
         open={updateDialogOpen}
         onClose={() => !updatingStatus && setUpdateDialogOpen(false)}
@@ -771,11 +833,13 @@ const DistributorInventory = () => {
                   label="New Status"
                   required
                 >
-                  {getAvailableStatusOptions(selectedMedicine.status).map((status) => (
-                    <MenuItem key={status} value={status}>
-                      {status}
-                    </MenuItem>
-                  ))}
+                  {getAvailableStatusOptions(selectedMedicine.status).map(
+                    (status) => (
+                      <MenuItem key={status} value={status}>
+                        {status}
+                      </MenuItem>
+                    )
+                  )}
                 </Select>
               </FormControl>
 
@@ -814,21 +878,24 @@ const DistributorInventory = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setUpdateDialogOpen(false)} disabled={updatingStatus}>
+          <Button
+            onClick={() => setUpdateDialogOpen(false)}
+            disabled={updatingStatus}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleUpdateSubmit}
             variant="contained"
             color="primary"
-            disabled={updatingStatus || !updateForm.status || !updateForm.location}
+            disabled={
+              updatingStatus || !updateForm.status || !updateForm.location
+            }
           >
             {updatingStatus ? <CircularProgress size={24} /> : "Update Status"}
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Flag Issue Dialog */}
       <Dialog
         open={flagDialogOpen}
         onClose={() => !updatingStatus && setFlagDialogOpen(false)}
@@ -843,7 +910,8 @@ const DistributorInventory = () => {
             <>
               <Alert severity="warning" sx={{ mb: 2 }}>
                 <AlertTitle>Important</AlertTitle>
-                Flagging a medicine will alert the manufacturer and regulatory authorities. This action cannot be undone.
+                Flagging a medicine will alert the manufacturer and regulatory
+                authorities. This action cannot be undone.
               </Alert>
 
               <Typography variant="subtitle1" gutterBottom>
@@ -886,7 +954,10 @@ const DistributorInventory = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setFlagDialogOpen(false)} disabled={updatingStatus}>
+          <Button
+            onClick={() => setFlagDialogOpen(false)}
+            disabled={updatingStatus}
+          >
             Cancel
           </Button>
           <Button
@@ -914,7 +985,7 @@ const DistributorInventory = () => {
               <Typography variant="subtitle1" gutterBottom>
                 Send a message to {selectedMedicine.manufacturer}
               </Typography>
-              
+
               <FormControl fullWidth margin="normal">
                 <TextField
                   label="Subject"
@@ -941,14 +1012,19 @@ const DistributorInventory = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setNotifyDialogOpen(false)} disabled={updatingStatus}>
+          <Button
+            onClick={() => setNotifyDialogOpen(false)}
+            disabled={updatingStatus}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleNotifySubmit}
             variant="contained"
             color="primary"
-            disabled={updatingStatus || !notifyForm.subject || !notifyForm.message}
+            disabled={
+              updatingStatus || !notifyForm.subject || !notifyForm.message
+            }
           >
             {updatingStatus ? <CircularProgress size={24} /> : "Send Message"}
           </Button>

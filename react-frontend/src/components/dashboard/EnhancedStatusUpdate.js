@@ -1,4 +1,3 @@
-// src/components/EnhancedStatusUpdate.js
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -13,7 +12,6 @@ import {
   DISTRIBUTION_STATUSES,
   LOCAL_DELIVERY_STATUSES,
   DISPENSING_STATUSES,
-  MAIN_PHASES
 } from '../utils/statusConstants';
 
 const API_URL = 'http://localhost:3000/api';
@@ -86,8 +84,7 @@ const EnhancedStatusUpdate = ({ medicine, onUpdateSuccess }) => {
       }
     }
   }, [user]);
-  
-  // Get appropriate phase for selected status
+
   const getPhaseForStatus = (status) => {
     if (MANUFACTURING_STATUSES.includes(status)) return 'Manufacturing Phase';
     if (EXPORT_STATUSES.includes(status)) return 'Export Phase';
@@ -114,7 +111,6 @@ const EnhancedStatusUpdate = ({ medicine, onUpdateSuccess }) => {
       }));
     } else {
       if (name === 'status') {
-        // Automatically set phase based on selected status
         const phase = getPhaseForStatus(value);
         setFormData(prev => ({
           ...prev,
@@ -151,7 +147,6 @@ const EnhancedStatusUpdate = ({ medicine, onUpdateSuccess }) => {
         onUpdateSuccess(response.data.medicine);
       }
       
-      // Reset form
       setFormData(prev => ({
         ...prev,
         status: '',

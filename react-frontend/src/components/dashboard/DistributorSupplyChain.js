@@ -5,9 +5,6 @@ import {
   Box,
   Typography,
   Paper,
-  Grid,
-  Card,
-  CardContent,
   Button,
   TextField,
   MenuItem,
@@ -36,12 +33,9 @@ import { styled } from '@mui/material/styles';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import InventoryIcon from '@mui/icons-material/Inventory';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import WarningIcon from '@mui/icons-material/Warning';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import UpdateIcon from '@mui/icons-material/Update';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 
@@ -61,7 +55,6 @@ const StatusChip = styled(Chip)(({ theme, statuscolor }) => ({
   color: '#fff',
 }));
 
-// Helper function for status colors
 const getStatusColor = (status) => {
   const statusColors = {
     'Manufactured': '#4caf50',
@@ -94,7 +87,6 @@ const DistributorSupplyChain = () => {
   const [currentLocation, setCurrentLocation] = useState('');
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   
-  // Update medicine dialog state
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
   const [updateForm, setUpdateForm] = useState({
@@ -103,7 +95,6 @@ const DistributorSupplyChain = () => {
     notes: ''
   });
   
-  // Flag medicine dialog state
   const [flagDialogOpen, setFlagDialogOpen] = useState(false);
   const [flagForm, setFlagForm] = useState({
     reason: '',
@@ -131,7 +122,6 @@ const DistributorSupplyChain = () => {
   }, [token]);
   
   useEffect(() => {
-    // Apply filters when tab, filter status, or search term changes
     filterMedicines();
   }, [medicines, tabValue, filterStatus, searchTerm]);
   
@@ -140,7 +130,6 @@ const DistributorSupplyChain = () => {
     setError(null);
     
     try {
-      // Get medicines that belong to the current distributor
       const response = await axios.get(
         `${API_URL}/medicines/owner/${user.organization}`,
         {
@@ -162,21 +151,20 @@ const DistributorSupplyChain = () => {
     let filtered = [...medicines];
     
     // Filter by tab
-    if (tabValue === 1) { // In Processing
+    if (tabValue === 1) {
       filtered = filtered.filter(med => 
         med.status === 'In Distribution' || 
         med.status === 'In Transit'
       );
-    } else if (tabValue === 2) { // Delivered
+    } else if (tabValue === 2) {
       filtered = filtered.filter(med => 
         med.status === 'Delivered to Pharmacy' || 
         med.status === 'Pharmacy'
       );
-    } else if (tabValue === 3) { // Flagged
+    } else if (tabValue === 3) {
       filtered = filtered.filter(med => med.flagged);
     }
     
-    // Apply status filter if not 'all'
     if (filterStatus !== 'all') {
       filtered = filtered.filter(med => med.status === filterStatus);
     }
@@ -437,7 +425,6 @@ const DistributorSupplyChain = () => {
     }
   };
   
-  // Helper function to find manufacturer's user ID
   const findManufacturerId = async (manufacturerName) => {
     try {
       const response = await axios.get(
@@ -654,7 +641,6 @@ const DistributorSupplyChain = () => {
         )}
       </StyledPaper>
       
-      {/* Update Status Dialog */}
       <Dialog 
         open={updateDialogOpen} 
         onClose={() => setUpdateDialogOpen(false)}
@@ -840,7 +826,6 @@ const DistributorSupplyChain = () => {
         </DialogActions>
       </Dialog>
       
-      {/* Notify Manufacturer Dialog */}
       <Dialog 
         open={notifyDialogOpen} 
         onClose={() => setNotifyDialogOpen(false)}

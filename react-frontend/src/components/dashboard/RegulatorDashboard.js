@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import NotificationForm from "./NotificationForm";
 import Notifications from "./Notifications";
 import ScanQRCode from "./ScanQRCode";
-import DistributorInventory from "./DistributorInventory";
+import RegulatorInventory from "./RegulatorInventory"; // Updated import
 import {
   Box,
   Button,
@@ -17,15 +17,13 @@ import {
   Container,
   useTheme,
   alpha,
-  Collapse,
   IconButton,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import MedicationIcon from "@mui/icons-material/Medication";
 import EmailIcon from "@mui/icons-material/Email";
 import NotificationBell from "../common/NotificationBell";
+import MenuIcon from "@mui/icons-material/Menu";
 
 const RegulatorDashboard = () => {
   const { user } = useAuth();
@@ -33,7 +31,7 @@ const RegulatorDashboard = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
 
-
+  // Color palette from ManufacturerDashboard
   const colors = {
     darkGreen: "#169976",
     lightGreen: "#1DCD9F",
@@ -50,9 +48,7 @@ const RegulatorDashboard = () => {
     success: isDarkMode ? "#169976" : "#1DCD9F",
   };
 
-  const [openSections, setOpenSections] = useState({
-    actions: true,
-  });
+
 
   useEffect(() => {
     if (!user || user.role !== "regulator") {
@@ -60,10 +56,20 @@ const RegulatorDashboard = () => {
     }
   }, [user, navigate]);
 
-  // Faizan I added these colors
+
+
+  // Navigation items for Sidebar
+  const navItems = [
+    { text: "Scan Medicines", icon: <QrCodeScannerIcon />, path: "/regulator/scan" },
+    { text: "Inventory", icon: <MedicationIcon />, path: "/regulator/inventory" },
+    { text: "Notifications", icon: <EmailIcon />, path: "/regulator/notifications" },
+    { text: "Send Message", icon: <EmailIcon />, path: "/regulator/send-message" },
+  ];
+
+  // Card styles
   const cardStyle = {
     width: "300px",
-    height: "200px",
+    height: "160px", // Compact height from previous task
     borderRadius: "12px",
     boxShadow: `0 2px 8px ${alpha(colors.darkBlack, 0.08)}`,
     transition: "transform 0.3s ease, box-shadow 0.3s ease",
@@ -101,30 +107,7 @@ const RegulatorDashboard = () => {
     },
   };
 
-  const sectionHeaderStyle = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    p: "16px 20px",
-    cursor: "pointer",
-    borderRadius: "10px",
-    backgroundColor: alpha(colors.darkGreen, 0.05),
-    transition: "background-color 0.3s ease",
-    "&:hover": {
-      backgroundColor: alpha(colors.darkGreen, 0.1),
-    },
-  };
-
-  const sectionContainerStyle = {
-    mb: 3,
-    borderRadius: "12px",
-    overflow: "hidden",
-    backgroundColor: colors.cardBackground,
-    boxShadow: `0 2px 8px ${alpha(colors.darkBlack, 0.06)}`,
-    transition: "box-shadow 0.3s ease",
-  };
-
-  const DashboardCard = ({ title, description, icon, buttonText, onClick }) => (
+  const DashboardCard = ({ title, icon, buttonText, onClick }) => (
     <Card sx={cardStyle}>
       <CardContent sx={cardContentStyle}>
         <Box sx={{ mb: 1, color: colors.darkGreen }}>
@@ -141,22 +124,6 @@ const RegulatorDashboard = () => {
         >
           {title}
         </Typography>
-        <Typography
-          variant="body2"
-          sx={{
-            color: colors.textSecondary,
-            mb: 1,
-            lineHeight: 1.5,
-            fontSize: "0.8rem",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-          }}
-        >
-          {description}
-        </Typography>
         <Button
           variant="contained"
           sx={buttonStyle}
@@ -168,16 +135,23 @@ const RegulatorDashboard = () => {
     </Card>
   );
 
-  const toggleSection = (section) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+  // Main content styles
+  const mainContentStyle = {
+    
+    transition: theme.transitions.create("margin-left", {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.standard,
+    }),
+    backgroundColor: colors.background,
+    minHeight: "100vh",
   };
 
   return (
-    <div className="dashboard-container" style={{ backgroundColor: colors.background }}>
-      <main className="dashboard-main">
+    <Box sx={{ display: "flex" }}>
+      
+      
+      {/* Main Content */}
+      <Box component="main" sx={mainContentStyle}>
         <Container maxWidth="lg">
           <Box
             className="dashboard-header"
@@ -189,13 +163,16 @@ const RegulatorDashboard = () => {
               justifyContent: "space-between",
             }}
           >
-            <Typography
-              variant="h4"
-              component="h1"
-              sx={{ fontWeight: 700, color: colors.textPrimary }}
-            >
-              Regulator Dashboard
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{ fontWeight: 700, color: colors.textPrimary }}
+              >
+                Regulator Dashboard
+              </Typography>
+            </Box>
             <NotificationBell sx={{ color: colors.darkGreen }} />
           </Box>
 
@@ -224,90 +201,58 @@ const RegulatorDashboard = () => {
                     <Typography
                       sx={{ color: colors.textSecondary, fontSize: "0.95rem" }}
                     >
-                      Oversee compliance, verify medicines, manage inventory, and communicate with manufacturers.
+                      Oversee compliance, verify medicines, approve or flag medicines, and communicate with manufacturers.
                     </Typography>
                   </Paper>
 
-                  {/* Regulator Actions Dropdown */}
-                  <Paper sx={sectionContainerStyle}>
-                    <Box
-                      sx={sectionHeaderStyle}
-                      onClick={() => toggleSection("actions")}
-                    >
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          color: colors.textPrimary,
-                          fontWeight: 600,
-                        }}
-                      >
-                        <MedicationIcon sx={{ mr: 1.5, color: colors.darkGreen }} />
-                        Regulator Actions
-                      </Typography>
-                      <IconButton size="small">
-                        {openSections.actions ? (
-                          <ExpandLessIcon sx={{ color: colors.textPrimary }} />
-                        ) : (
-                          <ExpandMoreIcon sx={{ color: colors.textPrimary }} />
-                        )}
-                      </IconButton>
-                    </Box>
-                    <Collapse in={openSections.actions} timeout={400}>
-                      <Box sx={{ p: 3 }}>
-                        <Grid container spacing={2} justifyContent="center">
-                          <Grid item xs={12} sm={6} md={4}>
-                            <DashboardCard
-                              title="Scan Medicines"
-                              description="Scan QR codes to verify medicine authenticity."
-                              icon={<QrCodeScannerIcon />}
-                              buttonText="Scan Now"
-                              onClick={() => navigate("/regulator/scan")}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6} md={4}>
-                            <DashboardCard
-                              title="Inventory"
-                              description="View and manage medicines in the supply chain."
-                              icon={<MedicationIcon />}
-                              buttonText="View Inventory"
-                              onClick={() => navigate("/regulator/inventory")}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6} md={4}>
-                            <DashboardCard
-                              title="Notifications"
-                              description="View and manage communication with manufacturers."
-                              icon={<EmailIcon />}
-                              buttonText="View Notifications"
-                              onClick={() => navigate("/regulator/notifications")}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6} md={4}>
-                            <DashboardCard
-                              title="Send Message"
-                              description="Send messages and updates to manufacturers."
-                              icon={<EmailIcon />}
-                              buttonText="Send Message"
-                              onClick={() => navigate("/regulator/send-message")}
-                            />
-                          </Grid>
-                        </Grid>
-                      </Box>
-                    </Collapse>
-                  </Paper>
+                  {/* Regulator Actions Displayed Directly */}
+                  <Box sx={{ p: 3 }}>
+                    <Grid container spacing={2} justifyContent="center">
+                      <Grid item xs={12} sm={6} md={4}>
+                        <DashboardCard
+                          title="Scan Medicines"
+                          icon={<QrCodeScannerIcon />}
+                          buttonText="Scan Now"
+                          onClick={() => navigate("/regulator/scan")}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={4}>
+                        <DashboardCard
+                          title="Inventory"
+                          icon={<MedicationIcon />}
+                          buttonText="View Inventory"
+                          onClick={() => navigate("/regulator/inventory")}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={4}>
+                        <DashboardCard
+                          title="Notifications"
+                          icon={<EmailIcon />}
+                          buttonText="View Notifications"
+                          onClick={() => navigate("/regulator/notifications")}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={4}>
+                        <DashboardCard
+                          title="Send Message"
+                          icon={<EmailIcon />}
+                          buttonText="Send Message"
+                          onClick={() => navigate("/regulator/send-message")}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
                 </Box>
               }
             />
             <Route path="scan" element={<ScanQRCode />} />
-            <Route path="inventory" element={<DistributorInventory />} />
+            <Route path="inventory" element={<RegulatorInventory />} /> {/* Updated */}
             <Route path="notifications" element={<Notifications />} />
             <Route path="send-message" element={<NotificationForm />} />
           </Routes>
         </Container>
-      </main>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

@@ -329,6 +329,107 @@ app.post("/api/public/verify-medicine", async (req, res) => {
   }
 });
 
+// Public endpoint for claiming a medicine (no authentication required)
+app.post("/api/public/claim", async (req, res) => {
+  try {
+    const { qrCode, location, timestamp } = req.body;
+
+    if (!qrCode || !location || !timestamp) {
+      return res.status(400).json({ error: 'qrCode, location, and timestamp are required' });
+    }
+
+    if (!qrCode.startsWith('QR-')) {
+      return res.status(400).json({ error: 'Invalid QR code format. Must start with "QR-"' });
+    }
+
+    console.log(`Public claiming of medicine with QR: ${qrCode}`);
+
+    // Connect to the blockchain
+    const ccpPath = path.resolve(__dirname, "config", "connection-org1.json");
+    const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
+
+    const walletPath = path.join(__dirname, "wallet");
+    const wallet = await Wallets.newFileSystemWallet(walletPath);
+
+    const identity = await wallet.get("appUser");
+    if (!identity) {
+      return res.status(400).json({ error: 'System identity not available in wallet' });
+    }
+
+    const gateway = new Gateway();
+    try {
+      await gateway.connect(ccp, {
+        wallet,
+        identity: "appUser",
+        discovery: { enabled: true, asLocalhost: true },
+      });
+
+      const network = await gateway.getNetwork("mychannel");
+      const contract = network.getContract("medicine-contract");
+
+      // Find the medicine by QR code
+      const allMedicinesResult = await contract.evaluateTransaction("GetAllMedicines");
+      const allMedicines = JSON.parse(allMedicinesResult.toString());
+
+      const medicine = allMedicines.find(med => med.qrCode === qrCode);
+      if (!medicine) {
+        await gateway.disconnect();
+        return res.status(404).json({ error: `Medicine not found for QR code: ${qrCode}` });
+      }
+
+      // Check if medicine is in a claimable state (e.g., "Order Complete")
+      if (medicine.status !== "Order Complete") {
+        await gateway.disconnect();
+        return res.status(400).json({ error: `Medicine cannot be claimed. Current status: ${medicine.status}` });
+      }
+
+      // Update supply chain to mark as Claimed
+      await contract.submitTransaction(
+        "UpdateSupplyChain",
+        medicine.id,
+        "PublicUser",
+        "Claimed",
+        location,
+        `Claimed by public user at ${timestamp}`
+      );
+
+      // Get updated medicine details
+      const updatedResult = await contract.evaluateTransaction("GetMedicine", medicine.id);
+      const updatedMedicine = JSON.parse(updatedResult.toString());
+
+      await gateway.disconnect();
+
+      // Prepare a filtered response
+      const publicMedicineData = {
+        id: updatedMedicine.id,
+        name: updatedMedicine.name,
+        manufacturer: updatedMedicine.manufacturer,
+        batchNumber: updatedMedicine.batchNumber,
+        manufacturingDate: updatedMedicine.manufacturingDate,
+        expirationDate: updatedMedicine.expirationDate,
+        status: updatedMedicine.status,
+        flagged: updatedMedicine.flagged,
+        supplyChain: updatedMedicine.supplyChain, // Include for frontend
+        claimTimestamp: new Date().toISOString()
+      };
+
+      res.json({
+        status: "Claimed",
+        medicine: publicMedicineData
+      });
+    } catch (error) {
+      console.error('Gateway Error:', error);
+      try {
+        await gateway.disconnect();
+      } catch (e) { /* ignore disconnect errors */ }
+      res.status(500).json({ error: error.message || 'Error claiming medicine' });
+    }
+  } catch (error) {
+    console.error(`Failed to claim medicine with QR: ${qrCode}`, error);
+    res.status(500).json({ error: error.message || 'Error claiming medicine' });
+  }
+});
+
 app.post("/api/medicines/verify-secure", async (req, res) => {
   try {
     const { qrContent } = req.body;

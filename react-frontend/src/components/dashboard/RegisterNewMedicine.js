@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import '../../styles/RegisterNewMedicine.css';
 
 const API_URL = 'http://localhost:3000/api';
 
 const RegisterNewMedicine = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [newMedicine, setNewMedicine] = useState({
     id: '',
     name: '',
@@ -101,6 +104,12 @@ const RegisterNewMedicine = () => {
       return;
     }
 
+    // Validate expiration date is after manufacturing date
+    if (new Date(newMedicine.expirationDate) <= new Date(newMedicine.manufacturingDate)) {
+      setFormError('Expiration date must be after manufacturing date');
+      return;
+    }
+
     try {
       const response = await axios.post(`${API_URL}/medicines`, newMedicine, {
         headers: { Authorization: `Bearer ${token}` },
@@ -118,6 +127,8 @@ const RegisterNewMedicine = () => {
       });
 
       setSuccessMessage(`Medicine ${response.data.medicine.id} registered successfully!`);
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setFormError(err.response?.data?.error || 'Failed to register medicine. Please try again.');
     }
@@ -140,6 +151,7 @@ const RegisterNewMedicine = () => {
             onChange={handleInputChange}
             placeholder="e.g., MED123"
           />
+          <div className="field-helper">Unique identifier for this medicine</div>
         </div>
 
         <div className="form-group">
@@ -164,6 +176,7 @@ const RegisterNewMedicine = () => {
             onChange={handleInputChange}
             placeholder="e.g., PCL-2025-001"
           />
+          <div className="field-helper">Production batch identifier</div>
         </div>
 
         <div className="form-group">
@@ -197,7 +210,8 @@ const RegisterNewMedicine = () => {
               name="registrationLocation"
               value={newMedicine.registrationLocation}
               onChange={handleInputChange}
-              placeholder={isDetectingLocation ? "Detecting location..." : "Enter location"}
+              placeholder={isDetectingLocation && <span className="spinner" />}
+              className={isDetectingLocation ? "detecting" : ""}
             />
             <button
               type="button"
@@ -208,6 +222,7 @@ const RegisterNewMedicine = () => {
               {isDetectingLocation ? "Detecting..." : "Detect Location"}
             </button>
           </div>
+          <div className="field-helper">Current location will be used for tracking</div>
         </div>
 
         <div className="form-group">
@@ -220,6 +235,7 @@ const RegisterNewMedicine = () => {
             onChange={handleInputChange}
             readOnly
           />
+          <div className="field-helper">Automatically set from your organization</div>
         </div>
 
         <div className="form-group">
@@ -236,7 +252,19 @@ const RegisterNewMedicine = () => {
           </select>
         </div>
 
-        <button type="submit" className="submit-btn">Register Medicine</button>
+        <div className="form-actions">
+          <button 
+            type="button" 
+            className="back-btn"
+            onClick={() => navigate('/manufacturer')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Dashboard
+          </button>
+          <button type="submit" className="submit-btn" disabled={isDetectingLocation}>Register Medicine</button>
+        </div>
       </form>
     </div>
   );

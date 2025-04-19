@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/Dashboard.css';
 
 const RegisterRegulator = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    address: '',
-    city: '',
-    country: '',
-    notes: '',
-    organization: '',
+    phoneNumber: ''
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
@@ -45,15 +40,11 @@ const RegisterRegulator = () => {
       const registrationData = {
         username: formData.username,
         email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
         phoneNumber: formData.phoneNumber || '',
-        address: formData.address || '',
-        city: formData.city || '',
-        country: formData.country || '',
-        notes: formData.notes || '',
         role: 'regulator',
-        organization: formData.organization || `${formData.firstName} ${formData.lastName} Regulatory`,
+        organization: formData.organization || `${formData.jurisdiction} Regulatory Authority`,
+        registeredBy: user.id,
+        registeredByOrg: user.organization
       };
   
       console.log('Sending registration data:', registrationData);
@@ -71,17 +62,11 @@ const RegisterRegulator = () => {
   
       setSuccess(`Regulator ${formData.username} registered successfully! An email with login credentials has been sent to ${formData.email}`);
       
+      // Reset form
       setFormData({
         username: '',
         email: '',
-        firstName: '',
-        lastName: '',
-        phoneNumber: '',
-        address: '',
-        city: '',
-        country: '',
-        notes: '',
-        organization: '',
+        phoneNumber: ''
       });
   
     } catch (err) {
@@ -106,7 +91,6 @@ const RegisterRegulator = () => {
   return (
     <div className="dashboard-section">
       <h2>Register New Regulator</h2>
-      <p>Register a regulator to add them to your regulatory network. They will receive login credentials via email.</p>
 
       {error && <div className="error-message">{error}</div>}
       {success && <div className="success-message">{success}</div>}
@@ -125,7 +109,6 @@ const RegisterRegulator = () => {
               required
               placeholder="Choose a username for the regulator"
             />
-            <p className="help-text">This will be their login username</p>
           </div>
 
           <div className="form-group">
@@ -139,53 +122,22 @@ const RegisterRegulator = () => {
               required
               placeholder="Enter regulator's email address"
             />
-            <p className="help-text">Login credentials will be sent to this email</p>
           </div>
 
           <div className="form-group">
-            <label htmlFor="organization">Organization Name</label>
+            <label htmlFor="organization">Organization</label>
             <input
               type="text"
               id="organization"
               name="organization"
               value={formData.organization}
               onChange={handleChange}
-              placeholder="Enter regulator's organization name"
+              placeholder="Enter regulatory organization name"
             />
-            <p className="help-text">Leave blank to use regulator's name + 'Regulatory'</p>
           </div>
         </div>
 
         <div className="form-section">
-          <h3>Personal Information</h3>
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="firstName">First Name*</label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-                placeholder="First name"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="lastName">Last Name*</label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-                placeholder="Last name"
-              />
-            </div>
-          </div>
-
           <div className="form-group">
             <label htmlFor="phoneNumber">Phone Number</label>
             <input
@@ -198,66 +150,19 @@ const RegisterRegulator = () => {
             />
           </div>
         </div>
-
-        <div className="form-section">
-          <h3>Address Information</h3>
-          <div className="form-group">
-            <label htmlFor="address">Address</label>
-            <input
-              type="text"
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              placeholder="Enter street address"
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="city">City</label>
-              <input
-                type="text"
-                id="city"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                placeholder="City"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="country">Country</label>
-              <input
-                type="text"
-                id="country"
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                placeholder="Country"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="form-section">
-          <h3>Additional Information</h3>
-          <div className="form-group">
-            <label htmlFor="notes">Notes</label>
-            <textarea
-              id="notes"
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              placeholder="Any additional information about this regulator"
-              rows="3"
-            />
-          </div>
-        </div>
-
         <div className="form-actions">
+          <button 
+            type="button" 
+            className="back-btn"
+            onClick={() => navigate('/manufacturer')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Dashboard
+          </button>
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Registering...' : 'Register Regulator'}
+            {loading ? 'Registering' : 'Register Regulator'}
           </button>
         </div>
       </form>

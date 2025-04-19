@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/Dashboard.css';
 
 const RegisterDistributor = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -108,7 +110,6 @@ const RegisterDistributor = () => {
   return (
     <div className="dashboard-section">
       <h2>Register New Distributor</h2>
-      <p>Register a distributor to add them to your supply chain network. They will receive login credentials via email.</p>
 
       {error && <div className="error-message">{error}</div>}
       {success && <div className="success-message">{success}</div>}
@@ -127,7 +128,6 @@ const RegisterDistributor = () => {
               required
               placeholder="Choose a username for the distributor"
             />
-            <p className="help-text">This will be their login username</p>
           </div>
 
           <div className="form-group">
@@ -141,11 +141,10 @@ const RegisterDistributor = () => {
               required
               placeholder="Enter distributor's email address"
             />
-            <p className="help-text">Login credentials will be sent to this email</p>
           </div>
 
           <div className="form-group">
-            <label htmlFor="organization">Organization Name</label>
+            <label htmlFor="organization">Organization</label>
             <input
               type="text"
               id="organization"
@@ -154,12 +153,10 @@ const RegisterDistributor = () => {
               onChange={handleChange}
               placeholder="Enter distributor's company name"
             />
-            <p className="help-text">Leave blank to use distributor's name + "Distribution"</p>
           </div>
         </div>
 
         <div className="form-section">
-          <h3>Personal Information</h3>
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="firstName">First Name*</label>
@@ -202,7 +199,6 @@ const RegisterDistributor = () => {
         </div>
 
         <div className="form-section">
-          <h3>Address Information</h3>
           <div className="form-group">
             <label htmlFor="address">Address</label>
             <input
@@ -241,25 +237,19 @@ const RegisterDistributor = () => {
             </div>
           </div>
         </div>
-
-        <div className="form-section">
-          <h3>Additional Information</h3>
-          <div className="form-group">
-            <label htmlFor="notes">Notes</label>
-            <textarea
-              id="notes"
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              placeholder="Any additional information about this distributor"
-              rows="3"
-            />
-          </div>
-        </div>
-
         <div className="form-actions">
+        <button 
+            type="button" 
+            className="back-btn"
+            onClick={() => navigate('/manufacturer')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Dashboard
+          </button>
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Registering...' : 'Register Distributor'}
+            {loading ? 'Registering' : 'Register Distributor'}
           </button>
         </div>
       </form>

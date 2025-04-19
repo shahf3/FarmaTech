@@ -544,7 +544,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Register Medicine"
-                              description="Add new medicines to the blockchain with secure QR code tracking."
                               icon={<MedicationIcon />}
                               buttonText="Register Now"
                               onClick={() => navigate("/manufacturer/register")}
@@ -553,7 +552,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="View Medicines"
-                              description="Manage and track your registered medicines."
                               icon={<MedicationIcon />}
                               buttonText="View All"
                               onClick={() => navigate("/manufacturer/view")}
@@ -596,7 +594,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Scan QR Code"
-                              description="Verify medicine authenticity via QR code scanning."
                               icon={<QrCodeScannerIcon />}
                               buttonText="Scan Now"
                               onClick={() => navigate("/scan-medicine")}
@@ -605,7 +602,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Assign Distributors"
-                              description="Link distributors to medicines for efficient tracking."
                               icon={<AssignmentIcon />}
                               buttonText="Assign Now"
                               onClick={() => navigate("/manufacturer/assign-distributors")}
@@ -614,7 +610,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Delivery History"
-                              description="Track the delivery status of your medicines."
                               icon={<HistoryIcon />}
                               buttonText="View History"
                               onClick={() => navigate("/manufacturer/delivery-history")}
@@ -657,7 +652,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Register Distributor"
-                              description="Onboard new distributors to your network."
                               icon={<PersonAddIcon />}
                               buttonText="Register Now"
                               onClick={() => navigate("/manufacturer/register-distributor")}
@@ -666,7 +660,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Manage Distributors"
-                              description="Oversee your distributor network."
                               icon={<PeopleIcon />}
                               buttonText="Manage Now"
                               onClick={() => navigate("/manufacturer/manage-distributors")}
@@ -709,7 +702,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Register Regulator"
-                              description="Add regulators for compliance oversight."
                               icon={<PersonAddIcon />}
                               buttonText="Register Now"
                               onClick={() => navigate("/manufacturer/register-regulator")}
@@ -718,7 +710,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Manage Regulators"
-                              description="Control your regulator network."
                               icon={<GavelIcon />}
                               buttonText="Manage Now"
                               onClick={() => navigate("/manufacturer/manage-regulators")}
@@ -761,7 +752,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Notifications"
-                              description="Review and manage your communications."
                               icon={<EmailIcon />}
                               buttonText="View Notifications"
                               onClick={() => navigate("/manufacturer/notifications")}
@@ -770,7 +760,6 @@ const ManufacturerDashboard = () => {
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
                               title="Send Message"
-                              description="Communicate with your distributors."
                               icon={<EmailIcon />}
                               buttonText="Send Now"
                               onClick={() => navigate("/manufacturer/send-message")}

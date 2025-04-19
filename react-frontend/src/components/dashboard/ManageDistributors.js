@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom'; // Add this import
 import axios from 'axios';
 import '../../styles/Dashboard.css';
+import '../../styles/ManageDistributors.css';
 
 const ManageDistributors = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate(); // Initialize navigate
   const [distributors, setDistributors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,6 +18,9 @@ const ManageDistributors = () => {
     message: ''
   });
   const [showContactForm, setShowContactForm] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [distributorToDelete, setDistributorToDelete] = useState(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   useEffect(() => {
     fetchDistributors();
@@ -163,6 +169,54 @@ const ManageDistributors = () => {
     }
   };
 
+  // New function to handle delete button click
+  const handleDeleteClick = (distributor) => {
+    setDistributorToDelete(distributor);
+    setDeleteConfirmText('');
+    setShowDeleteConfirmation(true);
+  };
+
+  // New function to handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (deleteConfirmText !== distributorToDelete.username) {
+      setError("Username doesn't match. Deletion canceled.");
+      return;
+    }
+
+    try {
+      // Log the request for debugging
+      console.log(`Attempting to delete distributor: http://localhost:3000/api/auth/delete-distributor/${distributorToDelete._id}`);
+      
+      const response = await axios.delete(
+        `http://localhost:3000/api/auth/delete-distributor/${distributorToDelete._id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        setSuccessMessage(`Distributor ${distributorToDelete.username} deleted successfully`);
+        setShowDeleteConfirmation(false);
+        setDistributorToDelete(null);
+        fetchDistributors(); // Refresh the list
+      }
+    } catch (err) {
+      console.error('Error object:', err);
+      console.error('Response status:', err.response?.status);
+      console.error('Response data:', err.response?.data);
+      
+      setError(err.response?.data?.error || 'Failed to delete distributor');
+    }
+  };
+
+  // Function to clear any error messages
+  const clearMessages = () => {
+    setError(null);
+    setSuccessMessage(null);
+  };
+
   return (
     <div className="dashboard-section">
       <h2>Manage Distributors</h2>
@@ -236,6 +290,13 @@ const ManageDistributors = () => {
                             Reactivate
                           </button>
                         )}
+                        
+                        <button 
+                          className="action-btn delete-btn"
+                          onClick={() => handleDeleteClick(distributor)}
+                        >
+                          Delete Account
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -244,6 +305,21 @@ const ManageDistributors = () => {
             </div>
           )}
           
+          {/* Back to Dashboard Button - Moved outside the modal */}
+          <div className="form-actions">
+            <button 
+              type="button" 
+              className="back-btn"
+              onClick={() => navigate('/manufacturer')}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Back to Dashboard
+            </button>
+          </div>
+          
+          {/* Contact Form Modal */}
           {showContactForm && selectedDistributor && (
             <div className="modal-overlay">
               <div className="modal-content">
@@ -285,6 +361,58 @@ const ManageDistributors = () => {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+          
+          {/* Delete Confirmation Modal */}
+          {showDeleteConfirmation && distributorToDelete && (
+            <div className="modal-overlay" onClick={() => clearMessages()}>
+              <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Delete Distributor Account</h3>
+                  <button className="close-btn" onClick={() => setShowDeleteConfirmation(false)}>×</button>
+                </div>
+                <div className="modal-body">
+                  <div className="warning-message">
+                    <p>
+                      <strong>Warning:</strong> This action cannot be undone. Deleting this distributor 
+                      account will permanently remove all their data from the system.
+                    </p>
+                    <p>
+                      To confirm deletion, please type the distributor's username:
+                      <strong> {distributorToDelete.username}</strong>
+                    </p>
+                  </div>
+                  
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      placeholder="Type username to confirm"
+                      className="delete-confirm-input"
+                    />
+                  </div>
+                  
+                  <div className="form-actions">
+                    <button 
+                      type="button" 
+                      className="cancel-btn" 
+                      onClick={() => setShowDeleteConfirmation(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="button" 
+                      className="delete-confirm-btn"
+                      disabled={deleteConfirmText !== distributorToDelete.username}
+                      onClick={handleDeleteConfirm}
+                    >
+                      Delete Permanently
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

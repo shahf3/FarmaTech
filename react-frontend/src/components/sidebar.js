@@ -8,7 +8,6 @@ import {
   ListItemText,
   IconButton,
   ListSubheader,
-  Collapse,
   Divider,
   Box,
   Typography,
@@ -16,63 +15,46 @@ import {
   Tooltip,
   useTheme as useMuiTheme,
 } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import MenuIcon from "@mui/icons-material/Menu";
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import BusinessIcon from "@mui/icons-material/Business";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import GavelIcon from "@mui/icons-material/Gavel";
 import PersonIcon from "@mui/icons-material/Person";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
-import StorageIcon from "@mui/icons-material/Storage";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MedicationIcon from "@mui/icons-material/Medication";
-import ContactMailIcon from "@mui/icons-material/ContactMail";
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import PeopleIcon from '@mui/icons-material/People';
-import CloseIcon from "@mui/icons-material/Close"; // Added for collapse button
+import EmailIcon from "@mui/icons-material/Email";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import PeopleIcon from "@mui/icons-material/People";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import SendIcon from "@mui/icons-material/Send";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import HistoryIcon from "@mui/icons-material/History";
+import GavelIcon from "@mui/icons-material/Gavel";
 
 function Sidebar() {
   const { user, logout } = useAuth();
   const { themeMode, toggleTheme } = useTheme();
   const muiTheme = useMuiTheme();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-
-  const [sections, setSections] = useState({
-    manufacturer: false,
-    distributor: false,
-    regulator: false,
-    endUser: false,
-  });
+  const location = useLocation();
+  const [open, setOpen] = useState(true);
 
   const toggleDrawer = () => {
     setOpen(!open);
   };
 
-  const closeDrawer = () => {
-    setOpen(false);
-  };
-
-  const toggleSection = (section) => {
-    setSections({
-      ...sections,
-      [section]: !sections[section],
-    });
-  };
-
   const handleLogout = () => {
     logout();
-    navigate("/login");
-    setOpen(false); // Changed from toggleDrawer to setOpen(false) for consistency
+    navigate("");
+    setOpen(false);
   };
 
   const getInitial = () => {
@@ -86,7 +68,7 @@ function Sidebar() {
       case "distributor":
         return "#2196f3";
       case "regulator":
-        return "#ff9800";
+        return "#169976";
       case "enduser":
         return "#9c27b0";
       default:
@@ -94,35 +76,66 @@ function Sidebar() {
     }
   };
 
-  const NestedListItem = ({ to, icon, primary, onClick }) => (
-    <ListItem
-      button
-      component={Link}
-      to={to}
-      onClick={onClick}
-      sx={{
-        pl: 4,
-        borderRadius: "0 20px 20px 0",
-        mx: 1,
-        my: 0.5,
-        "&:hover": {
+  const colors = {
+    darkGreen: "#169976",
+    lightGreen: "#1DCD9F",
+    lightBlack: "#222222",
+    darkBlack: "#000000",
+    white: "#ffffff",
+  };
+
+  const RoleListItem = ({ to, icon, primary, onClick }) => {
+    const itemColor =
+      location.pathname === to
+        ? colors.darkGreen
+        : themeMode === "light"
+        ? colors.lightBlack
+        : colors.white;
+
+    return (
+      <ListItem
+        button
+        component={Link}
+        to={to}
+        onClick={onClick}
+        sx={{
+          pl: 4,
+          borderRadius: "0 20px 20px 0",
+          mx: 1,
+          my: 0.5,
           backgroundColor:
-            themeMode === "light"
-              ? "rgba(0, 0, 0, 0.04)"
-              : "rgba(255, 255, 255, 0.08)",
-        },
-      }}
-    >
-      <ListItemIcon sx={{ minWidth: "40px" }}>{icon}</ListItemIcon>
-      <ListItemText
-        primary={primary}
-        primaryTypographyProps={{
-          fontSize: "0.9rem",
-          fontWeight: 500,
+            location.pathname === to
+              ? themeMode === "light"
+                ? "rgba(0, 0, 0, 0.08)"
+                : "rgba(255, 255, 255, 0.12)"
+              : "transparent",
+          "&:hover": {
+            backgroundColor:
+              themeMode === "light"
+                ? "rgba(0, 0, 0, 0.04)"
+                : "rgba(255, 255, 255, 0.08)",
+          },
         }}
-      />
-    </ListItem>
-  );
+      >
+        <ListItemIcon
+          sx={{
+            minWidth: "40px",
+            color: itemColor + " !important",
+          }}
+        >
+          {icon}
+        </ListItemIcon>
+        <ListItemText
+          primary={primary}
+          primaryTypographyProps={{
+            fontSize: "0.9rem",
+            fontWeight: location.pathname === to ? 600 : 500,
+            color: itemColor + " !important",
+          }}
+        />
+      </ListItem>
+    );
+  };
 
   return (
     <>
@@ -149,14 +162,14 @@ function Sidebar() {
             },
           }}
         >
-          <MenuIcon />
+          <MenuIcon sx={{ color: colors.darkGreen }} />
         </IconButton>
       </Tooltip>
 
       <Drawer
         anchor="left"
         open={open}
-        variant="persistent" // Changed to persistent to make content accessible
+        variant="persistent"
         sx={{
           "& .MuiDrawer-paper": {
             width: 280,
@@ -167,8 +180,31 @@ function Sidebar() {
               themeMode === "light"
                 ? "linear-gradient(to bottom, #ffffff, #f8f9fa)"
                 : "linear-gradient(to bottom, #121212, #1e1e1e)",
-            position: "fixed", // Ensure it doesn't affect layout
-            zIndex: 1100, // Lower than menu button but above content
+            position: "fixed",
+            zIndex: 1100,
+            overflowY: "auto",
+            "&::-webkit-scrollbar": {
+              width: "8px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background:
+                themeMode === "light" ? "#f1f1f1" : "rgba(255, 255, 255, 0.1)",
+              borderRadius: "4px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: colors.darkGreen,
+              borderRadius: "4px",
+              "&:hover": {
+                background: colors.lightGreen,
+              },
+            },
+            "&::-webkit-scrollbar-button": {
+              display: "none",
+            },
+            scrollbarWidth: "thin",
+            scrollbarColor: `${colors.darkGreen} ${
+              themeMode === "light" ? "#f1f1f1" : "rgba(255, 255, 255, 0.1)"
+            }`,
           },
         }}
       >
@@ -183,18 +219,22 @@ function Sidebar() {
             }`,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1, width: "100%", justifyContent: "space-between" }}>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <MedicationIcon
-                sx={{ fontSize: 28, mr: 1, color: getRoleColor() }}
-              />
-              <Typography variant="h5" fontWeight="bold">
-                FarmaTech
-              </Typography>
-            </Box>
-            <IconButton onClick={closeDrawer} aria-label="close sidebar">
-              <CloseIcon />
-            </IconButton>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              mb: 1,
+              width: "100%",
+              justifyContent: "center",
+            }}
+          >
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              sx={{ color: colors.darkGreen }}
+            >
+              FarmaTech
+            </Typography>
           </Box>
 
           {user && (
@@ -210,16 +250,24 @@ function Sidebar() {
                 {getInitial()}
               </Avatar>
               <Box>
-                <Typography variant="body1" fontWeight="medium">
+                <Typography
+                  variant="body1"
+                  fontWeight="medium"
+                  sx={{
+                    color:
+                      themeMode === "light" ? colors.lightBlack : colors.white,
+                  }}
+                >
                   {user.username}
                 </Typography>
                 <Typography
                   variant="body2"
-                  color="text.secondary"
                   sx={{
                     display: "flex",
                     alignItems: "center",
                     fontSize: "0.75rem",
+                    color:
+                      themeMode === "light" ? colors.lightBlack : colors.white,
                   }}
                 >
                   <Box
@@ -256,32 +304,37 @@ function Sidebar() {
               },
             }}
           >
-            <ListItemIcon sx={{ minWidth: "40px" }}>
-              {themeMode === "light" ? (
-                <Brightness4Icon />
-              ) : (
-                <Brightness7Icon />
-              )}
+            <ListItemIcon
+              sx={{
+                minWidth: "40px",
+                color: themeMode === "light" ? colors.lightBlack : colors.white,
+              }}
+            >
+              {themeMode === "light" ? <Brightness4Icon /> : <Brightness7Icon />}
             </ListItemIcon>
             <ListItemText
               primary={themeMode === "light" ? "Dark Mode" : "Light Mode"}
-              primaryTypographyProps={{ fontWeight: 500 }}
+              primaryTypographyProps={{
+                fontWeight: 500,
+                color: themeMode === "light" ? colors.lightBlack : colors.white,
+              }}
             />
           </ListItem>
 
           <ListItem
             button
             component={Link}
-            to="/dashboard"
+            to={user?.role === "regulator" ? "/regulator" : "/dashboard"}
             sx={{
               borderRadius: "0 20px 20px 0",
               mx: 1,
               my: 0.5,
               backgroundColor:
-                window.location.pathname === "/dashboard"
+                location.pathname ===
+                (user?.role === "regulator" ? "/regulator" : "/dashboard")
                   ? themeMode === "light"
-                    ? "rgba(0, 0, 0, 0.04)"
-                    : "rgba(255, 255, 255, 0.08)"
+                    ? "rgba(0, 0, 0, 0.08)"
+                    : "rgba(255, 255, 255, 0.12)"
                   : "transparent",
               "&:hover": {
                 backgroundColor:
@@ -291,12 +344,36 @@ function Sidebar() {
               },
             }}
           >
-            <ListItemIcon sx={{ minWidth: "40px" }}>
+            <ListItemIcon
+              sx={{
+                minWidth: "40px",
+                color:
+                  location.pathname ===
+                  (user?.role === "regulator" ? "/regulator" : "/dashboard")
+                    ? colors.darkGreen
+                    : themeMode === "light"
+                    ? colors.lightBlack
+                    : colors.white,
+              }}
+            >
               <DashboardIcon />
             </ListItemIcon>
             <ListItemText
               primary="Dashboard"
-              primaryTypographyProps={{ fontWeight: 600 }}
+              primaryTypographyProps={{
+                fontWeight:
+                  location.pathname ===
+                  (user?.role === "regulator" ? "/regulator" : "/dashboard")
+                    ? 600
+                    : 500,
+                color:
+                  location.pathname ===
+                  (user?.role === "regulator" ? "/regulator" : "/dashboard")
+                    ? colors.darkGreen
+                    : themeMode === "light"
+                    ? colors.lightBlack
+                    : colors.white,
+              }}
             />
           </ListItem>
 
@@ -307,8 +384,7 @@ function Sidebar() {
               <ListSubheader
                 sx={{
                   bgcolor: "transparent",
-                  color:
-                    themeMode === "light" ? "text.secondary" : "text.primary",
+                  color: colors.darkGreen,
                   fontSize: "0.75rem",
                   letterSpacing: "0.5px",
                   fontWeight: 700,
@@ -317,54 +393,68 @@ function Sidebar() {
               >
                 MANUFACTURER
               </ListSubheader>
-              <ListItem
-                button
-                onClick={() => toggleSection("manufacturer")}
+              <RoleListItem
+                to="/manufacturer/register"
+                icon={<MedicationIcon />}
+                primary="Register Medicine"
+              />
+              <RoleListItem
+                to="/manufacturer/view"
+                icon={<ListAltIcon />}
+                primary="View Medicines"
+              />
+              <RoleListItem
+                to="/scan-medicine"
+                icon={<QrCodeScannerIcon />}
+                primary="Scan QR Code"
+              />
+              <RoleListItem
+                to="/manufacturer/delivery-history"
+                icon={<HistoryIcon />}
+                primary="Delivery History"
+              />
+            </>
+          )}
+
+          {user?.role === "manufacturer" && (
+            <>
+              <ListSubheader
                 sx={{
-                  borderRadius: "0 20px 20px 0",
-                  mx: 1,
-                  my: 0.5,
-                  "&:hover": {
-                    backgroundColor:
-                      themeMode === "light"
-                        ? "rgba(0, 0, 0, 0.04)"
-                        : "rgba(255, 255, 255, 0.08)",
-                  },
+                  bgcolor: "transparent",
+                  color: colors.darkGreen,
+                  fontSize: "0.75rem",
+                  letterSpacing: "0.5px",
+                  fontWeight: 700,
+                  lineHeight: "1.5rem",
                 }}
               >
-                <ListItemIcon sx={{ minWidth: "40px" }}>
-                  <BusinessIcon sx={{ color: "#4caf50" }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Manufacturer"
-                  primaryTypographyProps={{ fontWeight: 600 }}
-                />
-                {sections.manufacturer ? <ExpandLess /> : <ExpandMore />}
-              </ListItem>
-              <Collapse in={sections.manufacturer} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  <NestedListItem
-                    to="/manufacturer/register"
-                    icon={<AddCircleIcon color="success" />}
-                    primary="Register New Medicine"
-                  />
-                  <NestedListItem
-                    to="/manufacturer/view"
-                    icon={<ListAltIcon />}
-                    primary="View Registered Medicines"
-                  />
-                  <NestedListItem
-                    to="/manufacturer/register-distributor"
-                    icon={<PersonAddIcon color="success" />}
-                    primary="Register Distributor"
-                  />
-                  <NestedListItem
-                    to="/manufacturer/manage-distributors"
-                    icon={<PeopleIcon />}
-                    primary="Manage Distributors"
-                  />
-                </List>
-              </Collapse>
+                MANAGE
+              </ListSubheader>
+              <RoleListItem
+                to="/manufacturer/assign-distributors"
+                icon={<AssignmentIcon />}
+                primary="Assign Distributors"
+              />
+              <RoleListItem
+                to="/manufacturer/register-distributor"
+                icon={<PersonAddIcon />}
+                primary="Register Distributor"
+              />
+              <RoleListItem
+                to="/manufacturer/manage-distributors"
+                icon={<PeopleIcon />}
+                primary="Manage Distributors"
+              />
+              <RoleListItem
+                to="/manufacturer/register-regulator"
+                icon={<PersonAddIcon />}
+                primary="Register Regulator"
+              />
+              <RoleListItem
+                to="/manufacturer/manage-regulators"
+                icon={<GavelIcon />}
+                primary="Manage Regulators"
+              />
             </>
           )}
 
@@ -373,8 +463,7 @@ function Sidebar() {
               <ListSubheader
                 sx={{
                   bgcolor: "transparent",
-                  color:
-                    themeMode === "light" ? "text.secondary" : "text.primary",
+                  color: colors.darkGreen,
                   fontSize: "0.75rem",
                   letterSpacing: "0.5px",
                   fontWeight: 700,
@@ -383,49 +472,16 @@ function Sidebar() {
               >
                 DISTRIBUTOR
               </ListSubheader>
-              <ListItem
-                button
-                onClick={() => toggleSection("distributor")}
-                sx={{
-                  borderRadius: "0 20px 20px 0",
-                  mx: 1,
-                  my: 0.5,
-                  "&:hover": {
-                    backgroundColor:
-                      themeMode === "light"
-                        ? "rgba(0, 0, 0, 0.04)"
-                        : "rgba(255, 255, 255, 0.08)",
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: "40px" }}>
-                  <LocalShippingIcon sx={{ color: "#2196f3" }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Distributor"
-                  primaryTypographyProps={{ fontWeight: 600 }}
-                />
-                {sections.distributor ? <ExpandLess /> : <ExpandMore />}
-              </ListItem>
-              <Collapse in={sections.distributor} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  <NestedListItem
-                    to="/distributor/scan"
-                    icon={<QrCodeScannerIcon color="info" />}
-                    primary="Scan QR Code"
-                  />
-                  <NestedListItem
-                    to="/distributor/inventory"
-                    icon={<ListAltIcon />}
-                    primary="Medicines in Inventory"
-                  />
-                  <NestedListItem
-                    to="/distributor/contact-order"
-                    icon={<ContactMailIcon />}
-                    primary="Contact & Order"
-                  />
-                </List>
-              </Collapse>
+              <RoleListItem
+                to="/distributor/scan"
+                icon={<QrCodeScannerIcon />}
+                primary="Scan Medicines"
+              />
+              <RoleListItem
+                to="/distributor/inventory"
+                icon={<MedicationIcon />}
+                primary="Delivery Inventory"
+              />
             </>
           )}
 
@@ -434,8 +490,7 @@ function Sidebar() {
               <ListSubheader
                 sx={{
                   bgcolor: "transparent",
-                  color:
-                    themeMode === "light" ? "text.secondary" : "text.primary",
+                  color: colors.darkGreen,
                   fontSize: "0.75rem",
                   letterSpacing: "0.5px",
                   fontWeight: 700,
@@ -444,54 +499,16 @@ function Sidebar() {
               >
                 REGULATOR
               </ListSubheader>
-              <ListItem
-                button
-                onClick={() => toggleSection("regulator")}
-                sx={{
-                  borderRadius: "0 20px 20px 0",
-                  mx: 1,
-                  my: 0.5,
-                  "&:hover": {
-                    backgroundColor:
-                      themeMode === "light"
-                        ? "rgba(0, 0, 0, 0.04)"
-                        : "rgba(255, 255, 255, 0.08)",
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: "40px" }}>
-                  <GavelIcon sx={{ color: "#ff9800" }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Regulator"
-                  primaryTypographyProps={{ fontWeight: 600 }}
-                />
-                {sections.regulator ? <ExpandLess /> : <ExpandMore />}
-              </ListItem>
-              <Collapse in={sections.regulator} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  <NestedListItem
-                    to="/regulator/scan"
-                    icon={<QrCodeScannerIcon color="warning" />}
-                    primary="Scan QR Code"
-                  />
-                  <NestedListItem
-                    to="/regulator/inventory"
-                    icon={<ListAltIcon />}
-                    primary="Medicines in Inventory"
-                  />
-                  <NestedListItem
-                    to="/regulator/contact-order"
-                    icon={<AddCircleIcon />}
-                    primary="Contact & Order"
-                  />
-                  <NestedListItem
-                    to="/regulator/register-order"
-                    icon={<AddCircleIcon />}
-                    primary="Register Order"
-                  />
-                </List>
-              </Collapse>
+              <RoleListItem
+                to="/regulator/scan"
+                icon={<QrCodeScannerIcon />}
+                primary="Scan Medicines"
+              />
+              <RoleListItem
+                to="/regulator/inventory"
+                icon={<MedicationIcon />}
+                primary="Inventory"
+              />
             </>
           )}
 
@@ -500,8 +517,7 @@ function Sidebar() {
               <ListSubheader
                 sx={{
                   bgcolor: "transparent",
-                  color:
-                    themeMode === "light" ? "text.secondary" : "text.primary",
+                  color: colors.darkGreen,
                   fontSize: "0.75rem",
                   letterSpacing: "0.5px",
                   fontWeight: 700,
@@ -510,39 +526,11 @@ function Sidebar() {
               >
                 END USER
               </ListSubheader>
-              <ListItem
-                button
-                onClick={() => toggleSection("endUser")}
-                sx={{
-                  borderRadius: "0 20px 20px 0",
-                  mx: 1,
-                  my: 0.5,
-                  "&:hover": {
-                    backgroundColor:
-                      themeMode === "light"
-                        ? "rgba(0, 0, 0, 0.04)"
-                        : "rgba(255, 255, 255, 0.08)",
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: "40px" }}>
-                  <PersonIcon sx={{ color: "#9c27b0" }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary="End User"
-                  primaryTypographyProps={{ fontWeight: 600 }}
-                />
-                {sections.endUser ? <ExpandLess /> : <ExpandMore />}
-              </ListItem>
-              <Collapse in={sections.endUser} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  <NestedListItem
-                    to="/enduser"
-                    icon={<PersonIcon color="secondary" />}
-                    primary="Dashboard"
-                  />
-                </List>
-              </Collapse>
+              <RoleListItem
+                to="/enduser"
+                icon={<PersonIcon />}
+                primary="Dashboard"
+              />
             </>
           )}
 
@@ -550,93 +538,64 @@ function Sidebar() {
           <ListSubheader
             sx={{
               bgcolor: "transparent",
-              color: themeMode === "light" ? "text.secondary" : "text.primary",
+              color: colors.darkGreen,
               fontSize: "0.75rem",
               letterSpacing: "0.5px",
               fontWeight: 700,
               lineHeight: "1.5rem",
             }}
           >
-            ASSETS & SYSTEM
+            CONTACT
           </ListSubheader>
 
-          <ListItem
-            button
-            component={Link}
-            to="/assets"
-            sx={{
-              borderRadius: "0 20px 20px 0",
-              mx: 1,
-              my: 0.5,
-              "&:hover": {
-                backgroundColor:
-                  themeMode === "light"
-                    ? "rgba(0, 0, 0, 0.04)"
-                    : "rgba(255, 255, 255, 0.08)",
-              },
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: "40px" }}>
-              <ListAltIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary="Assets"
-              primaryTypographyProps={{ fontWeight: 500 }}
-            />
-          </ListItem>
-
           {user?.role === "manufacturer" && (
-            <ListItem
-              button
-              component={Link}
-              to="/create-asset"
-              sx={{
-                borderRadius: "0 20px 20px 0",
-                mx: 1,
-                my: 0.5,
-                "&:hover": {
-                  backgroundColor:
-                    themeMode === "light"
-                      ? "rgba(0, 0, 0, 0.04)"
-                      : "rgba(255, 255, 255, 0.08)",
-                },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: "40px" }}>
-                <AddCircleIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Create Asset"
-                primaryTypographyProps={{ fontWeight: 500 }}
+            <>
+              <RoleListItem
+                to="/manufacturer/notifications"
+                icon={<NotificationsIcon />}
+                primary="Notifications"
               />
-            </ListItem>
+              <RoleListItem
+                to="/manufacturer/send-message"
+                icon={<SendIcon />}
+                primary="Send Message"
+              />
+            </>
           )}
 
-          {(user?.role === "manufacturer" || user?.role === "regulator") && (
-            <ListItem
-              button
-              component={Link}
-              to="/init-ledger"
-              sx={{
-                borderRadius: "0 20px 20px 0",
-                mx: 1,
-                my: 0.5,
-                "&:hover": {
-                  backgroundColor:
-                    themeMode === "light"
-                      ? "rgba(0, 0, 0, 0.04)"
-                      : "rgba(255, 255, 255, 0.08)",
-                },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: "40px" }}>
-                <StorageIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Init Ledger"
-                primaryTypographyProps={{ fontWeight: 500 }}
+          {user?.role === "distributor" && (
+            <>
+              <RoleListItem
+                to="/distributor/contact-order"
+                icon={<EmailIcon />}
+                primary="Contact Manufacturer"
               />
-            </ListItem>
+              <RoleListItem
+                to="/distributor/notifications"
+                icon={<NotificationsIcon />}
+                primary="Notifications"
+              />
+              <RoleListItem
+                to="/distributor/send-message"
+                icon={<SendIcon />}
+                primary="Send Message"
+              />
+            </>
+          )}
+
+          {user?.role === "regulator" && (
+            <>
+              <RoleListItem
+                to="/regulator/notifications"
+                icon={<NotificationsIcon />}
+                primary="Notifications"
+              />
+              <RoleListItem
+                to="/regulator/send-message"
+                icon={<SendIcon />}
+                primary="Send Message"
+              />
+            </>
           )}
         </List>
 

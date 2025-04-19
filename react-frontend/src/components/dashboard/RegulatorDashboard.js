@@ -5,7 +5,8 @@ import { useAuth } from "../../context/AuthContext";
 import NotificationForm from "./NotificationForm";
 import Notifications from "./Notifications";
 import ScanQRCode from "./ScanQRCode";
-import RegulatorInventory from "./RegulatorInventory"; // Updated import
+import RegulatorInventory from "./RegulatorInventory";
+import Sidebar from "../sidebar"; // Import the Sidebar component
 import {
   Box,
   Button,
@@ -17,21 +18,19 @@ import {
   Container,
   useTheme,
   alpha,
-  IconButton,
 } from "@mui/material";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import MedicationIcon from "@mui/icons-material/Medication";
 import EmailIcon from "@mui/icons-material/Email";
 import NotificationBell from "../common/NotificationBell";
-import MenuIcon from "@mui/icons-material/Menu";
 
 const RegulatorDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
+  const [sidebarOpen, setSidebarOpen] = useState(false); // State to control sidebar
 
-  // Color palette from ManufacturerDashboard
   const colors = {
     darkGreen: "#169976",
     lightGreen: "#1DCD9F",
@@ -48,28 +47,21 @@ const RegulatorDashboard = () => {
     success: isDarkMode ? "#169976" : "#1DCD9F",
   };
 
-
-
   useEffect(() => {
     if (!user || user.role !== "regulator") {
       navigate("/unauthorized");
     }
   }, [user, navigate]);
 
-
-
-  // Navigation items for Sidebar
-  const navItems = [
-    { text: "Scan Medicines", icon: <QrCodeScannerIcon />, path: "/regulator/scan" },
-    { text: "Inventory", icon: <MedicationIcon />, path: "/regulator/inventory" },
-    { text: "Notifications", icon: <EmailIcon />, path: "/regulator/notifications" },
-    { text: "Send Message", icon: <EmailIcon />, path: "/regulator/send-message" },
-  ];
+  // Toggle sidebar visibility
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   // Card styles
   const cardStyle = {
     width: "300px",
-    height: "160px", // Compact height from previous task
+    height: "160px",
     borderRadius: "12px",
     boxShadow: `0 2px 8px ${alpha(colors.darkBlack, 0.08)}`,
     transition: "transform 0.3s ease, box-shadow 0.3s ease",
@@ -137,19 +129,21 @@ const RegulatorDashboard = () => {
 
   // Main content styles
   const mainContentStyle = {
-    
+    marginLeft: sidebarOpen ? "280px" : "0", // Adjust margin based on sidebar state
     transition: theme.transitions.create("margin-left", {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.standard,
     }),
     backgroundColor: colors.background,
     minHeight: "100vh",
+    width: sidebarOpen ? "calc(100% - 280px)" : "100%", // Adjust width
   };
 
   return (
     <Box sx={{ display: "flex" }}>
-      
-      
+      {/* Sidebar */}
+      <Sidebar />
+
       {/* Main Content */}
       <Box component="main" sx={mainContentStyle}>
         <Container maxWidth="lg">
@@ -164,7 +158,6 @@ const RegulatorDashboard = () => {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              
               <Typography
                 variant="h4"
                 component="h1"
@@ -246,7 +239,7 @@ const RegulatorDashboard = () => {
               }
             />
             <Route path="scan" element={<ScanQRCode />} />
-            <Route path="inventory" element={<RegulatorInventory />} /> {/* Updated */}
+            <Route path="inventory" element={<RegulatorInventory />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="send-message" element={<NotificationForm />} />
           </Routes>

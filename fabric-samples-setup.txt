@@ -1,0 +1,41 @@
+// Clone fabric-samples
+
+git clone https://github.com/hyperledger/fabric-samples.git
+
+// Download and Execute the Installation Script (install-fabric.sh)
+
+curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
+
+// Install docker images
+
+./install-fabric.sh docker binary samples
+
+// Install the Fabric SDK
+
+npm install fabric-network fabric-ca-client
+
+// Create wallet ID's before deploying chaincode
+// Deploy Chaincode
+
+// Create Channel
+
+./network.sh up createChannel -ca -s couchdb
+
+//Custom chaincode deployment
+
+./network.sh deployCC -ccn medicine-contract -ccp ../chaincode/medicine-contract/ -ccl javascript
+
+// Default chaincode deployment
+
+./network.sh deployCC -ccn basic -ccl javascript -ccp ../asset-transfer-basic/chaincode-javascript
+
+// START MONGO
+
+sudo systemctl start mongod
+sudo systemctl status mongod
+
+farmatech20
+FarmaFarma123
+
+
+6#bsCUt4?M

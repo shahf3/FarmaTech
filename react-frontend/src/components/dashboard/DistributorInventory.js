@@ -38,6 +38,7 @@ import UpdateIcon from "@mui/icons-material/Update";
 import WarningIcon from "@mui/icons-material/Warning";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { AlertTitle } from "@mui/material";
 
 const API_URL = "http://localhost:3000/api";
@@ -280,6 +281,10 @@ const DistributorInventory = () => {
     setAnchorEl(null);
   };
 
+  const handleGoToDashboard = () => {
+    navigate("/dashboard");
+  };
+
   const handleOpenUpdateDialog = () => {
     handleMenuClose();
     setUpdateForm({
@@ -514,6 +519,23 @@ const DistributorInventory = () => {
 
   return (
     <div className="distributor-inventory">
+      {/* Back to Dashboard Button */}
+      <Box sx={{ mb: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<ArrowBackIcon />}
+          onClick={handleGoToDashboard}
+          sx={{
+            backgroundColor: "#4caf50",
+            "&:hover": {
+              backgroundColor: "#388e3c",
+            },
+          }}
+        >
+          Back to Dashboard
+        </Button>
+      </Box>
+
       <InventoryContainer>
         <Typography variant="h5" component="h1" gutterBottom>
           Medicine Delivery Inventory

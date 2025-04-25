@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import ScanQRCode from "./ScanQRCode";
 import DistributorInventory from "./DistributorInventory";
 import ContactAndOrder from "./ContactAndOrder";
+import DeliveryHistory from "./DeliveryHistory";
 import { Html5Qrcode } from "html5-qrcode";
 import axios from "axios";
 import NotificationBell from "../common/NotificationBell";
@@ -780,7 +781,7 @@ const DistributorDashboard = () => {
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
                             <DashboardCard
-                              title="Delivery Inventory"
+                              title="Distributor Inventory"
                               icon={<MedicationIcon />}
                               buttonText="View Inventory"
                               onClick={() => navigate("/distributor/inventory")}
@@ -791,7 +792,7 @@ const DistributorDashboard = () => {
                               title="Delivery History"
                               icon={<HistoryIcon />}
                               buttonText="View History"
-                              onClick={() => navigate("/distributor/inventory")}
+                              onClick={() => navigate("/distributor/history")}
                             />
                           </Grid>
                         </Grid>
@@ -867,6 +868,7 @@ const DistributorDashboard = () => {
             />
             <Route path="scan" element={<ScanQRCode />} />
             <Route path="inventory" element={<DistributorInventory />} />
+            <Route path="history" element={<DeliveryHistory />} />
             <Route path="contact-order" element={<ContactAndOrder />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="send-message" element={<NotificationForm />} />

@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blockchain Test Results Summary</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f7fa;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      margin-top: 0;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+    }
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+    a {
+      color: #3498db;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .success-rate {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .high {
+      background-color: #e6f7e9;
+      color: #27ae60;
+    }
+    .medium {
+      background-color: #fcf7e6;
+      color: #f39c12;
+    }
+    .low {
+      background-color: #f9e6e6;
+      color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Blockchain Test Results Summary</h1>
+    
+    <p>Generated on 4/21/2025, 5:38:44 AM</p>
+    
+    <table>
+      <tr>
+        <th>Test Name</th>
+        <th>Date</th>
+        <th>TPS</th>
+        <th>Avg Latency</th>
+        <th>Success Rate</th>
+        <th>Report</th>
+      </tr>
+      
+      <tr>
+        <td>Mixed Workload Test</td>
+        <td>4/21/2025, 5:38:17 AM</td>
+        <td>25.62</td>
+        <td>656.25 ms</td>
+        <td><span class="success-rate high">100.00%</span></td>
+        <td><a href="report-latest-mixed-workload-test.html" target="_blank">View Report</a></td>
+      </tr>
+      
+      <tr>
+        <td>Mixed Workload Test</td>
+        <td>4/21/2025, 5:38:17 AM</td>
+        <td>25.62</td>
+        <td>656.25 ms</td>
+        <td><span class="success-rate high">100.00%</span></td>
+        <td><a href="report-test-results-mixed-workload-test-2025-04-21T12-38-24.996Z.html" target="_blank">View Report</a></td>
+      </tr>
+      
+      <tr>
+        <td>Endurance Test</td>
+        <td>4/20/2025, 3:43:43 PM</td>
+        <td>33.63</td>
+        <td>78.97 ms</td>
+        <td><span class="success-rate high">99.31%</span></td>
+        <td><a href="report-latest-endurance-test.html" target="_blank">View Report</a></td>
+      </tr>
+      
+      <tr>
+        <td>Endurance Test</td>
+        <td>4/20/2025, 3:43:43 PM</td>
+        <td>33.63</td>
+        <td>78.97 ms</td>
+        <td><span class="success-rate high">99.31%</span></td>
+        <td><a href="report-test-results-endurance-test-2025-04-20T22-44-43.864Z.html" target="_blank">View Report</a></td>
+      </tr>
+      
+      <tr>
+        <td>Mixed Workload Test</td>
+        <td>4/20/2025, 3:39:48 PM</td>
+        <td>16.59</td>
+        <td>985.88 ms</td>
+        <td><span class="success-rate high">100.00%</span></td>
+        <td><a href="report-test-results-mixed-workload-test-2025-04-20T22-40-00.140Z.html" target="_blank">View Report</a></td>
+      </tr>
+      
+      <tr>
+        <td>Mixed Workload Test</td>
+        <td>4/20/2025, 3:27:04 PM</td>
+        <td>27.36</td>
+        <td>367.76 ms</td>
+        <td><span class="success-rate high">100.00%</span></td>
+        <td><a href="report-test-results-mixed-workload-test-2025-04-20T22-27-09.571Z.html" target="_blank">View Report</a></td>
+      </tr>
+      
+      <tr>
+        <td>Mixed Workload Test</td>
+        <td>4/20/2025, 3:10:56 PM</td>
+        <td>18.22</td>
+        <td>193.41 ms</td>
+        <td><span class="success-rate high">98.75%</span></td>
+        <td><a href="report-test-results-mixed-workload-test-2025-04-20T22-11-00.360Z.html" target="_blank">View Report</a></td>
+      </tr>
+      
+    </table>
+    
+    <h2>Performance Comparison</h2>
+    <div class="chart-container" style="height: 400px; margin: 30px 0;">
+      <canvas id="comparisonChart"></canvas>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Create comparison chart
+    const testNames = ["Mixed Workload Test","Mixed Workload Test","Endurance Test","Endurance Test","Mixed Workload Test","Mixed Workload Test","Mixed Workload Test"];
+    const tpsValues = [25.624599615631006,25.624599615631006,33.625317886408595,33.625317886408595,16.58512314453935,27.362276541408246,18.215356237030207];
+    const latencyValues = [656.25,656.25,78.96885813148789,78.96885813148789,985.885,367.76,193.40506329113924];
+    
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: testNames,
+        datasets: [
+          {
+            label: 'Transactions Per Second',
+            data: tpsValues,
+            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+            borderColor: 'rgba(52, 152, 219, 1)',
+            borderWidth: 1,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Average Latency (ms)',
+            data: latencyValues,
+            backgroundColor: 'rgba(231, 76, 60, 0.7)',
+            borderColor: 'rgba(231, 76, 60, 1)',
+            borderWidth: 1,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'TPS'
+            },
+            beginAtZero: true
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Latency (ms)'
+            },
+            beginAtZero: true,
+            grid: {
+              drawOnChartArea: false
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

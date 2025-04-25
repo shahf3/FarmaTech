@@ -129,16 +129,6 @@ const MedicineRoutes = () => {
         }
       />
 
-      {/*<Route
-        path="/update-medicine/:id"
-        element={
-          <RoleRoute
-            element={<UpdateMedicineStatus />}
-            allowedRoles={["manufacturer", "distributor", "regulator"]}
-          />
-        }
-      />*/}
-
       <Route
         path="/flag-medicine/:id"
         element={

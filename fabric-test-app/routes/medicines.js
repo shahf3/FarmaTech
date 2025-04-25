@@ -551,31 +551,6 @@ router.post(
       await gateway.disconnect();
       const updatedMedicine = JSON.parse(result.toString());
 
-      // Note: Notification logic requires User model and axios, which may not be available
-      // Commenting out for now; uncomment and adjust if needed
-      /*
-      for (const distributorOrg of distributors) {
-        try {
-          const distributor = await User.findOne({ organization: distributorOrg, role: 'distributor' });
-          if (distributor) {
-            await axios.post(
-              `${req.protocol}://${req.get('host')}/api/notifications`,
-              {
-                recipientId: distributor._id,
-                subject: `New Delivery Assignment: ${medicine.name}`,
-                message: `You have been assigned to deliver medicine ${medicine.name} (ID: ${medicine.id}, Batch: ${medicine.batchNumber}) by ${req.user.organization}. Please check your inventory for details.`,
-                relatedTo: 'Medicine',
-                medicineId: medicine.id
-              },
-              { headers: { Authorization: `Bearer ${req.headers.authorization}` } }
-            );
-          }
-        } catch (notificationErr) {
-          console.error(`Error sending notification to ${distributorOrg}:`, notificationErr);
-        }
-      }
-      */
-
       res.json({
         success: true,
         message: `Distributors assigned to medicine ${id} successfully`,

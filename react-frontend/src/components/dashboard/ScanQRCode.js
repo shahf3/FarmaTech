@@ -108,7 +108,7 @@ const ScanQRCode = () => {
     });
 
     return () => {
-      clearTimeout(timer);
+      // clearTimeout(timer); // Removed as 'timer' is not defined
       if (scannerRef.current) {
         try {
           scannerRef.current.clear();
@@ -313,13 +313,7 @@ const ScanQRCode = () => {
       let isSecureQR = false;
       let response;
 
-      // Try to parse as JSON to check if it's a secure QR code
-      try {
-        JSON.parse(codeToVerify);
-        isSecureQR = true;
-      } catch (e) {
-        isSecureQR = false;
-      }
+      
 
       if (isSecureQR) {
         response = await axios.post(

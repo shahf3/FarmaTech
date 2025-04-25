@@ -6,9 +6,6 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const nodemailer = require('nodemailer');
 
-//contact and order
-
-
 const transporter = nodemailer.createTransport({
   host: "sandbox.smtp.mailtrap.io",
   port: 2525,
@@ -44,9 +41,7 @@ router.post(
       if (!sender || !recipient) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
-      // Check permissions: Manufacturers can contact distributors they've registered, 
-      // Distributors can contact manufacturers who registered them
+  
       let authorized = false;
 
 if (sender.role === 'manufacturer' && recipient.role === 'distributor') {
@@ -84,7 +79,6 @@ if (!authorized) {
       
       await notification.save();
       
-      // Send email notification
       try {
         const mailOptions = {
           from: 'notifications@farmatech.com',
@@ -136,9 +130,6 @@ if (!authorized) {
 // @route   GET api/notifications
 // @desc    Get all notifications for the current user
 // @access  Private
-// @route   GET api/notifications
-// @desc    Get all notifications for the current user
-// @access  Private
 router.get('/', verifyToken, async (req, res) => {
   console.log(`${new Date().toISOString()} - GET /api/notifications - User ID: ${req.user.id}`);
   try {
@@ -147,7 +138,7 @@ router.get('/', verifyToken, async (req, res) => {
       isArchived: false 
     })
     .sort({ createdAt: -1 })
-    .populate('sender', 'username organization'); // Ensure 'sender' matches the ref in Notification schema
+    .populate('sender', 'username organization');
 
     console.log(`Notifications fetched: ${notifications.length} found`);
     res.json(notifications);

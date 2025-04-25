@@ -14,8 +14,6 @@ curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/ins
 
 npm install fabric-network fabric-ca-client
 
-// Create wallet ID's before deploying chaincode
-// Deploy Chaincode
 
 // Create Channel
 

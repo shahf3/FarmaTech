@@ -53,7 +53,7 @@ function Sidebar() {
 
   const handleLogout = () => {
     logout();
-    navigate("");
+    window.location.href = "http://localhost:3001/"; // Changed to redirect to homepage
     setOpen(false);
   };
 
@@ -183,6 +183,7 @@ function Sidebar() {
             position: "fixed",
             zIndex: 1100,
             overflowY: "auto",
+            overflowX: "hidden", // Prevent horizontal scrollbar
             "&::-webkit-scrollbar": {
               width: "8px",
             },
@@ -199,7 +200,7 @@ function Sidebar() {
               },
             },
             "&::-webkit-scrollbar-button": {
-              display: "none",
+              display: "none", // Hide scrollbar arrows
             },
             scrollbarWidth: "thin",
             scrollbarColor: `${colors.darkGreen} ${

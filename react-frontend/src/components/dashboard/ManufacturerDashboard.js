@@ -52,13 +52,12 @@ const ManufacturerDashboard = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
 
-
   const colors = {
     darkGreen: "#169976",
     lightGreen: "#1DCD9F",
     lightBlack: "#222222",
     darkBlack: "#000000",
-    background: isDarkMode ? "#1a1a1a" : "#ffffff",
+    background: isDarkMode ? "#000000" : "#ffffff",
     cardBackground: isDarkMode ? "#2a2a2a" : "#ffffff",
     textPrimary: isDarkMode ? "#ffffff" : "#222222",
     textSecondary: isDarkMode ? "#cccccc" : "#666666",
@@ -150,7 +149,6 @@ const ManufacturerDashboard = () => {
       [section]: !prev[section],
     }));
   };
-
 
   const cardStyle = {
     width: "300px",
@@ -428,9 +426,32 @@ const ManufacturerDashboard = () => {
   };
 
   return (
-    <div className="dashboard-container" style={{ backgroundColor: colors.background }}>
-      <main className="dashboard-main">
-        <Container maxWidth="lg">
+    <div
+      className="dashboard-container"
+      style={{
+        backgroundColor: colors.background,
+        minHeight: "100vh", // Ensure it covers the full viewport height
+        margin: 0, // Remove any margins
+        padding: 0, // Remove any padding
+        width: "100%", // Ensure it covers the full width
+      }}
+    >
+      <main
+        className="dashboard-main"
+        style={{
+          backgroundColor: colors.background,
+          minHeight: "100vh",
+          margin: 0,
+          padding: 0,
+          width: "100%",
+        }}
+      >
+        <Container
+          maxWidth="lg"
+          style={{
+            padding: "0 16px", // Maintain padding for content but ensure no background leaks
+          }}
+        >
           <Box
             className="dashboard-header"
             sx={{

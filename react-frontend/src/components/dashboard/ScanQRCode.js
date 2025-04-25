@@ -34,43 +34,68 @@ const ScanQRCode = () => {
 
   // Effect to initialize and clean up scanner
   useEffect(() => {
-    if (tabValue !== 1) return;
+    if (tabValue !== 1 || !user) return; // Skip if user is not loaded or not on camera tab
+
+    // Log DOM structure for debugging
+    console.log("Scanner container element:", document.getElementById(scannerContainerId));
 
     // Function to handle successful QR code scan
-    const onScanSuccess = (decodedText, decodedResult) => {
-      console.log("QR Code detected:", decodedText);
+    const onScanSuccess = async (decodedText, decodedResult) => {
+      console.log("QR Code detected:", decodedText, "by user role:", user?.role || 'unknown');
       setQrCode(decodedText);
+      
+      // Call handleVerify directly with the decoded text
+      await handleVerify({ preventDefault: () => {}, qrCode: decodedText });
       
       if (scannerRef.current) {
         scannerRef.current.clear();
       }
-      
-      setTimeout(() => handleVerify({ preventDefault: () => {} }), 500);
+    };
+
+    // Function to handle scan errors
+    const onScanError = (errorMessage) => {
+      if (!errorMessage.includes('NotFoundException')) {
+        console.error("QR Scan Error:", errorMessage, "for user role:", user?.role || 'unknown');
+      }
     };
 
     // Configure scanner with simple UI and persistent permission prompt
     const config = {
-      fps: 10,
+      fps: 15,
       qrbox: { width: 200, height: 200 },
       aspectRatio: window.innerWidth > 600 ? 1.7 : 1.0,
-      formatsToSupport: [ "QR_CODE" ],
-      rememberLastUsedCamera: true, 
+      formatsToSupport: ["QR_CODE"],
+      rememberLastUsedCamera: true,
       showTorchButtonIfSupported: true,
       showZoomSliderIfSupported: true,
       defaultZoomValueIfSupported: 1.5,
     };
 
+    // Initialize scanner
     scannerRef.current = new Html5QrcodeScanner(
       scannerContainerId,
       config,
       false
     );
 
-    scannerRef.current.render(onScanSuccess, (errorMessage) => {
-      console.error("QR Scan Error:", errorMessage);
-    });
+    // Delay rendering to ensure DOM is ready
+    const timer = setTimeout(() => {
+      try {
+        scannerRef.current.render(onScanSuccess, onScanError);
+        // Log rendered container for debugging
+        console.log("Rendered scanner container:", document.getElementById(scannerContainerId).innerHTML);
+      } catch (err) {
+        console.error("Scanner initialization failed:", err, "for user role:", user?.role || 'unknown');
+        setScanResult({
+          success: false,
+          message: 'Failed to initialize QR scanner. Please check camera permissions.',
+          type: 'error',
+        });
+      }
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       if (scannerRef.current) {
         try {
           scannerRef.current.clear();
@@ -79,156 +104,9 @@ const ScanQRCode = () => {
         }
       }
     };
-  }, [tabValue]);
+  }, [tabValue, user]);
 
-  const handleQrInputChange = (e) => {
-    setQrCode(e.target.value);
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
-  const handleVerify = async (e) => {
-    e.preventDefault();
-    if (!qrCode) {
-      setScanResult({
-        success: false,
-        message: 'Please enter a QR code',
-        type: 'error',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    setScanResult({
-      success: false,
-      message: 'Verifying QR code...',
-      type: 'info',
-    });
-
-    try {
-      let isSecureQR = false;
-      let response;
-      
-      try {
-        JSON.parse(qrCode);
-        isSecureQR = true;
-      } catch (e) {
-        isSecureQR = false;
-      }
-
-      if (isSecureQR) {
-        response = await axios.post(
-          `${API_URL}/medicines/verify-secure`,
-          { qrContent: qrCode, location: updateForm.location || user.organization },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        setVerifiedMedicine(response.data.medicine);
-      } else {
-        response = await axios.get(`${API_URL}/medicines/verify/${encodeURIComponent(qrCode)}`, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            "X-User-Location": updateForm.location || user.organization
-          },
-        });
-
-        setVerifiedMedicine(response.data);
-      }
-
-      setScanResult({
-        success: true,
-        message: 'Medicine verified successfully!',
-        type: 'success',
-      });
-
-      const medicine = isSecureQR ? response.data.medicine : response.data;
-      setUpdateForm({
-        medicineId: medicine.id,
-        status: '',
-        location: updateForm.location || user.organization,
-        notes: '',
-      });
-    } catch (err) {
-      console.error('Error verifying medicine:', err);
-      setScanResult({
-        success: false,
-        message: err.response?.data?.error || 'Invalid QR code or medicine not found',
-        type: 'error',
-      });
-      setVerifiedMedicine(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpdateInputChange = (e) => {
-    const { name, value } = e.target;
-    setUpdateForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    setSuccessMessage('');
-    setScanResult({ success: false, message: '', type: '' });
-
-    if (!updateForm.medicineId || !updateForm.status || !updateForm.location) {
-      setScanResult({
-        success: false,
-        message: 'Medicine ID, Status, and Location are required',
-        type: 'error',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      await axios.post(
-        `${API_URL}/medicines/${updateForm.medicineId}/update`,
-        {
-          handler: user.organization,
-          status: updateForm.status,
-          location: updateForm.location,
-          notes: updateForm.notes,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setSuccessMessage(`Medicine ${updateForm.medicineId} updated successfully!`);
-
-      setUpdateForm({
-        medicineId: '',
-        status: '',
-        location: '',
-        notes: '',
-      });
-
-      setVerifiedMedicine(null);
-      setQrCode('');
-      setTabValue(0);
-    } catch (err) {
-      console.error('Error updating medicine:', err);
-      setScanResult({
-        success: false,
-        message: err.response?.data?.error || 'Failed to update medicine',
-        type: 'error',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Effect to manage scanner CSS styles
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -238,6 +116,10 @@ const ScanQRCode = () => {
         padding: 0 !important;
         max-width: 500px !important;
         margin: 0 auto !important;
+        min-height: 300px !important;
+        position: relative !important;
+        z-index: 1000 !important; /* Increased to avoid overlap */
+        overflow: visible !important;
       }
       
       /* Adjust video container height based on screen size */
@@ -288,41 +170,72 @@ const ScanQRCode = () => {
       /* Fix for scanner region */
       #qr-scanner-webcam-standalone--container {
         position: relative !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         border-radius: 8px !important;
         border: 1px solid #ddd !important;
+        z-index: 1000 !important; /* Increased to avoid overlap */
       }
       
-      /* IMPORTANT: Remove the black overlay */
+      /* Remove the black overlay */
       #qr-shaded-region {
         display: none !important;
       }
       
-      /* Replace with a more subtle scanning guide */
+      /* Enhanced scanning guide (pseudo-element) */
       #qr-scanner-webcam-standalone--container::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 200px;
-        height: 200px;
-        border: 2px solid #169976;
-        border-radius: 10px;
-        box-shadow: 0 0 0 0 rgba(22, 153, 118, 0.5);
-        animation: pulse 2s infinite;
-        pointer-events: none;
+        content: "" !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 200px !important;
+        height: 200px !important;
+        border: 3px solid #169976 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 0 10px rgba(22, 153, 118, 0.7) !important;
+        animation: pulse 2s infinite !important;
+        pointer-events: none !important;
+        z-index: 1001 !important; /* Above container */
+      }
+      
+      /* Fallback scanning guide for parent container */
+      #qr-scanner::after {
+        content: "" !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 200px !important;
+        height: 200px !important;
+        border: 3px solid #169976 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 0 10px rgba(22, 153, 118, 0.7) !important;
+        animation: pulse 2s infinite !important;
+        pointer-events: none !important;
+        z-index: 1001 !important;
       }
       
       @keyframes pulse {
         0% {
-          box-shadow: 0 0 0 0 rgba(22, 153, 118, 0.5);
+          box-shadow: 0 0 10px rgba(22, 153, 118, 0.7);
         }
         70% {
-          box-shadow: 0 0 0 10px rgba(22, 153, 118, 0);
+          box-shadow: 0 0 20px rgba(22, 153, 118, 0.3);
         }
         100% {
-          box-shadow: 0 0 0 0 rgba(22, 153, 118, 0);
+          box-shadow: 0 0 10px rgba(22, 153, 118, 0.7);
+        }
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 600px) {
+        #qr-scanner-webcam-standalone--container::after,
+        #qr-scanner::after {
+          width: 150px !important;
+          height: 150px !important;
+        }
+        #qr-scanner span, #qr-scanner select, #qr-scanner button {
+          font-size: 14px !important;
         }
       }
       
@@ -349,13 +262,6 @@ const ScanQRCode = () => {
       #html5-qrcode-anchor-scan-type-change {
         display: none !important;
       }
-      
-      /* Responsive font adjustments */
-      @media (max-width: 600px) {
-        #qr-scanner span, #qr-scanner select, #qr-scanner button {
-          font-size: 14px !important;
-        }
-      }
     `;
     document.head.appendChild(style);
     
@@ -363,6 +269,186 @@ const ScanQRCode = () => {
       document.head.removeChild(style);
     };
   }, []);
+
+  const handleQrInputChange = (e) => {
+    setQrCode(e.target.value);
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  const handleVerify = async (e, overrideQrCode = null) => {
+    e.preventDefault();
+    const codeToVerify = overrideQrCode || qrCode;
+    
+    if (!codeToVerify) {
+      setScanResult({
+        success: false,
+        message: 'Please enter a QR code',
+        type: 'error',
+      });
+      return;
+    }
+
+    if (!user || !token) {
+      setScanResult({
+        success: false,
+        message: 'Authentication required. Please log in.',
+        type: 'error',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setScanResult({
+      success: false,
+      message: 'Verifying QR code...',
+      type: 'info',
+    });
+
+    try {
+      let isSecureQR = false;
+      let response;
+      
+      try {
+        JSON.parse(codeToVerify);
+        isSecureQR = true;
+      } catch (e) {
+        isSecureQR = false;
+      }
+
+      if (isSecureQR) {
+        response = await axios.post(
+          `${API_URL}/medicines/verify-secure`,
+          { qrContent: codeToVerify, location: updateForm.location || user.organization },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setVerifiedMedicine(response.data.medicine);
+      } else {
+        response = await axios.get(`${API_URL}/medicines/verify/${encodeURIComponent(codeToVerify)}`, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "X-User-Location": updateForm.location || user.organization
+          },
+        });
+
+        setVerifiedMedicine(response.data);
+      }
+
+      setScanResult({
+        success: true,
+        message: 'Medicine verified successfully!',
+        type: 'success',
+      });
+
+      const medicine = isSecureQR ? response.data.medicine : response.data;
+      setUpdateForm({
+        medicineId: medicine.id,
+        status: '',
+        location: updateForm.location || user.organization,
+        notes: '',
+      });
+    } catch (err) {
+      console.error('Error verifying medicine:', err);
+      setScanResult({
+        success: false,
+        message: err.response?.data?.error || 'Invalid QR code or medicine not found',
+        type: 'error',
+      });
+      setVerifiedMedicine(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateInputChange = (e) => {
+    const { name, value } = e.target;
+    setUpdateForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
+    setSuccessMessage('');
+    setScanResult({ success: false, message: '', type: '' });
+
+    if (!user || !token) {
+      setScanResult({
+        success: false,
+        message: 'Authentication required. Please log in.',
+        type: 'error',
+      });
+      return;
+    }
+
+    if (!updateForm.medicineId || !updateForm.status || !updateForm.location) {
+      setScanResult({
+        success: false,
+        message: 'Medicine ID, Status, and Location are required',
+        type: 'error',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await axios.post(
+        `${API_URL}/medicines/${updateForm.medicineId}/update`,
+        {
+          handler: user.organization,
+          status: updateForm.status,
+          location: updateForm.location,
+          notes: updateForm.notes,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setSuccessMessage(`Medicine ${updateForm.medicineId} updated successfully!`);
+
+      setUpdateForm({
+        medicineId: '',
+        status: '',
+        location: '',
+        notes: '',
+      });
+
+      setVerifiedMedicine(null);
+      setQrCode('');
+      setTabValue(0);
+    } catch (err) {
+      console.error('Error updating medicine:', err);
+      setScanResult({
+        success: false,
+        message: err.response?.data?.error || 'Failed to update medicine',
+        type: 'error',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Conditional rendering in JSX
+  if (!user) {
+    return (
+      <Box sx={{ maxWidth: { xs: '100%', md: '1000px' }, mx: 'auto', p: { xs: 2, md: 3 }, textAlign: 'center' }}>
+        <CircularProgress />
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          Loading authentication...
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ maxWidth: { xs: '100%', md: '1000px' }, mx: 'auto', p: { xs: 2, md: 3 } }}>
@@ -409,16 +495,34 @@ const ScanQRCode = () => {
 
         {/* Camera Scan Tab */}
         {tabValue === 1 && (
-          <Box>
+          <Box sx={{ position: 'relative' }}>
             <Box sx={{ 
               maxWidth: { xs: '100%', sm: '500px' }, 
-              mx: 'auto'
+              mx: 'auto',
+              position: 'relative',
             }}>
               <div id={scannerContainerId}></div>
+              {/* Fallback overlay for scanning guide */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: { xs: '150px', sm: '200px' },
+                  height: { xs: '150px', sm: '200px' },
+                  border: '3px solid #169976',
+                  borderRadius: '10px',
+                  boxShadow: '0 0 10px rgba(22, 153, 118, 0.7)',
+                  animation: 'pulse 2s infinite',
+                  pointerEvents: 'none',
+                  zIndex: 1001,
+                }}
+              />
             </Box>
             
             <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary', textAlign: 'center' }}>
-              Point your camera at a QR code to scan automatically
+              Align the QR code with the green box in the camera feed to scan.
             </Typography>
           </Box>
         )}

@@ -1157,4 +1157,85 @@ router.post('/public/claim', async (req, res) => {
   }
 });
 
+// @route   POST api/medicines/:id/unflag
+// @desc    Unflag a medicine
+// @access  Private/Manufacturer
+router.post(
+  '/:id/unflag',
+  [
+    verifyToken,
+    checkRole(['manufacturer']),
+    body('resolutionNotes', 'Resolution notes are required').not().isEmpty(),
+    body('location', 'Location is required').not().isEmpty(),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { id } = req.params;
+      const { resolutionNotes, location } = req.body;
+      const unflaggedBy = req.user.organization;
+
+      const cleanId = String(id).trim();
+      const cleanUnflaggedBy = String(unflaggedBy).trim();
+      const cleanResolutionNotes = String(resolutionNotes).trim();
+      const cleanLocation = String(location).trim();
+
+      console.log('Unflag request parameters after cleaning:', {
+        id: cleanId,
+        unflaggedBy: cleanUnflaggedBy,
+        resolutionNotes: cleanResolutionNotes,
+        location: cleanLocation,
+      });
+
+      const walletPath = path.join(__dirname, "../wallet");
+      const wallet = await Wallets.newFileSystemWallet(walletPath);
+      const identity = await wallet.get("appUser");
+      if (!identity) {
+        return res.status(400).json({ error: 'User "appUser" does not exist in the wallet' });
+      }
+
+      const gateway = new Gateway();
+      await gateway.connect(ccp, {
+        wallet,
+        identity: "appUser",
+        discovery: { enabled: true, asLocalhost: true },
+      });
+
+      const network = await gateway.getNetwork("mychannel");
+      const contract = network.getContract("medicine-contract");
+
+      const result = await contract.submitTransaction(
+        "UnflagMedicine",
+        cleanId,
+        cleanUnflaggedBy,
+        cleanResolutionNotes,
+        cleanLocation
+      );
+
+      await gateway.disconnect();
+      const unflaggedMedicine = JSON.parse(result.toString());
+
+      res.json({
+        success: true,
+        message: `Medicine ${id} unflagged successfully`,
+        medicine: unflaggedMedicine,
+      });
+    } catch (error) {
+      console.error(`Unflag Medicine Error:`, error);
+      try {
+        await gateway.disconnect();
+      } catch (e) {}
+      res.status(500).json({
+        error: `Failed to unflag medicine: ${error.message}`,
+        details: error.toString(),
+      });
+    }
+  }
+);
+
 module.exports = router;

@@ -40,6 +40,7 @@ import UpdateIcon from "@mui/icons-material/Update";
 import WarningIcon from "@mui/icons-material/Warning";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
+import FlagIcon from "@mui/icons-material/Flag"; // Added for unflag icon
 import { AlertTitle } from "@mui/material";
 
 const API_URL = "http://localhost:3000/api";
@@ -82,6 +83,7 @@ const getStatusColor = (status) => {
     "Delivered to Pharmacy": "#26a69a",
     Dispensed: "#8bc34a",
     Flagged: "#f44336",
+    Remediated: "#4caf50", // Added for Remediated status
   };
   return statusColors[status] || "#757575";
 };
@@ -101,6 +103,7 @@ const ViewRegisteredMedicines = () => {
   const [selectedMedicine, setSelectedMedicine] = useState(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [flagDialogOpen, setFlagDialogOpen] = useState(false);
+  const [unflagDialogOpen, setUnflagDialogOpen] = useState(false);
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState("");
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
@@ -113,6 +116,10 @@ const ViewRegisteredMedicines = () => {
   });
   const [flagForm, setFlagForm] = useState({
     reason: "",
+    location: "",
+  });
+  const [unflagForm, setUnflagForm] = useState({
+    resolutionNotes: "",
     location: "",
   });
   const [notifyForm, setNotifyForm] = useState({
@@ -171,11 +178,13 @@ const ViewRegisteredMedicines = () => {
             setCurrentLocation(locationString);
             setUpdateForm((prev) => ({ ...prev, location: locationString }));
             setFlagForm((prev) => ({ ...prev, location: locationString }));
+            setUnflagForm((prev) => ({ ...prev, location: locationString }));
           } catch (error) {
             const locationString = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
             setCurrentLocation(locationString);
             setUpdateForm((prev) => ({ ...prev, location: locationString }));
             setFlagForm((prev) => ({ ...prev, location: locationString }));
+            setUnflagForm((prev) => ({ ...prev, location: locationString }));
           } finally {
             setIsDetectingLocation(false);
           }
@@ -314,6 +323,15 @@ const ViewRegisteredMedicines = () => {
     setFlagDialogOpen(true);
   };
 
+  const handleOpenUnflagDialog = () => {
+    handleMenuClose();
+    setUnflagForm({
+      resolutionNotes: "",
+      location: currentLocation,
+    });
+    setUnflagDialogOpen(true);
+  };
+
   const handleOpenNotifyDialog = () => {
     handleMenuClose();
     setNotifyForm({
@@ -400,6 +418,40 @@ const ViewRegisteredMedicines = () => {
     }
   };
 
+  const handleUnflagSubmit = async () => {
+    if (!unflagForm.resolutionNotes || !unflagForm.location) {
+      setError("Resolution notes and location are required to unflag a medicine");
+      return;
+    }
+    setUpdatingStatus(true);
+    setError(null);
+    try {
+      const response = await axios.post(
+        `${API_URL}/medicines/${selectedMedicine.id}/unflag`,
+        {
+          resolutionNotes: unflagForm.resolutionNotes,
+          location: unflagForm.location,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const updatedMedicines = medicines.map((med) =>
+        med.id === selectedMedicine.id ? response.data.medicine : med
+      );
+      setMedicines(updatedMedicines);
+      applyFilters();
+      setSuccess("Medicine unflagged successfully.");
+      setUnflagDialogOpen(false);
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err) {
+      console.error("Error unflagging medicine:", err);
+      setError(err.response?.data?.error || "Failed to unflag medicine.");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   const handleNotifySubmit = async () => {
     if (!notifyForm.subject || !notifyForm.message) {
       setError("Subject and message are required");
@@ -408,11 +460,10 @@ const ViewRegisteredMedicines = () => {
     setUpdatingStatus(true);
     setError(null);
     try {
-      // Assuming an endpoint to fetch distributors or regulators
       await axios.post(
         `${API_URL}/notifications`,
         {
-          recipientRole: "regulator", // Notify regulators for manufacturers
+          recipientRole: "regulator",
           subject: notifyForm.subject,
           message: notifyForm.message,
           relatedTo: "Medicine",
@@ -445,7 +496,6 @@ const ViewRegisteredMedicines = () => {
     });
   };
 
-  // Manufacturer-specific status options
   const getAvailableStatusOptions = (currentStatus) => {
     switch (currentStatus) {
       case "Manufactured":
@@ -462,7 +512,9 @@ const ViewRegisteredMedicines = () => {
   return (
     <div className="manufacturer-inventory">
       <InventoryContainer>
-        
+        <Typography variant="h4" gutterBottom>
+          Manufacturer Inventory
+        </Typography>
 
         <Typography variant="body1" color="text.secondary" paragraph>
           Manage your registered medicines. Update statuses, view QR codes, or flag issues as needed.
@@ -512,6 +564,7 @@ const ViewRegisteredMedicines = () => {
               <MenuItem value="Dispatched">Dispatched</MenuItem>
               <MenuItem value="In Transit">In Transit</MenuItem>
               <MenuItem value="Flagged">Flagged</MenuItem>
+              <MenuItem value="Remediated">Remediated</MenuItem> {/* Added for Remediated status */}
             </Select>
           </FormControl>
 
@@ -558,6 +611,7 @@ const ViewRegisteredMedicines = () => {
                         ? "1px solid #ff9800"
                         : "1px solid #e0e0e0",
                     }}
+                    onClick={() => handleCardClick(medicine.id)}
                   >
                     <CardContent>
                       <Box
@@ -719,6 +773,12 @@ const ViewRegisteredMedicines = () => {
           <WarningIcon fontSize="small" sx={{ mr: 1 }} />
           Flag Issue
         </MenuItem>
+        {selectedMedicine?.flagged && (
+          <MenuItem onClick={handleOpenUnflagDialog}>
+            <FlagIcon fontSize="small" sx={{ mr: 1 }} />
+            Unflag Medicine
+          </MenuItem>
+        )}
         <MenuItem onClick={handleOpenNotifyDialog}>
           <NotificationsIcon fontSize="small" sx={{ mr: 1 }} />
           Notify Regulator
@@ -864,6 +924,70 @@ const ViewRegisteredMedicines = () => {
             disabled={updatingStatus || !flagForm.reason || !flagForm.location}
           >
             {updatingStatus ? <CircularProgress size={24} /> : "Flag Medicine"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Unflag Medicine Dialog */}
+      <Dialog
+        open={unflagDialogOpen}
+        onClose={() => !updatingStatus && setUnflagDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{ color: "success.main" }}>Unflag Medicine</DialogTitle>
+        <DialogContent>
+          {selectedMedicine && (
+            <>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <AlertTitle>Important</AlertTitle>
+                Unflagging a medicine will mark it as remediated and notify stakeholders. Provide resolution details below.
+              </Alert>
+              <Typography variant="subtitle1" gutterBottom>
+                {selectedMedicine.name} (ID: {selectedMedicine.id})
+              </Typography>
+              <FormControl fullWidth margin="normal">
+                <TextField
+                  label="Resolution Notes"
+                  name="resolutionNotes"
+                  value={unflagForm.resolutionNotes}
+                  onChange={(e) => handleFormChange(e, setUnflagForm)}
+                  required
+                  multiline
+                  rows={3}
+                  placeholder="Describe how the issue was resolved"
+                />
+              </FormControl>
+              <FormControl fullWidth margin="normal">
+                <TextField
+                  label="Current Location"
+                  name="location"
+                  value={unflagForm.location}
+                  onChange={(e) => handleFormChange(e, setUnflagForm)}
+                  required
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton onClick={detectLocation} disabled={isDetectingLocation}>
+                        <MyLocationIcon />
+                      </IconButton>
+                    ),
+                  }}
+                />
+              </FormControl>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setUnflagDialogOpen(false)} disabled={updatingStatus}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUnflagSubmit}
+            variant="contained"
+            color="success"
+            disabled={updatingStatus || !unflagForm.resolutionNotes || !unflagForm.location}
+          >
+            {updatingStatus ? <CircularProgress size={24} /> : "Unflag Medicine"}
           </Button>
         </DialogActions>
       </Dialog>

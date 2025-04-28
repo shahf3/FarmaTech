@@ -1,39 +1,63 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
-const OrganizationSchema = new mongoose.Schema({
-  name: {
+const userSchema = new mongoose.Schema({
+  username: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
-  code: {
+  email: {
     type: String,
-    required: true
+    required: true,
+    unique: true,
   },
-  type: {
+  password: {
     type: String,
-    enum: ['manufacturer', 'distributor', 'hospital', 'pharmacy', 'regulator'],
-    required: true
+    required: true,
   },
-  description: {
-    type: String
+  role: {
+    type: String,
+    default: 'manufacturer', // Default to manufacturer for new registrations
+    enum: ['manufacturer', 'distributor', 'regulator', 'enduser'], 
   },
-  admins: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'user'
-  }],
-  verified: {
+  organization: {
+    type: String,
+    required: true,
+  },
+  organizationCode: {
+    type: String,
+    required: true,
+  },
+  isOrgAdmin: {
     type: Boolean,
-    default: false
+    default: false,
   },
-  verifiedBy: {
+  firstName: String,
+  lastName: String,
+  phoneNumber: String,
+  address: String,
+  city: String,
+  country: String,
+  notes: String,
+  registeredBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'user'
+    ref: 'user',
   },
+  registeredByOrg: String,
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+  lastLogin: Date,
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('organization', OrganizationSchema);
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+module.exports = mongoose.model('user', userSchema);

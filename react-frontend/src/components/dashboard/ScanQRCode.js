@@ -26,9 +26,9 @@ import {
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import KeyboardIcon from "@mui/icons-material/Keyboard";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { BrowserQRCodeReader, DecodeHintType } from "@zxing/library";
 
 const API_URL = "http://localhost:3000/api";
 
@@ -49,12 +49,26 @@ const ScanQRCode = () => {
     location: "",
     notes: "",
   });
+  const [scanFeedback, setScanFeedback] = useState("Fit the QR code inside the green square to scan");
+  const [isScannerReady, setIsScannerReady] = useState(false);
+  const [scanAttempts, setScanAttempts] = useState(0);
+  const [qrBoxSize, setQrBoxSize] = useState(300);
+  const [lastVerificationFailed, setLastVerificationFailed] = useState(false);
 
   // Camera scanning states
   const [tabValue, setTabValue] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  const scannerRef = useRef(null);
+  // Initialize BrowserQRCodeReader with decoding hints
+  const hints = new Map();
+  hints.set(DecodeHintType.TRY_HARDER, true);
+  hints.set(DecodeHintType.POSSIBLE_FORMATS, ["QR_CODE"]);
+  hints.set(DecodeHintType.PURE_BARCODE, true);
+  hints.set(DecodeHintType.CHARACTER_SET, "UTF-8");
+  hints.set(DecodeHintType.ASSUME_GS1, false);
+  const codeReaderRef = useRef(new BrowserQRCodeReader(null, { hints }));
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
   const scannerContainerId = "qr-scanner";
 
   // Handle back to dashboard
@@ -62,243 +76,276 @@ const ScanQRCode = () => {
     navigate("/distributor");
   };
 
+  // Handle manual scanner restart
+  const handleRestartScan = () => {
+    setScanFeedback("Fit the QR code inside the green square to scan");
+    setIsScannerReady(false);
+    setScanAttempts(0);
+    setQrBoxSize(300);
+    setLastVerificationFailed(false);
+    setQrCode("");
+    setScanResult({ success: false, message: "", type: "" });
+    if (codeReaderRef.current) {
+      console.log("Stopping ZXing scanner for restart...");
+      codeReaderRef.current.reset();
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    initializeScanner();
+  };
+
+  // Initialize scanner
+  const initializeScanner = async () => {
+    const codeReader = codeReaderRef.current;
+    setTimeout(async () => {
+      console.log(`Initializing ZXing scanner with ${qrBoxSize}x${qrBoxSize}px detection area...`);
+      let deviceId = null;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === "videoinput");
+        console.log("Available cameras:", videoDevices.map(d => ({ label: d.label, deviceId: d.deviceId })));
+        // Prefer rear camera explicitly
+        const rearCamera = videoDevices.find(d => d.label.toLowerCase().includes("back") || d.label.toLowerCase().includes("rear")) || videoDevices[0];
+        deviceId = rearCamera?.deviceId;
+        console.log("Selected camera:", rearCamera?.label || "Default");
+      } catch (err) {
+        console.error("Error enumerating devices:", err);
+      }
+
+      const videoElement = document.getElementById(scannerContainerId);
+      videoElement.innerHTML = "";
+      const video = document.createElement("video");
+      video.id = "qr-scanner-video";
+      video.style.width = "100%";
+      video.style.height = "100%";
+      video.style.objectFit = "cover";
+      video.style.borderRadius = "8px";
+      video.muted = true;
+      videoElement.appendChild(video);
+      videoRef.current = video;
+
+      try {
+        const constraints = {
+          video: {
+            deviceId: deviceId ? { exact: deviceId } : undefined,
+            facingMode: deviceId ? undefined : "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          console.log("Camera resolution:", video.videoWidth, "x", video.videoHeight);
+        };
+        console.log("Video stream assigned:", stream.active);
+
+        codeReader
+          .decodeFromVideoDevice(deviceId || undefined, video.id, (result, err) => {
+            if (result) {
+              const scanTime = Date.now();
+              const sanitizedText = result.getText().trim().replace(/\n|\r/g, "");
+              console.log(`QR Code detected after ${scanAttempts} attempts at ${scanTime} with qrbox ${qrBoxSize}x${qrBoxSize}px:`, {
+                raw: result.getText(),
+                sanitized: sanitizedText,
+                role: user?.role || "unknown",
+                version: result.getVersion?.() || "Unknown",
+                errorCorrectionLevel: result.getErrorCorrectionLevel?.() || "Unknown",
+                detectionTime: scanTime,
+              });
+              setQrCode(sanitizedText);
+              setScanFeedback("QR code detected! Verifying...");
+              setScanAttempts(0);
+              setQrBoxSize(300);
+              codeReader.reset();
+              if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+                streamRef.current = null;
+              }
+              handleVerify(sanitizedText);
+            }
+            if (err) {
+              setScanAttempts((prev) => {
+                const newAttempts = prev + 1;
+                const errorMessage = err.message || err.name || "Unknown error";
+                console.log(`Scan attempt ${newAttempts}: ${errorMessage}`);
+                return newAttempts;
+              });
+              if (err.name === "NotFoundError" || err.name === "NotFoundException") {
+                if (scanAttempts > 50) {
+                  setScanFeedback("No QR code detected. Ensure the QR code is clear, well-lit, and centered in the green square.");
+                }
+              } else if (err.name === "ChecksumException") {
+                if (scanAttempts > 50) {
+                  setScanFeedback("QR code detected but unreadable. Ensure the QR code is clear, not damaged, and well-lit.");
+                }
+              } else {
+                console.error("ZXing scan error:", err);
+                setScanFeedback(`Camera error: ${err.message || err.name}. Please ensure camera access is granted or restart the scan.`);
+              }
+            }
+          })
+          .then(() => {
+            setIsScannerReady(true);
+            console.log("ZXing scanner initialized");
+          })
+          .catch((err) => {
+            console.error("Error initializing ZXing scanner:", err);
+            setScanFeedback(`Failed to access camera: ${err.message || err.name}. Please check permissions and try again.`);
+          });
+      } catch (err) {
+        console.error("Error accessing camera:", err);
+        setScanFeedback(`Failed to access camera: ${err.message || err.name}. Please check permissions and try again.`);
+      }
+    }, 500);
+  };
+
   // Effect to initialize and clean up scanner
   useEffect(() => {
-    // Only initialize the scanner when on the camera tab
     if (tabValue !== 1) return;
 
-    // Function to handle successful QR code scan
-    const onScanSuccess = async (decodedText, decodedResult) => {
-      console.log("QR Code detected:", decodedText, "by user role:", user?.role || 'unknown');
-      setQrCode(decodedText);
+    console.log("Starting scanner setup...");
+    initializeScanner();
 
-      // Stop the scanner to free the camera
-      if (scannerRef.current) {
-        scannerRef.current.clear();
+    const timeout = setTimeout(() => {
+      if (!qrCode && !lastVerificationFailed) {
+        setScanFeedback("No QR code detected. Align the QR code with the green square, 6–12 inches away.");
+        setQrBoxSize(250);
+        console.log("Falling back to 250x250px qrbox");
+        if (codeReaderRef.current) {
+          console.log("Stopping ZXing scanner for fallback...");
+          codeReaderRef.current.reset();
+        }
+        if (streamRef.current) {
+          console.log("Stopping MediaStream for fallback...");
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+        initializeScanner();
       }
-
-      // Trigger verification
-      setTimeout(() => handleVerify({ preventDefault: () => {} }), 500);
-    };
-
-    // Configure scanner with simple UI and persistent permission prompt
-    const config = {
-      fps: 10,
-      qrbox: { width: 200, height: 200 }, // Smaller scanning area
-      aspectRatio: window.innerWidth > 600 ? 1.7 : 1.0, // Adjust aspect ratio based on screen size
-      formatsToSupport: ["QR_CODE"],
-      rememberLastUsedCamera: true,
-      showTorchButtonIfSupported: true,
-      showZoomSliderIfSupported: true,
-      defaultZoomValueIfSupported: 1.5,
-    };
-
-    // Create scanner instance
-    scannerRef.current = new Html5QrcodeScanner(
-      scannerContainerId,
-      config,
-      /* verbose= */ false
-    );
-
-    // Start the scanner
-    scannerRef.current.render(onScanSuccess, (errorMessage) => {
-      if (!errorMessage.includes("NotFoundException")) {
-        console.error("QR Scan Error:", errorMessage);
-      }
-    });
+    }, 10000);
 
     return () => {
-      // clearTimeout(timer); // Removed as 'timer' is not defined
-      if (scannerRef.current) {
-        try {
-          scannerRef.current.clear();
-        } catch (error) {
-          console.error("Error clearing scanner:", error);
-        }
+      console.log("Cleaning up ZXing scanner...");
+      clearTimeout(timeout);
+      if (codeReaderRef.current) {
+        codeReaderRef.current.reset();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+        videoRef.current.remove();
+        videoRef.current = null;
       }
     };
-  }, [tabValue, user]);
+  }, [tabValue, user, qrBoxSize, lastVerificationFailed]);
 
   // Effect to manage scanner CSS styles
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.innerHTML = `
-      /* Basic container styling */
       #qr-scanner {
         width: 100% !important;
-        padding: 0 !important;
         max-width: 500px !important;
         margin: 0 auto !important;
+        padding: 0 !important;
         min-height: 300px !important;
         position: relative !important;
-        z-index: 1000 !important; /* Increased to avoid overlap */
-        overflow: visible !important;
+        overflow: hidden !important;
+        z-index: 1000 !important;
+        border: 1px solid #ddd !important;
+        border-radius: 8px !important;
+        background: rgba(0, 0, 0, 0.1) !important;
       }
-      
-      /* Adjust video container height based on screen size */
-      @media (max-width: 600px) {
-        #qr-scanner-webcam-standalone--container {
-          min-height: 250px !important;
-          height: 60vw !important;
-        }
-      }
-      
-      @media (min-width: 601px) {
-        #qr-scanner-webcam-standalone--container {
-          min-height: 300px !important;
-          height: 30vw !important;
-          max-height: 400px !important;
-        }
-      }
-      
-      /* Make video responsive */
       #qr-scanner video {
         width: 100% !important;
         height: 100% !important;
         object-fit: cover !important;
         border-radius: 8px !important;
       }
-      
-      /* Style buttons to match application */
-      #qr-scanner button {
-        background-color: #169976 !important;
-        color: white !important;
-        border: none !important;
-        padding: 8px 16px !important;
-        border-radius: 4px !important;
-        cursor: pointer !important;
-        margin: 5px !important;
-        font-family: inherit !important;
-      }
-      
-      /* Style selects */
-      #qr-scanner select {
-        padding: 8px !important;
-        border-radius: 4px !important;
-        border: 1px solid #ddd !important;
-        background-color: white !important;
-        font-family: inherit !important;
-      }
-      
-      /* Fix for scanner region */
-      #qr-scanner-webcam-standalone--container {
-        position: relative !important;
-        overflow: visible !important;
-        border-radius: 8px !important;
-        border: 1px solid #ddd !important;
-        z-index: 1000 !important; /* Increased to avoid overlap */
-      }
-      
-      /* Remove the black overlay */
-      #qr-shaded-region {
-        display: none !important;
-      }
-      
-      /* Enhanced scanning guide (pseudo-element) */
-      #qr-scanner-webcam-standalone--container::after {
-        content: "" !important;
-        position: absolute !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 200px !important;
-        height: 200px !important;
-        border: 3px solid #169976 !important;
-        border-radius: 10px !important;
-        box-shadow: 0 0 10px rgba(22, 153, 118, 0.7) !important;
-        animation: pulse 2s infinite !important;
-        pointer-events: none !important;
-        z-index: 1001 !important; /* Above container */
-      }
-      
-      /* Fallback scanning guide for parent container */
-      #qr-scanner::after {
-        content: "" !important;
-        position: absolute !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 200px !important;
-        height: 200px !important;
-        border: 3px solid #169976 !important;
-        border-radius: 10px !important;
-        box-shadow: 0 0 10px rgba(22, 153, 118, 0.7) !important;
-        animation: pulse 2s infinite !important;
-        pointer-events: none !important;
-        z-index: 1001 !important;
-      }
-      
-      @keyframes pulse {
-        0% {
-          box-shadow: 0 0 10px rgba(22, 153, 118, 0.7);
-        }
-        70% {
-          box-shadow: 0 0 20px rgba(22, 153, 118, 0.3);
-        }
-        100% {
-          box-shadow: 0 0 10px rgba(22, 153, 118, 0.7);
-        }
-      }
-      
-      /* Responsive adjustments */
       @media (max-width: 600px) {
-        #qr-scanner-webcam-standalone--container::after,
-        #qr-scanner::after {
-          width: 150px !important;
-          height: 150px !important;
-        }
-        #qr-scanner span, #qr-scanner select, #qr-scanner button {
-          font-size: 14px !important;
+        #qr-scanner {
+          min-height: 250px !important;
+          height: 60vw !important;
         }
       }
-      
-      /* Fix for result section */
-      #qr-scanner-results {
-        margin-top: 10px !important;
-        font-family: inherit !important;
+      @media (min-width: 601px) {
+        #qr-scanner {
+          min-height: 300px !important;
+          height: 30vw !important;
+          max-height: 400px !important;
+        }
       }
-      
-      /* Responsive layout for controls */
-      #html5-qrcode-select-camera {
-        max-width: 100% !important;
-        margin-bottom: 8px !important;
+      .qr-scanner-guide {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: ${qrBoxSize}px !important;
+        height: ${qrBoxSize}px !important;
+        border: 4px solid #169976 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 0 12px rgba(22, 153, 118, 0.8) !important;
+        background: rgba(22, 153, 118, 0.1) !important;
+        animation: pulse 1.2s infinite !important;
+        pointer-events: none !important;
+        z-index: 2000 !important;
       }
-      
-      #html5-qrcode-button-camera-permission {
-        width: 100% !important;
-        max-width: 300px !important;
-        margin: 0 auto !important;
-        display: block !important;
+      @keyframes pulse {
+        0% { box-shadow: 0 0 12px rgba(22, 153, 118, 0.8); }
+        50% { box-shadow: 0 0 18px rgba(22, 153, 118, 0.5); }
+        100% { box-shadow: 0 0 12px rgba(22, 153, 118, 0.8); }
       }
-      
-      /* Hide unnecessary elements */
-      #html5-qrcode-anchor-scan-type-change {
-        display: none !important;
+      @media (max-width: 400px) {
+        .qr-scanner-guide {
+          width: ${qrBoxSize === 300 ? 200 : 200}px !important;
+          height: ${qrBoxSize === 300 ? 200 : 200}px !important;
+        }
       }
     `;
     document.head.appendChild(style);
-    
+
     return () => {
       document.head.removeChild(style);
     };
-  }, []);
+  }, [qrBoxSize]);
 
   const handleQrInputChange = (e) => {
     setQrCode(e.target.value);
+    console.log("Manual QR code input:", e.target.value);
   };
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+    setQrCode("");
+    setScanFeedback("Fit the QR code inside the green square to scan");
+    setIsScannerReady(false);
+    setScanAttempts(0);
+    setQrBoxSize(300);
+    setLastVerificationFailed(false);
+    setVerifiedMedicine(null);
+    setScanResult({ success: false, message: "", type: "" });
+    console.log("Tab changed to:", newValue);
   };
 
-  const handleVerify = async (e, overrideQrCode = null) => {
-    e.preventDefault();
-    if (!qrCode) {
+  const handleVerify = async (qrCodeInput) => {
+    const qrToVerify = qrCodeInput || qrCode;
+    console.log("Triggering verification with QR code:", qrToVerify);
+
+    if (!qrToVerify) {
       setScanResult({
         success: false,
-        message: "Please enter a QR code",
+        message: "Please enter or scan a QR code",
         type: "error",
       });
+      setScanFeedback("No QR code provided. Please scan or enter a code.");
+      setLastVerificationFailed(true);
       return;
     }
 
@@ -308,18 +355,17 @@ const ScanQRCode = () => {
       message: "Verifying QR code...",
       type: "info",
     });
+    setScanFeedback("Verifying QR code...");
 
     try {
       let isSecureQR = false;
       let response;
 
-      
-
       if (isSecureQR) {
         response = await axios.post(
           `${API_URL}/medicines/verify-secure`,
           {
-            qrContent: qrCode,
+            qrContent: qrToVerify,
             location: updateForm.location || user.organization,
           },
           {
@@ -329,18 +375,21 @@ const ScanQRCode = () => {
             },
           }
         );
+        console.log("Secure verification response:", response.data);
         setVerifiedMedicine(response.data.medicine);
       } else {
-        response = await axios.get(
-          `${API_URL}/medicines/verify/${encodeURIComponent(qrCode)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "X-User-Location": updateForm.location || user.organization,
-            },
-          }
-        );
-
+        const url = `${API_URL}/medicines/verify/${encodeURIComponent(qrToVerify)}`;
+        console.log("Making GET request to:", url, "with headers:", {
+          Authorization: `Bearer ${token}`,
+          "X-User-Location": updateForm.location || user.organization,
+        });
+        response = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "X-User-Location": updateForm.location || user.organization,
+          },
+        });
+        console.log("Verification response:", response.data);
         setVerifiedMedicine(response.data);
       }
 
@@ -349,6 +398,9 @@ const ScanQRCode = () => {
         message: "Medicine verified successfully!",
         type: "success",
       });
+      setScanFeedback("Medicine verified successfully!");
+      setIsScannerReady(false);
+      setLastVerificationFailed(false);
 
       const medicine = isSecureQR ? response.data.medicine : response.data;
       setUpdateForm({
@@ -358,14 +410,20 @@ const ScanQRCode = () => {
         notes: "",
       });
     } catch (err) {
-      console.error("Error verifying medicine:", err);
+      console.error("Verification error:", err);
+      console.log("Error response:", err.response?.data);
+      const errorMessage =
+        err.response?.data?.error ||
+        err.message ||
+        "Invalid QR code or medicine not found";
       setScanResult({
         success: false,
-        message:
-          err.response?.data?.error || "Invalid QR code or medicine not found",
+        message: errorMessage,
         type: "error",
       });
+      setScanFeedback(`Verification failed: ${errorMessage}. Try another QR code or manual entry.`);
       setVerifiedMedicine(null);
+      setLastVerificationFailed(true);
     } finally {
       setIsLoading(false);
     }
@@ -423,6 +481,7 @@ const ScanQRCode = () => {
       setVerifiedMedicine(null);
       setQrCode("");
       setTabValue(0);
+      setScanFeedback("Fit the QR code inside the green square to scan");
     } catch (err) {
       console.error("Error updating medicine:", err);
       setScanResult({
@@ -434,143 +493,6 @@ const ScanQRCode = () => {
       setIsLoading(false);
     }
   };
-
-  // Add custom CSS to optimize the scanner for all devices
-  useEffect(() => {
-    // These styles help with the scanner UI rendering
-    const style = document.createElement("style");
-    style.innerHTML = `
-      /* Basic container styling */
-      #qr-scanner {
-        width: 100% !important;
-        padding: 0 !important;
-        max-width: 500px !important;
-        margin: 0 auto !important;
-      }
-      
-      /* Adjust video container height based on screen size */
-      @media (max-width: 600px) {
-        #qr-scanner-webcam-standalone--container {
-          min-height: 250px !important;
-          height: 60vw !important;
-        }
-      }
-      
-      @media (min-width: 601px) {
-        #qr-scanner-webcam-standalone--container {
-          min-height: 300px !important;
-          height: 30vw !important;
-          max-height: 400px !important;
-        }
-      }
-      
-      /* Make video responsive */
-      #qr-scanner video {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-        border-radius: 8px !important;
-      }
-      
-      /* Style buttons to match application */
-      #qr-scanner button {
-        background-color: #169976 !important;
-        color: white !important;
-        border: none !important;
-        padding: 8px 16px !important;
-        border-radius: 4px !important;
-        cursor: pointer !important;
-        margin: 5px !important;
-        font-family: inherit !important;
-      }
-      
-      /* Style selects */
-      #qr-scanner select {
-        padding: 8px !important;
-        border-radius: 4px !important;
-        border: 1px solid #ddd !important;
-        background-color: white !important;
-        font-family: inherit !important;
-      }
-      
-      /* Fix for scanner region */
-      #qr-scanner-webcam-standalone--container {
-        position: relative !important;
-        overflow: hidden !important;
-        border-radius: 8px !important;
-        border: 1px solid #ddd !important;
-      }
-      
-      /* IMPORTANT: Remove the black overlay */
-      #qr-shaded-region {
-        display: none !important;
-      }
-      
-      /* Replace with a more subtle scanning guide */
-      #qr-scanner-webcam-standalone--container::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 200px;
-        height: 200px;
-        border: 2px solid #169976;
-        border-radius: 10px;
-        box-shadow: 0 0 0 0 rgba(22, 153, 118, 0.5);
-        animation: pulse 2s infinite;
-        pointer-events: none;
-      }
-      
-      @keyframes pulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(22, 153, 118, 0.5);
-        }
-        70% {
-          box-shadow: 0 0 0 10px rgba(22, 153, 118, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(22, 153, 118, 0);
-        }
-      }
-      
-      /* Fix for result section */
-      #qr-scanner-results {
-        margin-top: 10px !important;
-        font-family: inherit !important;
-      }
-      
-      /* Responsive layout for controls */
-      #html5-qrcode-select-camera {
-        max-width: 100% !important;
-        margin-bottom: 8px !important;
-      }
-      
-      #html5-qrcode-button-camera-permission {
-        width: 100% !important;
-        max-width: 300px !important;
-        margin: 0 auto !important;
-        display: block !important;
-      }
-      
-      /* Hide unnecessary elements */
-      #html5-qrcode-anchor-scan-type-change {
-        display: none !important;
-      }
-      
-      /* Responsive font adjustments */
-      @media (max-width: 600px) {
-        #qr-scanner span, #qr-scanner select, #qr-scanner button {
-          font-size: 14px !important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
 
   return (
     <Box
@@ -608,7 +530,7 @@ const ScanQRCode = () => {
 
         {/* Manual Entry Tab */}
         {tabValue === 0 && (
-          <form onSubmit={handleVerify}>
+          <form onSubmit={(e) => { e.preventDefault(); handleVerify(qrCode); }}>
             <TextField
               fullWidth
               label="Enter QR Code"
@@ -649,42 +571,46 @@ const ScanQRCode = () => {
 
         {/* Camera Scan Tab */}
         {tabValue === 1 && (
-          <Box>
-            {/* The scanner will render its own UI here */}
+          <Box sx={{ position: "relative" }}>
             <Box
               sx={{
                 maxWidth: { xs: "100%", sm: "500px" },
                 mx: "auto",
+                position: "relative",
               }}
             >
               <div id={scannerContainerId}></div>
-              {/* Fallback overlay for scanning guide */}
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: { xs: '150px', sm: '200px' },
-                  height: { xs: '150px', sm: '200px' },
-                  border: '3px solid #169976',
-                  borderRadius: '10px',
-                  boxShadow: '0 0 10px rgba(22, 153, 118, 0.7)',
-                  animation: 'pulse 2s infinite',
-                  pointerEvents: 'none',
-                  zIndex: 1001,
-                }}
-              />
+              <div className="qr-scanner-guide"></div>
             </Box>
 
             <Typography
               variant="body2"
               sx={{ mt: 2, color: "text.secondary", textAlign: "center" }}
             >
-              Point your camera at a QR code to scan automatically
+              Fit the QR code exactly inside the green square, 6–12 inches away
             </Typography>
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                mt: 1,
+                color: scanFeedback.includes("detected") || scanFeedback.includes("verified") ? "success.main" : scanFeedback.includes("error") || scanFeedback.includes("failed") || scanFeedback.includes("unreadable") ? "error.main" : "text.secondary",
+                textAlign: "center",
+              }}
+            >
+              {scanFeedback}
+            </Typography>
+
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2, gap: 2 }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleRestartScan}
+                startIcon={<RefreshIcon />}
+                disabled={isLoading}
+              >
+                Restart Scan
+              </Button>
               <Button
                 variant="outlined"
                 color="primary"
@@ -694,6 +620,17 @@ const ScanQRCode = () => {
                 Back to Dashboard
               </Button>
             </Box>
+
+            {(scanFeedback.includes("No QR code detected") || scanFeedback.includes("failed") || scanFeedback.includes("unreadable")) && (
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => setTabValue(0)}
+                sx={{ mt: 2, display: "block", mx: "auto" }}
+              >
+                Try Manual Entry
+              </Button>
+            )}
           </Box>
         )}
 
@@ -981,6 +918,7 @@ const ScanQRCode = () => {
           </Box>
         </Paper>
       )}
+
       {/* Update Supply Chain Form */}
       {verifiedMedicine && (
         <Paper sx={{ p: { xs: 2, md: 3 } }}>

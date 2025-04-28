@@ -1,4 +1,4 @@
-// src/context/AuthContext.js
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 
@@ -11,25 +11,27 @@ export const AuthProvider = ({ children }) => {
   const [organizations, setOrganizations] = useState([]);
 
   useEffect(() => {
-    // Check if user is already logged in
+    
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    
+
     if (token && userData) {
       setCurrentUser(JSON.parse(userData));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
-    
+
     setLoading(false);
+
     
-    // Fetch organizations when the component mounts
     fetchOrganizations();
   }, []);
 
-  // Fetch organizations for registration form
+  
   const fetchOrganizations = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/auth/organizations');
+      const response = await axios.get('http://localhost:3000/api/auth/organizations', {
+        params: { type: 'manufacturer' }, // Filter for manufacturer organizations
+      });
       setOrganizations(response.data);
     } catch (err) {
       console.error('Error fetching organizations:', err);
@@ -40,29 +42,32 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await axios.post('http://localhost:3000/api/auth/register', userData);
-      
+
+      // Ensure role is manufacturer
+      const payload = { ...userData, role: 'manufacturer' };
+      const response = await axios.post('http://localhost:3000/api/auth/register', payload);
+
       const { token } = response.data;
-      
-      // After registration, fetch user data to get full details including organization info
+
+      // Fetch user data
       const userResponse = await axios.get('http://localhost:3000/api/auth/user', {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       const user = userResponse.data;
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setCurrentUser(user);
-      
+
       return user;
     } catch (err) {
-      const errorMessage = err.response?.data?.errors?.[0]?.msg || 
-                          err.response?.data?.message || 
-                          'Registration failed';
+      const errorMessage =
+        err.response?.data?.errors?.[0]?.msg ||
+        err.response?.data?.message ||
+        'Registration failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -74,30 +79,27 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log("Login attempt initiated for:", email);
-      
+
       const response = await axios.post('http://localhost:3000/api/auth/login', {
         email,
-        password
+        password,
       });
-      
+
       const { token, user } = response.data;
-      
-      console.log("Login successful, user data:", user);
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setCurrentUser(user);
-      
+
       return user;
     } catch (err) {
       console.error('Login error:', err);
-      const errorMessage = err.response?.data?.errors?.[0]?.msg || 
-                          err.response?.data?.message || 
-                          'Login failed. Please check your email and password.';
+      const errorMessage =
+        err.response?.data?.errors?.[0]?.msg ||
+        err.response?.data?.message ||
+        'Login failed. Please check your email and password.';
       setError(errorMessage);
       throw err;
     } finally {
@@ -112,12 +114,10 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
-  // Check if user belongs to specific organization
   const isFromOrganization = (organizationName) => {
     return currentUser?.organization === organizationName;
   };
 
-  // Check if user is admin of their organization
   const isOrgAdmin = () => {
     return currentUser?.isOrgAdmin === true;
   };
@@ -135,7 +135,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         isFromOrganization,
         isOrgAdmin,
-        fetchOrganizations
+        fetchOrganizations,
       }}
     >
       {children}
@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

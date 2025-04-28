@@ -1,4 +1,3 @@
-// src/components/auth/Register.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -10,32 +9,27 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: '',
     organization: '',
     organizationCode: '',
-    newOrganization: false
+    newOrganization: false,
   });
-  
+
   const { register, loading, error, organizations, fetchOrganizations } = useAuth();
   const navigate = useNavigate();
 
-  // Fetch organizations when component mounts
+
   useEffect(() => {
     fetchOrganizations();
   }, [fetchOrganizations]);
 
-  // Filter organizations based on selected role
-  const filteredOrganizations = organizations.filter(org => {
-    if (formData.role === 'manufacturer') return org.type === 'manufacturer';
-    if (formData.role === 'distributor') return org.type === 'distributor';
-    return true;
-  });
+
+  const filteredOrganizations = organizations.filter(org => org.type === 'manufacturer');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     });
   };
 
@@ -55,36 +49,20 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     try {
-      // Remove confirmPassword from data sent to server
+      // Remove confirmPassword and add role: 'manufacturer'
       const { confirmPassword, ...registerData } = formData;
-      await register(registerData);
-      
-      // Redirect based on role
-      switch(registerData.role) {
-        case 'manufacturer':
-          navigate('/manufacturer');
-          break;
-        case 'distributor':
-          navigate('/distributor');
-          break;
-        case 'regulator':
-          navigate('/regulator');
-          break;
-        case 'enduser':
-          navigate('/enduser');
-          break;
-        default:
-          navigate('/dashboard');
-      }
+      await register({ ...registerData, role: 'manufacturer' });
+
+
+      navigate('/manufacturer');
     } catch (err) {
       console.error('Registration error:', err);
-      // Error is handled by the context
     }
   };
 
@@ -181,49 +159,29 @@ const Register = () => {
                   />
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="role">Role</label>
-                  <select
-                    id="role"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select Role</option>
-                    <option value="manufacturer">Manufacturer</option>
-                    <option value="distributor">Distributor</option>
-                    <option value="regulator">Regulator</option>
-                    <option value="enduser">End User</option>
-                  </select>
-                </div>
-              </div>
-              
               {/* Organization section with new/existing toggle */}
               <div className="form-row organization-section">
                 <div className="form-group checkbox-group">
-                  <input 
-                    type="checkbox" 
-                    id="newOrganization" 
-                    name="newOrganization" 
-                    checked={formData.newOrganization} 
+                  <input
+                    type="checkbox"
+                    id="newOrganization"
+                    name="newOrganization"
+                    checked={formData.newOrganization}
                     onChange={handleChange}
                   />
                   <label htmlFor="newOrganization">Create New Organization</label>
                 </div>
               </div>
-              
               {!formData.newOrganization ? (
                 <div className="form-group">
-                  <label htmlFor="organization">Select Organization</label>
-                  <select 
-                    id="organization" 
-                    name="organization" 
-                    value={formData.organization} 
+                  <label htmlFor="organization">Select Manufacturer Organization</label>
+                  <select
+                    id="organization"
+                    name="organization"
+                    value={formData.organization}
                     onChange={handleChange}
                     required
-                    disabled={!formData.role || filteredOrganizations.length === 0}
+                    disabled={filteredOrganizations.length === 0}
                   >
                     <option value="">-- Select Organization --</option>
                     {filteredOrganizations.map(org => (
@@ -232,52 +190,46 @@ const Register = () => {
                       </option>
                     ))}
                   </select>
-                  {formData.role && filteredOrganizations.length === 0 && (
-                    <p className="help-text">No organizations found for this role. Create a new one.</p>
+                  {filteredOrganizations.length === 0 && (
+                    <p className="help-text">No manufacturer organizations found. Create a new one.</p>
                   )}
                 </div>
               ) : (
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="organization">Organization Name</label>
-                    <input 
-                      type="text" 
-                      id="organization" 
-                      name="organization" 
-                      value={formData.organization} 
-                      onChange={handleChange} 
-                      placeholder="Enter organization name"
+                    <input
+                      type="text"
+                      id="organization"
+                      name="organization"
+                      value={formData.organization}
+                      onChange={handleChange}
+                      placeholder="Enter manufacturer organization name"
                       required
                     />
                   </div>
                 </div>
               )}
-              
               <div className="form-group">
                 <label htmlFor="organizationCode">
                   {formData.newOrganization ? 'Create Organization Code' : 'Organization Code'}
                 </label>
-                <input 
-                  type="password" 
-                  id="organizationCode" 
-                  name="organizationCode" 
-                  value={formData.organizationCode} 
-                  onChange={handleChange} 
-                  placeholder={formData.newOrganization ? "Create a secure code" : "Enter organization code"}
+                <input
+                  type="password"
+                  id="organizationCode"
+                  name="organizationCode"
+                  value={formData.organizationCode}
+                  onChange={handleChange}
+                  placeholder={formData.newOrganization ? 'Create a secure code' : 'Enter organization code'}
                   required
                 />
                 <p className="help-text">
-                  {formData.newOrganization 
-                    ? 'This code will be used for others to join your organization' 
+                  {formData.newOrganization
+                    ? 'This code will be used for others to join your organization'
                     : 'Required to join the organization'}
                 </p>
               </div>
-              
-              <button
-                type="submit"
-                className="auth-button"
-                disabled={loading}
-              >
+              <button type="submit" className="auth-button" disabled={loading}>
                 {loading ? 'Registering...' : 'Register'}
               </button>
             </form>

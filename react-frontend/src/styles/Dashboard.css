@@ -1,5 +1,11 @@
 /* src/styles/Dashboard.css */
 
+/* Reset for h2 and input to prevent global overrides */
+h2, input, select {
+  background: none !important;
+  color: inherit !important;
+}
+
 /* Define CSS custom properties */
 :root {
   --card-bg: #ffffff;
@@ -37,12 +43,49 @@
   background-color: #000000 !important;
 }
 
-/* Ensure dashboard container and main have no conflicting backgrounds */
-.dashboard-container,
-.dashboard-main {
-  background-color: transparent !important;
-  min-height: 100vh;
+/* Wrapper for dashboard-section to prevent parent background interference */
+.dashboard-wrapper {
+  background: transparent !important;
   width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+}
+
+/* Ultra-specific rules for RegisterNewMedicine in dark mode */
+html[data-theme="dark"] .dashboard-wrapper .dashboard-section.register-medicine-section {
+  background-color: var(--card-bg) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-theme="dark"] .dashboard-wrapper .dashboard-section.register-medicine-section h2 {
+  color: var(--heading-color) !important;
+}
+
+html[data-theme="dark"] .dashboard-wrapper .dashboard-section.register-medicine-section .form-group input,
+html[data-theme="dark"] .dashboard-wrapper .dashboard-section.register-medicine-section .form-group select {
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Fallback for dark-mode class */
+.dashboard-section.dark-mode {
+  background-color: #2a2a2a !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dashboard-section.dark-mode h2 {
+  color: #ffffff !important;
+}
+
+.dashboard-section.dark-mode .form-group input,
+.dashboard-section.dark-mode .form-group select {
+  background-color: #333333 !important;
+  color: #ffffff !important;
 }
 
 /* Existing styles for dashboard-section */
@@ -53,8 +96,15 @@
   padding: 2rem;
   margin-bottom: 2rem;
   max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
+}
+
+/* Ensure dashboard container and main have no conflicting backgrounds */
+.dashboard-container,
+.dashboard-main {
+  background-color: transparent !important;
+  min-height: 100vh;
+  width: 100%;
 }
 
 .dashboard-section h2 {
@@ -82,6 +132,12 @@
   margin-bottom: 0.5rem;
   color: var(--text-primary);
   font-size: 0.95rem;
+}
+
+/* Ensure labels and helper text are white in dark mode */
+[data-theme="dark"] .form-group label,
+[data-theme="dark"] .field-helper {
+  color: var(--text-primary) !important;
 }
 
 .form-group input,
@@ -137,7 +193,7 @@
 
 .success-message::before,
 .error-message::before {
-  content: "";
+  content: '';
   display: inline-block;
   width: 18px;
   height: 18px;
@@ -216,10 +272,8 @@
 
 .form-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: center;
   margin-top: 1.5rem;
-  gap: 1rem;
 }
 
 .back-btn {
@@ -255,6 +309,13 @@
 [data-theme="dark"] .back-btn:hover {
   background-color: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Back button container for bottom-left placement */
+.back-btn-container {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-start;
 }
 
 /* Responsive adjustments */
@@ -314,4 +375,74 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .detecting {
   animation: pulse 1.5s infinite;
+}
+
+/* Input with button for Medicine ID */
+.input-with-button {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-with-button input {
+  flex: 1;
+}
+
+/* Generate button for Medicine ID */
+.generate-btn {
+  white-space: nowrap;
+  background-color: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  border: none;
+  border-radius: 8px;
+  padding: 0 1rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.generate-btn:hover {
+  background-color: var(--light-green);
+}
+
+.generate-btn:disabled {
+  background-color: var(--disabled-bg);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Dark mode adjustments for generate button */
+[data-theme="dark"] .generate-btn {
+  background-color: var(--button-primary-bg);
+}
+
+[data-theme="dark"] .generate-btn:hover {
+  background-color: var(--light-green);
+}
+
+[data-theme="dark"] .generate-btn:disabled {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Field error styling for validation messages */
+.field-error {
+  font-size: 0.8rem;
+  color: var(--error-red);
+  margin-top: 0.25rem;
+}
+
+/* Error input styling for invalid fields */
+.error-input {
+  border-color: var(--error-red) !important;
+  background-color: rgba(245, 34, 45, 0.05);
+}
+
+/* Dark mode adjustments for field error and error input */
+[data-theme="dark"] .field-error {
+  color: rgba(245, 34, 45, 0.9);
+}
+
+[data-theme="dark"] .error-input {
+  background-color: rgba(245, 34, 45, 0.1);
+  border-color: rgba(245, 34, 45, 0.8) !important;
 }

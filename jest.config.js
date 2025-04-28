@@ -1,7 +1,7 @@
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 // Mock axios
-jest.mock('axios', () => {
+jest.mock("axios", () => {
   return {
     __esModule: true,
     default: {
@@ -38,22 +38,22 @@ jest.mock('axios', () => {
 });
 
 // Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
   useNavigate: () => jest.fn(),
   useParams: () => ({}),
   useLocation: () => ({
-    pathname: '/',
-    search: '',
-    hash: '',
+    pathname: "/",
+    search: "",
+    hash: "",
     state: null,
   }),
 }));
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,

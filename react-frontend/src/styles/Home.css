@@ -1167,6 +1167,11 @@ body {
   background-color: transparent;
 }
 
+.header:not(.scrolled) .header-logo {
+  color: white;
+  -webkit-text-fill-color: white;
+}
+
 .header.scrolled {
   background-color: var(--glass-bg);
   backdrop-filter: var(--backdrop-blur);
@@ -2643,44 +2648,6 @@ html[data-theme="dark"] .login-card-enhanced .input-container {
   top: 0;
 }
 
-.chain-station {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--background-card);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  border: 2px solid var(--primary-green);
-  box-shadow: var(--shadow-md);
-}
-
-.chain-station-1 {
-  left: 10%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.chain-station-2 {
-  left: 37%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.chain-station-3 {
-  left: 64%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.chain-station-4 {
-  left: 90%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
 .chain-station svg {
   width: 20px;
   height: 20px;
@@ -2706,16 +2673,16 @@ html[data-theme="dark"] .login-card-enhanced .input-container {
 
 @keyframes truckMove {
   0% {
-    left: 10%;
+    left: 0%;
   }
-  40% {
-    left: 37%;
+  33% {
+    left: 33.33%;
   }
-  60% {
-    left: 64%;
+  66% {
+    left: 66.66%;
   }
   100% {
-    left: 90%;
+    left: 100%;
   }
 }
 
@@ -2747,54 +2714,54 @@ html[data-theme="dark"] .login-card-enhanced .input-container {
 
 @keyframes pillMove1 {
   0% {
-    left: 10%;
+    left: 0%;
     opacity: 1;
   }
-  30% {
-    left: 37%;
+  33% {
+    left: 33.33%;
     opacity: 1;
   }
-  32% {
+  35% {
     opacity: 0;
   }
   100% {
-    left: 37%;
+    left: 33.33%;
     opacity: 0;
   }
 }
 
 @keyframes pillMove2 {
   0% {
-    left: 37%;
+    left: 33.33%;
     opacity: 1;
   }
-  30% {
-    left: 64%;
+  33% {
+    left: 66.66%;
     opacity: 1;
   }
-  32% {
+  35% {
     opacity: 0;
   }
   100% {
-    left: 64%;
+    left: 66.66%;
     opacity: 0;
   }
 }
 
 @keyframes pillMove3 {
   0% {
-    left: 64%;
+    left: 66.66%;
     opacity: 1;
   }
-  30% {
-    left: 90%;
+  33% {
+    left: 100%;
     opacity: 1;
   }
-  32% {
+  35% {
     opacity: 0;
   }
   100% {
-    left: 90%;
+    left: 100%;
     opacity: 0;
   }
 }
@@ -2977,6 +2944,8 @@ html[data-theme="dark"] .login-card-enhanced .input-container {
   position: absolute;
   width: 60px;
   height: 60px;
+  top: 50%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
@@ -2993,27 +2962,27 @@ html[data-theme="dark"] .login-card-enhanced .input-container {
 }
 
 .chain-station-1 {
-  left: 10%;
+  left: 5;
   top: 50%;
-  transform: translateY(-130%);
+  transform: translate(-50%, -50%);
 }
 
 .chain-station-2 {
-  left: 37%;
+  left: 35;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
 }
 
 .chain-station-3 {
-  left: 64%;
+  left: 65;
   top: 50%;
-  transform: translateY(-130%);
+  transform: translate(-50%, -50%);
 }
 
 .chain-station-4 {
-  left: 90%;
+  left: 95%;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
 }
 
 .station-icon {

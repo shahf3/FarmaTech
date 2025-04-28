@@ -50,7 +50,6 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      // Error is already set in the context so no need to handle it here
     }
   };
 

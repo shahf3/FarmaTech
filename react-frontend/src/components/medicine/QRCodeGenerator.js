@@ -352,7 +352,7 @@ const QRCodeGenerator = ({ medicine }) => {
       
       <Box sx={{ display: tabValue === 0 ? 'block' : 'none' }}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid xs={12} md={6}>
             <QRCodeCard>
               <QRCodeWrapper ref={qrCodeRef}>
                 <QRCodeSVG 
@@ -399,7 +399,7 @@ const QRCodeGenerator = ({ medicine }) => {
             </QRCodeCard>
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid xs={12} md={6}>
             <Paper sx={{ p: 3, borderRadius: '12px', height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom fontWeight="medium">
                 About Standard QR Codes
@@ -420,7 +420,7 @@ const QRCodeGenerator = ({ medicine }) => {
       
       <Box sx={{ display: tabValue === 1 ? 'block' : 'none' }}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid xs={12} md={6}>
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
                 <CircularProgress />
@@ -495,7 +495,7 @@ const QRCodeGenerator = ({ medicine }) => {
             )}
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid xs={12} md={6}>
             <Paper sx={{ p: 3, borderRadius: '12px', height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom fontWeight="medium">
                 About Secure QR Codes
@@ -524,7 +524,7 @@ const QRCodeGenerator = ({ medicine }) => {
         <DialogTitle>Print QR Code Labels</DialogTitle>
         <DialogContent>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   Print Settings
@@ -583,7 +583,7 @@ const QRCodeGenerator = ({ medicine }) => {
               </Box>
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Typography variant="subtitle1" gutterBottom>
                 Print Preview
               </Typography>

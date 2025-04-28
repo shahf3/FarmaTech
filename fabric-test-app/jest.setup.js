@@ -1,4 +1,3 @@
-// jest.setup.js
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
 
@@ -200,10 +199,3 @@ jest.mock("jsonwebtoken", () => {
     }),
   };
 });
-
-// Add package.json test scripts
-// "scripts": {
-//   "test": "jest",
-//   "test:watch": "jest --watch",
-//   "test:coverage": "jest --coverage"
-// }

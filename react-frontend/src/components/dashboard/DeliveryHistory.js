@@ -258,6 +258,7 @@ const DeliveryHistory = () => {
               label="Status"
               startAdornment={<FilterListIcon sx={{ mr: 1 }} />}
             >
+              <MenuItem value="all">All</MenuItem>
               <MenuItem value="Flagged">Flagged</MenuItem>
             </Select>
           </FormControl>

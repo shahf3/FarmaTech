@@ -78,7 +78,7 @@ const ScanQRCode = () => {
 
   // Handle manual scanner restart
   const handleRestartScan = () => {
-    setScanFeedback("Fit the QR code inside the green square to scan");
+    setScanFeedback("Restarting scanner... Fit the QR code inside the green square to scan");
     setIsScannerReady(false);
     setScanAttempts(0);
     setQrBoxSize(300);
@@ -100,7 +100,7 @@ const ScanQRCode = () => {
     initializeScanner();
   };
 
-  // Initialize scanner (aligned with ScanMedicine.js)
+  // Initialize scanner
   const initializeScanner = async () => {
     const scannerElement = document.getElementById(scannerContainerId);
     if (!scannerElement) {
@@ -180,12 +180,15 @@ const ScanQRCode = () => {
               return newAttempts;
             });
             if (err.name === "NotFoundException" && scanAttempts > 50) {
-              setScanFeedback("No QR code detected. Ensure the QR code is clear, well-lit, and centered in the green square.");
+              setScanFeedback("No QR code detected. Restarting scanner...");
+              handleRestartScan();
             } else if (err.name === "ChecksumException" && scanAttempts > 50) {
-              setScanFeedback("QR code detected but unreadable. Ensure the QR code is clear, not damaged, and well-lit.");
+              setScanFeedback("QR code detected but unreadable. Restarting scanner...");
+              handleRestartScan();
             } else if (err.message) {
               console.error("ZXing scan error:", err);
-              setScanFeedback(`Camera error: ${err.message}. Please ensure camera access is granted or restart the scan.`);
+              setScanFeedback(`Camera error: ${err.message}. Restarting scanner...`);
+              handleRestartScan();
             }
           }
         })
@@ -201,6 +204,7 @@ const ScanQRCode = () => {
             message: `Failed to access camera: ${err.message || err.name}`,
             type: "error",
           });
+          handleRestartScan();
         });
     } catch (err) {
       console.error("Error accessing camera:", err);
@@ -210,6 +214,7 @@ const ScanQRCode = () => {
         message: `Failed to access camera: ${err.message || err.name}`,
         type: "error",
       });
+      handleRestartScan();
     }
   };
 
@@ -366,6 +371,9 @@ const ScanQRCode = () => {
       });
       setScanFeedback("No QR code provided. Please scan or enter a code.");
       setLastVerificationFailed(true);
+      if (tabValue === 1) {
+        handleRestartScan();
+      }
       return;
     }
 
@@ -448,9 +456,12 @@ const ScanQRCode = () => {
         message: errorMessage,
         type: "error",
       });
-      setScanFeedback(`Verification failed: ${errorMessage}. Try another QR code or manual entry.`);
+      setScanFeedback(`Verification failed: ${errorMessage}. Restarting scanner...`);
       setVerifiedMedicine(null);
       setLastVerificationFailed(true);
+      if (tabValue === 1) {
+        handleRestartScan();
+      }
     } finally {
       setIsLoading(false);
     }

@@ -14,7 +14,6 @@ import QRCodeGenerator from "../components/medicine/QRCodeGenerator";
 import ManufacturerDashboard from "../components/dashboard/ManufacturerDashboard";
 import DistributorDashboard from "../components/dashboard/DistributorDashboard";
 import RegulatorDashboard from "../components/dashboard/RegulatorDashboard";
-import EndUserDashboard from "../components/dashboard/EndUserDashboard";
 
 // Other components
 import RegisterNewMedicine from "../components/dashboard/RegisterNewMedicine";
@@ -73,16 +72,7 @@ const MedicineRoutes = () => {
         }
       />
 
-      <Route
-        path="/enduser/*"
-        element={
-          <RoleRoute
-            element={<EndUserDashboard />}
-            allowedRoles={["enduser"]}
-          />
-        }
-      />
-
+      
       {/* Medicine routes */}
       <Route
         path="/medicine/:id"

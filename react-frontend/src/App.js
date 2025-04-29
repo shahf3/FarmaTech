@@ -158,16 +158,6 @@ function AppWithTheme() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/enduser"
-            element={
-              <ProtectedRoute allowedRoles={["enduser"]}>
-                <div style={{ display: "flex" }}>
-                  <Sidebar />
-                </div>
-              </ProtectedRoute>
-            }
-          />
 
           {/* New Medicine Routes */}
           <Route

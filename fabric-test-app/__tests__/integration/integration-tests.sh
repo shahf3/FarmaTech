@@ -47,7 +47,7 @@ REGISTRATION_RESPONSE=$(curl -s -X POST "$BASE_URL/api/medicines" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "id": "MED-009",
+    "id": "MED-010",
     "name": "Paracetamol",
     "batchNumber": "BATCH-1234",
     "manufacturingDate": "2024-04-01",

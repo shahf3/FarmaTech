@@ -55,11 +55,11 @@ const ScanQRCode = () => {
   const [qrBoxSize, setQrBoxSize] = useState(300);
   const [lastVerificationFailed, setLastVerificationFailed] = useState(false);
 
-  // Camera scanning states
+  
   const [tabValue, setTabValue] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize BrowserQRCodeReader with decoding hints
+  
   const hints = new Map();
   hints.set(DecodeHintType.TRY_HARDER, true);
   hints.set(DecodeHintType.POSSIBLE_FORMATS, ["QR_CODE"]);
@@ -71,14 +71,14 @@ const ScanQRCode = () => {
   const streamRef = useRef(null);
   const scannerContainerId = "qr-scanner";
 
-  // Handle back to dashboard
+
   const handleBackToDashboard = () => {
     navigate("/distributor");
   };
 
-  // Handle manual scanner restart
+
   const handleRestartScan = () => {
-    setScanFeedback("Fit the QR code inside the green square to scan");
+    setScanFeedback("Restarting scanner... Fit the QR code inside the green square to scan");
     setIsScannerReady(false);
     setScanAttempts(0);
     setQrBoxSize(300);
@@ -93,122 +93,158 @@ const ScanQRCode = () => {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    const scannerElement = document.getElementById(scannerContainerId);
+    if (scannerElement) {
+      scannerElement.innerHTML = "";
+    }
     initializeScanner();
   };
 
-  // Initialize scanner
+
   const initializeScanner = async () => {
-    const codeReader = codeReaderRef.current;
-    setTimeout(async () => {
-      console.log(`Initializing ZXing scanner with ${qrBoxSize}x${qrBoxSize}px detection area...`);
-      let deviceId = null;
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(d => d.kind === "videoinput");
-        console.log("Available cameras:", videoDevices.map(d => ({ label: d.label, deviceId: d.deviceId })));
-        // Prefer rear camera explicitly
-        const rearCamera = videoDevices.find(d => d.label.toLowerCase().includes("back") || d.label.toLowerCase().includes("rear")) || videoDevices[0];
-        deviceId = rearCamera?.deviceId;
-        console.log("Selected camera:", rearCamera?.label || "Default");
-      } catch (err) {
-        console.error("Error enumerating devices:", err);
-      }
+    const scannerElement = document.getElementById(scannerContainerId);
+    if (!scannerElement) {
+      setScanFeedback("Scanner element not found. Please try again.");
+      setScanResult({
+        success: false,
+        message: "Scanner element not found",
+        type: "error",
+      });
+      return;
+    }
 
-      const videoElement = document.getElementById(scannerContainerId);
-      videoElement.innerHTML = "";
-      const video = document.createElement("video");
-      video.id = "qr-scanner-video";
-      video.style.width = "100%";
-      video.style.height = "100%";
-      video.style.objectFit = "cover";
-      video.style.borderRadius = "8px";
-      video.muted = true;
-      videoElement.appendChild(video);
-      videoRef.current = video;
+    scannerElement.innerHTML = "";
+    const video = document.createElement("video");
+    video.id = "qr-scanner-video";
+    video.style.width = "100%";
+    video.style.height = "100%";
+    video.style.objectFit = "cover";
+    video.style.borderRadius = "8px";
+    video.muted = true;
+    scannerElement.appendChild(video);
+    videoRef.current = video;
 
-      try {
-        const constraints = {
-          video: {
-            deviceId: deviceId ? { exact: deviceId } : undefined,
-            facingMode: deviceId ? undefined : "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-        };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        streamRef.current = stream;
-        video.srcObject = stream;
-        video.onloadedmetadata = () => {
-          console.log("Camera resolution:", video.videoWidth, "x", video.videoHeight);
-        };
-        console.log("Video stream assigned:", stream.active);
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(d => d.kind === "videoinput");
+      console.log("Available cameras:", videoDevices.map(d => ({ label: d.label, deviceId: d.deviceId })));
+      const rearCamera = videoDevices.find(d => d.label.toLowerCase().includes("back") || d.label.toLowerCase().includes("rear")) || videoDevices[0];
+      const deviceId = rearCamera?.deviceId;
+      console.log("Selected camera:", rearCamera?.label || "Default");
 
-        codeReader
-          .decodeFromVideoDevice(deviceId || undefined, video.id, (result, err) => {
-            if (result) {
-              const scanTime = Date.now();
-              const sanitizedText = result.getText().trim().replace(/\n|\r/g, "");
-              console.log(`QR Code detected after ${scanAttempts} attempts at ${scanTime} with qrbox ${qrBoxSize}x${qrBoxSize}px:`, {
-                raw: result.getText(),
-                sanitized: sanitizedText,
-                role: user?.role || "unknown",
-                version: result.getVersion?.() || "Unknown",
-                errorCorrectionLevel: result.getErrorCorrectionLevel?.() || "Unknown",
-                detectionTime: scanTime,
-              });
-              setQrCode(sanitizedText);
-              setScanFeedback("QR code detected! Verifying...");
-              setScanAttempts(0);
-              setQrBoxSize(300);
-              codeReader.reset();
-              if (streamRef.current) {
-                streamRef.current.getTracks().forEach(track => track.stop());
-                streamRef.current = null;
-              }
-              handleVerify(sanitizedText);
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          facingMode: deviceId ? undefined : "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        console.log("Camera resolution:", video.videoWidth, "x", video.videoHeight);
+      };
+      console.log("Video stream assigned:", stream.active);
+
+      codeReaderRef.current
+        .decodeFromVideoDevice(deviceId || undefined, video.id, (result, err) => {
+          if (result) {
+            const scanTime = Date.now();
+            const sanitizedText = result.getText().trim().replace(/\n|\r/g, "");
+            console.log(`QR Code detected after ${scanAttempts} attempts at ${scanTime} with qrbox ${qrBoxSize}x${qrBoxSize}px:`, {
+              raw: result.getText(),
+              sanitized: sanitizedText,
+              role: user?.role || "unknown",
+              version: result.getVersion?.() || "Unknown",
+              errorCorrectionLevel: result.getErrorCorrectionLevel?.() || "Unknown",
+              detectionTime: scanTime,
+            });
+            setQrCode(sanitizedText);
+            setScanFeedback("QR code detected! Verifying...");
+            setScanAttempts(0);
+            setQrBoxSize(300);
+            codeReaderRef.current.reset();
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach(track => track.stop());
+              streamRef.current = null;
             }
-            if (err) {
-              setScanAttempts((prev) => {
-                const newAttempts = prev + 1;
-                const errorMessage = err.message || err.name || "Unknown error";
-                console.log(`Scan attempt ${newAttempts}: ${errorMessage}`);
-                return newAttempts;
-              });
-              if (err.name === "NotFoundError" || err.name === "NotFoundException") {
-                if (scanAttempts > 50) {
-                  setScanFeedback("No QR code detected. Ensure the QR code is clear, well-lit, and centered in the green square.");
-                }
-              } else if (err.name === "ChecksumException") {
-                if (scanAttempts > 50) {
-                  setScanFeedback("QR code detected but unreadable. Ensure the QR code is clear, not damaged, and well-lit.");
-                }
-              } else {
-                console.error("ZXing scan error:", err);
-                setScanFeedback(`Camera error: ${err.message || err.name}. Please ensure camera access is granted or restart the scan.`);
-              }
+            handleVerify(sanitizedText);
+          }
+          if (err) {
+            setScanAttempts((prev) => {
+              const newAttempts = prev + 1;
+              const errorMessage = err.message || err.name || "Unknown error";
+              console.log(`Scan attempt ${newAttempts}: ${errorMessage}`);
+              return newAttempts;
+            });
+            if (err.name === "NotFoundException" && scanAttempts > 50) {
+              setScanFeedback("No QR code detected. Restarting scanner...");
+              handleRestartScan();
+            } else if (err.name === "ChecksumException" && scanAttempts > 50) {
+              setScanFeedback("QR code detected but unreadable. Restarting scanner...");
+              handleRestartScan();
+            } else if (err.message) {
+              console.error("ZXing scan error:", err);
+              setScanFeedback(`Camera error: ${err.message}. Restarting scanner...`);
+              handleRestartScan();
             }
-          })
-          .then(() => {
-            setIsScannerReady(true);
-            console.log("ZXing scanner initialized");
-          })
-          .catch((err) => {
-            console.error("Error initializing ZXing scanner:", err);
-            setScanFeedback(`Failed to access camera: ${err.message || err.name}. Please check permissions and try again.`);
+          }
+        })
+        .then(() => {
+          setIsScannerReady(true);
+          console.log("ZXing scanner initialized");
+        })
+        .catch((err) => {
+          console.error("Error initializing ZXing scanner:", err);
+          setScanFeedback(`Failed to access camera: ${err.message || err.name}. Please check permissions and try again.`);
+          setScanResult({
+            success: false,
+            message: `Failed to access camera: ${err.message || err.name}`,
+            type: "error",
           });
-      } catch (err) {
-        console.error("Error accessing camera:", err);
-        setScanFeedback(`Failed to access camera: ${err.message || err.name}. Please check permissions and try again.`);
-      }
-    }, 500);
+          handleRestartScan();
+        });
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      setScanFeedback(`Failed to access camera: ${err.message || err.name}. Please check permissions and try again.`);
+      setScanResult({
+        success: false,
+        message: `Failed to access camera: ${err.message || err.name}`,
+        type: "error",
+      });
+      handleRestartScan();
+    }
   };
 
-  // Effect to initialize and clean up scanner
+
   useEffect(() => {
     if (tabValue !== 1) return;
 
     console.log("Starting scanner setup...");
     initializeScanner();
+
+    return () => {
+      console.log("Cleaning up ZXing scanner...");
+      if (codeReaderRef.current) {
+        codeReaderRef.current.reset();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+        videoRef.current.remove();
+        videoRef.current = null;
+      }
+    };
+  }, [tabValue]);
+
+
+  useEffect(() => {
+    if (tabValue !== 1) return;
 
     const timeout = setTimeout(() => {
       if (!qrCode && !lastVerificationFailed) {
@@ -224,33 +260,22 @@ const ScanQRCode = () => {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
         }
+        const scannerElement = document.getElementById(scannerContainerId);
+        if (scannerElement) {
+          scannerElement.innerHTML = "";
+        }
         initializeScanner();
       }
     }, 10000);
 
-    return () => {
-      console.log("Cleaning up ZXing scanner...");
-      clearTimeout(timeout);
-      if (codeReaderRef.current) {
-        codeReaderRef.current.reset();
-      }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-        videoRef.current.remove();
-        videoRef.current = null;
-      }
-    };
-  }, [tabValue, user, qrBoxSize, lastVerificationFailed]);
+    return () => clearTimeout(timeout);
+  }, [tabValue, qrCode, lastVerificationFailed]);
 
-  // Effect to manage scanner CSS styles
+
   useEffect(() => {
     const style = document.createElement("style");
     style.innerHTML = `
-      #qr-scanner {
+      #${scannerContainerId} {
         width: 100% !important;
         max-width: 500px !important;
         margin: 0 auto !important;
@@ -263,20 +288,20 @@ const ScanQRCode = () => {
         border-radius: 8px !important;
         background: rgba(0, 0, 0, 0.1) !important;
       }
-      #qr-scanner video {
+      #${scannerContainerId} video {
         width: 100% !important;
         height: 100% !important;
         object-fit: cover !important;
         border-radius: 8px !important;
       }
       @media (max-width: 600px) {
-        #qr-scanner {
+        #${scannerContainerId} {
           min-height: 250px !important;
           height: 60vw !important;
         }
       }
       @media (min-width: 601px) {
-        #qr-scanner {
+        #${scannerContainerId} {
           min-height: 300px !important;
           height: 30vw !important;
           max-height: 400px !important;
@@ -346,6 +371,9 @@ const ScanQRCode = () => {
       });
       setScanFeedback("No QR code provided. Please scan or enter a code.");
       setLastVerificationFailed(true);
+      if (tabValue === 1) {
+        handleRestartScan();
+      }
       return;
     }
 
@@ -359,8 +387,14 @@ const ScanQRCode = () => {
 
     try {
       let isSecureQR = false;
-      let response;
+      try {
+        const parsed = JSON.parse(qrToVerify);
+        isSecureQR = !!parsed.signature;
+      } catch (e) {
+        isSecureQR = false;
+      }
 
+      let response;
       if (isSecureQR) {
         response = await axios.post(
           `${API_URL}/medicines/verify-secure`,
@@ -372,6 +406,7 @@ const ScanQRCode = () => {
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
+              "X-User-Location": updateForm.location || user.organization,
             },
           }
         );
@@ -421,9 +456,12 @@ const ScanQRCode = () => {
         message: errorMessage,
         type: "error",
       });
-      setScanFeedback(`Verification failed: ${errorMessage}. Try another QR code or manual entry.`);
+      setScanFeedback(`Verification failed: ${errorMessage}. Restarting scanner...`);
       setVerifiedMedicine(null);
       setLastVerificationFailed(true);
+      if (tabValue === 1) {
+        handleRestartScan();
+      }
     } finally {
       setIsLoading(false);
     }

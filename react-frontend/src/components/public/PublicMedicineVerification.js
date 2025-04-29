@@ -34,7 +34,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
-// Styled components from ScanMedicine.js
+
 const GradientButton = styled(Button)(({ theme }) => ({
   padding: theme.spacing(1.5),
   borderRadius: '8px',
@@ -93,7 +93,7 @@ const DetailCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-// Helper functions for status display
+
 const getStatusColor = (status) => {
   const statusColors = {
     'Order Complete': '#43a047',
@@ -134,7 +134,7 @@ const PublicMedicineVerification = () => {
   const [qrBoxSize, setQrBoxSize] = useState(300);
   const [lastVerificationFailed, setLastVerificationFailed] = useState(false);
 
-  // ZXing setup
+ 
   const hints = new Map();
   hints.set(DecodeHintType.TRY_HARDER, true);
   hints.set(DecodeHintType.POSSIBLE_FORMATS, ['QR_CODE']);
@@ -146,7 +146,7 @@ const PublicMedicineVerification = () => {
   const streamRef = useRef(null);
   const scannerContainerId = 'qr-scanner';
 
-  // Scanner CSS from ScanMedicine.js
+
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -216,7 +216,7 @@ const PublicMedicineVerification = () => {
     };
   }, [qrBoxSize]);
 
-  // Listen for system theme changes
+
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => setDarkMode(e.matches);
@@ -224,7 +224,7 @@ const PublicMedicineVerification = () => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  // Claim medicine
+
   const claimMedicine = useCallback(
     async (qrCode) => {
       setLoading(true);
@@ -259,7 +259,7 @@ const PublicMedicineVerification = () => {
     [userLocation]
   );
 
-  // Verify medicine
+
   const verifyMedicine = useCallback(
     async (content) => {
       setLoading(true);
@@ -294,7 +294,7 @@ const PublicMedicineVerification = () => {
     [userLocation, claimMedicine, scanning]
   );
 
-  // Initialize geolocation and URL params
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const qrFromUrl = params.get('qr');
@@ -316,7 +316,7 @@ const PublicMedicineVerification = () => {
     }
   }, [verifyMedicine]);
 
-  // Handle scanner restart
+
   const handleRestartScan = () => {
     setScanFeedback('Restarting scanner... Fit the QR code inside the green square to scan');
     setIsScannerReady(false);
@@ -339,7 +339,7 @@ const PublicMedicineVerification = () => {
     initializeScanner();
   };
 
-  // Initialize scanner
+
   const initializeScanner = async () => {
     const scannerElement = document.getElementById(scannerContainerId);
     if (!scannerElement) {
@@ -448,7 +448,7 @@ const PublicMedicineVerification = () => {
     }
   };
 
-  // Effect to initialize and clean up scanner
+
   useEffect(() => {
     if (!scanning) return;
 
@@ -472,7 +472,7 @@ const PublicMedicineVerification = () => {
     };
   }, [scanning]);
 
-  // Fallback logic for scanner
+
   useEffect(() => {
     if (!scanning) return;
 

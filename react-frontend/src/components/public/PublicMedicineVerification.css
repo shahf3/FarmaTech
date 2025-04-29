@@ -1,4 +1,4 @@
-/* MedicineVerification.css */
+/* General Styles */
 :root {
   /* Light mode variables */
   --bg-primary: #f8f9fa;
@@ -10,8 +10,8 @@
   --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
   --input-bg: #f5f7fa;
   --input-border: #dbe0e6;
-  --btn-primary-bg: #4361ee;
-  --btn-primary-hover: #3a56d4;
+  --btn-primary-bg: #169976; /* Changed from #4361ee to match ScanQRCode.js */
+  --btn-primary-hover: #127a5c; /* Darker green for hover */
   --btn-secondary-bg: #e9ecef;
   --btn-secondary-hover: #dde1e6;
   --btn-danger-bg: #e63946;
@@ -36,8 +36,8 @@
   --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
   --input-bg: #4a5568;
   --input-border: #718096;
-  --btn-primary-bg: #4361ee;
-  --btn-primary-hover: #3a56d4;
+  --btn-primary-bg: #169976; /* Changed from #4361ee to match ScanQRCode.js */
+  --btn-primary-hover: #127a5c; /* Darker green for hover */
   --btn-secondary-bg: #4a5568;
   --btn-secondary-hover: #5a6678;
   --btn-danger-bg: #e63946;
@@ -218,6 +218,7 @@ textarea:focus {
 
 .scan-btn:hover:not(:disabled) {
   background-color: var(--btn-primary-hover);
+  transform: translateY(-1px);
 }
 
 .cancel-btn {
@@ -227,8 +228,9 @@ textarea:focus {
   width: 100%;
 }
 
-.cancel-btn:hover {
+.cancel-btn:hover:not(:disabled) {
   background-color: var(--btn-danger-hover);
+  transform: translateY(-1px);
 }
 
 .secondary-btn {
@@ -236,8 +238,9 @@ textarea:focus {
   color: var(--text-primary);
 }
 
-.secondary-btn:hover {
+.secondary-btn:hover:not(:disabled) {
   background-color: var(--btn-secondary-hover);
+  transform: translateY(-1px);
 }
 
 .divider {
@@ -260,22 +263,114 @@ textarea:focus {
   justify-content: center;
 }
 
-.qr-reader {
+/* Scanner Section */
+.qr-scanner {
   width: 100%;
-  border-radius: 8px;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0;
+  min-height: 300px;
+  position: relative;
   overflow: hidden;
+  z-index: 1000;
   border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.qr-scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.qr-scanner-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  border: 4px solid #169976;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(22, 153, 118, 0.8);
+  background: rgba(22, 153, 118, 0.1);
+  animation: pulse 1.2s infinite;
+  pointer-events: none;
+  z-index: 2000;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 12px rgba(22, 153, 118, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(22, 153, 118, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 12px rgba(22, 153, 118, 0.8);
+  }
+}
+
+@media (max-width: 600px) {
+  .qr-scanner {
+    min-height: 250px;
+    height: 60vw;
+  }
+  .qr-scanner-guide {
+    width: 250px;
+    height: 250px;
+  }
+}
+
+@media (min-width: 601px) {
+  .qr-scanner {
+    min-height: 300px;
+    height: 30vw;
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 400px) {
+  .qr-scanner-guide {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+.scan-instruction {
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.scan-feedback {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.scan-feedback.success {
+  color: var(--success-color);
+}
+
+.scan-feedback.error {
+  color: var(--warning-color);
 }
 
 .scan-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 
 .qr-placeholder {
   width: 100%;
-  height: 200px;
+  max-width: 300px;
+  height: 300px;
   background-color: var(--input-bg);
   border: 1px dashed var(--input-border);
   border-radius: 8px;
@@ -291,6 +386,13 @@ textarea:focus {
   font-size: 2rem;
   color: var(--text-secondary);
   opacity: 0.5;
+}
+
+@media (max-width: 600px) {
+  .qr-placeholder {
+    max-width: 250px;
+    height: 250px;
+  }
 }
 
 .message {
@@ -327,7 +429,7 @@ textarea:focus {
   width: 40px;
   height: 40px;
   border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: var(--btn-primary-bg);
+  border-left-color: var(--btn-primary-bg); /* Updated to green */
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -341,7 +443,7 @@ textarea:focus {
 
 .dark-mode .spinner {
   border: 4px solid rgba(255, 255, 255, 0.1);
-  border-left-color: var(--btn-primary-bg);
+  border-left-color: var(--btn-primary-bg); /* Updated to green */
 }
 
 .medicine-details {
@@ -410,7 +512,7 @@ textarea:focus {
   padding: 1rem;
   background-color: var(--input-bg);
   border-radius: 8px;
-  border-left: 3px solid var(--btn-primary-bg);
+  border-left: 3px solid var(--btn-primary-bg); /* Updated to green */
 }
 
 .detail-item label {

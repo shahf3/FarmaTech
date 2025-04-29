@@ -55,11 +55,11 @@ const ScanQRCode = () => {
   const [qrBoxSize, setQrBoxSize] = useState(300);
   const [lastVerificationFailed, setLastVerificationFailed] = useState(false);
 
-  // Camera scanning states
+  
   const [tabValue, setTabValue] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize BrowserQRCodeReader with decoding hints
+  
   const hints = new Map();
   hints.set(DecodeHintType.TRY_HARDER, true);
   hints.set(DecodeHintType.POSSIBLE_FORMATS, ["QR_CODE"]);
@@ -71,12 +71,12 @@ const ScanQRCode = () => {
   const streamRef = useRef(null);
   const scannerContainerId = "qr-scanner";
 
-  // Handle back to dashboard
+
   const handleBackToDashboard = () => {
     navigate("/distributor");
   };
 
-  // Handle manual scanner restart
+
   const handleRestartScan = () => {
     setScanFeedback("Restarting scanner... Fit the QR code inside the green square to scan");
     setIsScannerReady(false);
@@ -100,7 +100,7 @@ const ScanQRCode = () => {
     initializeScanner();
   };
 
-  // Initialize scanner
+
   const initializeScanner = async () => {
     const scannerElement = document.getElementById(scannerContainerId);
     if (!scannerElement) {
@@ -218,7 +218,7 @@ const ScanQRCode = () => {
     }
   };
 
-  // Effect to initialize and clean up scanner
+
   useEffect(() => {
     if (tabValue !== 1) return;
 
@@ -242,7 +242,7 @@ const ScanQRCode = () => {
     };
   }, [tabValue]);
 
-  // Fallback logic for scanner
+
   useEffect(() => {
     if (tabValue !== 1) return;
 
@@ -271,7 +271,7 @@ const ScanQRCode = () => {
     return () => clearTimeout(timeout);
   }, [tabValue, qrCode, lastVerificationFailed]);
 
-  // Effect to manage scanner CSS styles
+
   useEffect(() => {
     const style = document.createElement("style");
     style.innerHTML = `

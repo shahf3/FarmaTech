@@ -8,13 +8,18 @@ exports.verifyToken = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
+      console.error('❌ No token provided');
       return res.status(401).json({ message: 'No token, authorization denied' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'farmatechsecretkey2025');
-    
+    console.log('✅ Token decoded:', decoded);
+
     const user = await User.findById(decoded.id);
+    console.log('✅ User found:', user);
+
     if (!user) {
+      console.error('❌ User not found in DB');
       return res.status(401).json({ message: 'User not found' });
     }
     
@@ -28,9 +33,11 @@ exports.verifyToken = async (req, res, next) => {
     
     next();
   } catch (error) {
+    console.error('❌ Error in verifyToken:', error.message);
     res.status(401).json({ message: 'Token is not valid' });
   }
 };
+
 
 // Check user role
 exports.checkRole = (roles) => {

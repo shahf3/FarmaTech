@@ -25,7 +25,6 @@ import Dashboard from "./components/dashboard/Dashboard";
 import ManufacturerDashboard from "./components/dashboard/ManufacturerDashboard";
 import DistributorDashboard from "./components/dashboard/DistributorDashboard";
 import RegulatorDashboard from "./components/dashboard/RegulatorDashboard";
-import EndUserDashboard from "./components/dashboard/EndUserDashboard";
 import RegisterRegulator from './components/dashboard/RegisterRegulator';
 
 // Medicine components
@@ -165,9 +164,6 @@ function AppWithTheme() {
               <ProtectedRoute allowedRoles={["enduser"]}>
                 <div style={{ display: "flex" }}>
                   <Sidebar />
-                  <div style={{ flexGrow: 1, padding: "64px 20px 20px 20px" }}>
-                    <EndUserDashboard />
-                  </div>
                 </div>
               </ProtectedRoute>
             }

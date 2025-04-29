@@ -7,10 +7,15 @@ beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
 
+  process.env.MONGO_URI = uri; // 👈 Set this!
+
+  await mongoose.disconnect(); // Disconnect if already connected
   await mongoose.connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
+
+  console.log("✅ Connected to In-Memory MongoDB at", uri);
 });
 
 afterAll(async () => {
@@ -19,7 +24,6 @@ afterAll(async () => {
 });
 
 afterEach(async () => {
-  // Clean up the database between tests
   const collections = mongoose.connection.collections;
   for (const key in collections) {
     const collection = collections[key];

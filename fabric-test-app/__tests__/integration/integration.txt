@@ -1,0 +1,12 @@
+Registration
+
+1. Register user
+curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" -d '{
+  "username": "testuser1",
+  "email": "testuser1@example.com",
+  "password": "password123",
+  "role": "manufacturer",
+  "organization": "TestOrganization"
+}'
+
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjgxMGQ4YzJhOWQzY2QzZGFkMjBmOTNjIiwicm9sZSI6Im1hbnVmYWN0dXJlciIsIm9yZ2FuaXphdGlvbiI6IlRlc3RPcmdhbml6YXRpb24ifSwiaWF0IjoxNzQ1OTM0NTMwLCJleHAiOjE3NDU5NTI1MzB9.9MqSCLUpfPT2B4lhwf1evVdtB08cz5vsC9a8qgEaOog"}shahf3@DESKTOP-OPD0N2M:/mnt/c/Users/laptop/Desktop/2025-csc1097-mahala2-shahf3$ 

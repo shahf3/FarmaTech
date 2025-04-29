@@ -603,9 +603,12 @@ app.get("*", (req, res) => {
   }
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(
-    `FarmaTech API is now available with medicine-contract integration`
-  );
-});
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`FarmaTech API is now available with medicine-contract integration`);
+  });
+}
+
+module.exports = app;

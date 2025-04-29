@@ -1,4 +1,3 @@
-// src/routes/MedicineRoutes.js
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -6,7 +5,6 @@ import { useAuth } from "../context/AuthContext";
 // Medicine components
 import MedicineDetail from "../components/medicine/MedicineDetail";
 import ScanMedicine from "../components/medicine/ScanMedicine";
-//import UpdateMedicineStatus from "../components/medicine/UpdateMedicineStatus";
 import FlagMedicine from "../components/medicine/FlagMedicine";
 import QRCodeGenerator from "../components/medicine/QRCodeGenerator";
 
@@ -14,7 +12,6 @@ import QRCodeGenerator from "../components/medicine/QRCodeGenerator";
 import ManufacturerDashboard from "../components/dashboard/ManufacturerDashboard";
 import DistributorDashboard from "../components/dashboard/DistributorDashboard";
 import RegulatorDashboard from "../components/dashboard/RegulatorDashboard";
-import EndUserDashboard from "../components/dashboard/EndUserDashboard";
 
 // Other components
 import RegisterNewMedicine from "../components/dashboard/RegisterNewMedicine";
@@ -73,16 +70,6 @@ const MedicineRoutes = () => {
         }
       />
 
-      <Route
-        path="/enduser/*"
-        element={
-          <RoleRoute
-            element={<EndUserDashboard />}
-            allowedRoles={["enduser"]}
-          />
-        }
-      />
-
       {/* Medicine routes */}
       <Route
         path="/medicine/:id"
@@ -93,7 +80,6 @@ const MedicineRoutes = () => {
               "manufacturer",
               "distributor",
               "regulator",
-              "enduser",
             ]}
           />
         }

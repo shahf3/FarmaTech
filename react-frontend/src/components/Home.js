@@ -341,26 +341,26 @@ const Home = () => {
   const testimonials = [
     {
       quote:
-        "FarmaTech has revolutionized how we track our products from production to pharmacy. The platform is intuitive and provides peace of mind.",
-      name: "Jane Doe",
-      position: "Supply Chain Director, PharmaGlobal",
-      avatar: "JD",
+        "Tested for over 1000 medicines with blockchain responses in under 1 seconds.",
+      name: "Stress Testing",
+      position: "Blockchain",
+      avatar: "ST",
       color: "#1DCD9F",
     },
     {
       quote:
-        "The real-time tracking and verification capabilities have helped us identify and prevent multiple counterfeit incidents.",
-      name: "John Smith",
-      position: "Regulatory Affairs, MediTrust",
-      avatar: "JS",
+        "Strict role permissions for no loop holes in the system. No more fake medicines.",
+      name: "Integration Testing",
+      position: "- Frontend, Backend, Blockchain",
+      avatar: "IT",
       color: "#169976",
     },
     {
       quote:
-        "As a healthcare provider, I can now verify medication authenticity with a simple scan, improving patient safety significantly.",
-      name: "Amina Sadiq",
-      position: "Chief Pharmacist, Central Hospital",
-      avatar: "AS",
+        "Robust user management resulting in complete power to the manufacturer.",
+      name: "Unit Testing",
+      position: "Backend",
+      avatar: "UT",
       color: "#0d5d48",
     },
   ];
@@ -2016,7 +2016,7 @@ const Home = () => {
             transition={{ duration: 0.5 }}
             viewport={{ once: true, margin: "-100px" }}
           >
-            Testimonials
+            Tests
           </motion.span>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -2024,7 +2024,7 @@ const Home = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true, margin: "-100px" }}
           >
-            Trusted by Industry Leaders
+            Let's see what FarmaTech Promises!
           </motion.h2>
           <motion.p
             className="section-description"
@@ -2033,7 +2033,7 @@ const Home = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             viewport={{ once: true, margin: "-100px" }}
           >
-            Hear what our users have to say about FarmaTech
+            Decoding the Testing Results
           </motion.p>
         </div>
 

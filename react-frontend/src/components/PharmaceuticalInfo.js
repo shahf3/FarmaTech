@@ -31,10 +31,17 @@ const PharmaceuticalInfo = () => {
   }, []);
 
   return (
-    <div className="page-container">
+    <div
+      className="page-container"
+      style={{
+        backgroundColor: "#1BC095",
+        color: "#000000", 
+        colorScheme: "light"
+      }}
+    >
       <Header />
       
-      <div className="pharma-info-container">
+      <div className="pharma-info-container" style={{ paddingTop: "80px" }}>
         <section className="hero-section">
           <div className="hero-content">
             <h1 className="animated-title">Secure Pharmaceutical Verification</h1>
@@ -274,8 +281,8 @@ const PharmaceuticalInfo = () => {
           </div>
           
           <div className="call-to-action animate-on-scroll">
-            <h3>Ready to verify your medication?</h3>
-            <button className="cta-button">
+            <h4>Ready to verify your medication?</h4>
+            <button className="cta-button" style={{ paddingTop: "5px" }}>
               Get Started <i className="material-icons">arrow_forward</i>
             </button>
           </div>

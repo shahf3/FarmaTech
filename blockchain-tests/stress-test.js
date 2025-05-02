@@ -44,12 +44,8 @@ async function runStressTest() {
       throw new Error(`Connection profile not found at ${ccpPath}`);
     }
     const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
-
-    // Load wallet
     const walletPath = path.resolve(__dirname, WALLET_PATH);
     const wallet = await Wallets.newFileSystemWallet(walletPath);
-
-    // Check if identity exists
     const identity = await wallet.get(IDENTITY);
     if (!identity) {
       throw new Error(`Identity ${IDENTITY} not found in wallet`);
@@ -81,7 +77,6 @@ async function runStressTest() {
         `Executing batch ${i + 1}/${batches} with ${batchSize} transactions`
       );
 
-      // Create concurrent transaction promises
       for (let j = 0; j < batchSize; j++) {
         const txId = `MED-${i * TEST_CONFIG.concurrentTransactions + j}`;
         batchPromises.push(executeTransaction(contract, txId));
@@ -110,7 +105,6 @@ async function runStressTest() {
       }
     }
 
-    // Finish timing
     results.endTime = Date.now();
     const totalDuration = (results.endTime - results.startTime) / 1000;
 
@@ -134,8 +128,6 @@ async function runStressTest() {
     console.log(`Latency (median): ${medianLatency.toFixed(2)} ms`);
     console.log(`Latency (max): ${maxLatency.toFixed(2)} ms`);
     console.log(`Latency (p95): ${p95Latency.toFixed(2)} ms`);
-
-    // Log error summary
     console.log("\nError summary:");
     for (const [errorMsg, count] of Object.entries(results.errors)) {
       console.log(`  ${errorMsg}: ${count} occurrences`);
@@ -184,7 +176,6 @@ async function executeTransaction(contract, medicineId) {
       console.log(`Completed ${results.successful} successful transactions`);
     }
   } catch (error) {
-    // Record failed transaction
     results.failed++;
 
     const errorMsg = error.message || "Unknown error";
@@ -224,7 +215,6 @@ async function registerMedicine(contract, medicineId) {
 }
 
 async function updateSupplyChain(contract, medicineId) {
-  // First check if the medicine exists, if not register it
   try {
     await contract.evaluateTransaction("GetMedicine", medicineId);
   } catch (error) {

@@ -1,8 +1,7 @@
-// models/Notification.js
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Must match 'User'
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   senderOrganization: { type: String, required: true },
   recipientOrganization: { type: String, required: true },

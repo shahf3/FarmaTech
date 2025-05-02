@@ -38,10 +38,8 @@ app.use(
   })
 );
 
-// Middleware to parse JSON
 app.use(express.json());
 
-// Debug route logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
@@ -53,7 +51,6 @@ function verifyQRCode(qrContent, secretKey) {
       const data = JSON.parse(qrContent);
       const { signature, ...baseContent } = data;
   
-      // Re-compute HMAC
       const contentString = JSON.stringify(baseContent);
       const expectedHmac = crypto
         .createHmac("sha256", secretKey)
@@ -146,7 +143,6 @@ app.get("/api/public/verify/:qrCode", async (req, res) => {
         medicineData = JSON.parse(updatedResult.toString());
       } catch (scanError) {
         console.error("Error recording public scan:", scanError);
-        // Continue even if recording scan fails
       }
 
       await gateway.disconnect();
@@ -172,7 +168,7 @@ app.get("/api/public/verify/:qrCode", async (req, res) => {
       console.error('Gateway Error:', error);
       try {
         await gateway.disconnect();
-      } catch (e) { /* ignore disconnect errors */ }
+      } catch (e) {}
       
       res.status(500).json({ error: error.message });
     }
@@ -193,10 +189,8 @@ app.post("/api/public/verify-medicine", async (req, res) => {
     
     console.log(`Public verification of medicine with QR content`);
     
-    // Determine if the QR is in JSON format or plain text
     let blockchainQR;
     try {
-      // Try to parse as JSON first
       const parsedQR = JSON.parse(qrContent);
       
       // Use the verifyQRCode function for signature verification
@@ -278,15 +272,12 @@ app.post("/api/public/verify-medicine", async (req, res) => {
         medicineData = JSON.parse(updatedResult.toString());
       } catch (scanError) {
         console.error("Error recording public scan:", scanError);
-        // Continue even if recording scan fails
       }
 
       await gateway.disconnect();
 
       // For public users, only provide essential information
       const isExpired = new Date(medicineData.expirationDate) < new Date();
-      
-      // Prepare a filtered response with only the necessary information
       const publicMedicineData = {
         id: medicineData.id,
         name: medicineData.name,
@@ -377,7 +368,7 @@ app.post("/api/public/claim", async (req, res) => {
         return res.status(404).json({ error: `Medicine not found for QR code: ${qrCode}` });
       }
 
-      // Check if medicine is in a claimable state (e.g., "Order Complete")
+      // Check if medicine is in a claimable state
       if (medicine.status !== "Order Complete") {
         await gateway.disconnect();
         return res.status(400).json({ error: `Medicine cannot be claimed. Current status: ${medicine.status}` });
@@ -393,7 +384,6 @@ app.post("/api/public/claim", async (req, res) => {
         `Claimed by public user at ${timestamp}`
       );
 
-      // Get updated medicine details
       const updatedResult = await contract.evaluateTransaction("GetMedicine", medicine.id);
       const updatedMedicine = JSON.parse(updatedResult.toString());
 
@@ -409,7 +399,7 @@ app.post("/api/public/claim", async (req, res) => {
         expirationDate: updatedMedicine.expirationDate,
         status: updatedMedicine.status,
         flagged: updatedMedicine.flagged,
-        supplyChain: updatedMedicine.supplyChain, // Include for frontend
+        supplyChain: updatedMedicine.supplyChain,
         claimTimestamp: new Date().toISOString()
       };
 
@@ -421,7 +411,7 @@ app.post("/api/public/claim", async (req, res) => {
       console.error('Gateway Error:', error);
       try {
         await gateway.disconnect();
-      } catch (e) { /* ignore disconnect errors */ }
+      } catch (e) {}
       res.status(500).json({ error: error.message || 'Error claiming medicine' });
     }
   } catch (error) {

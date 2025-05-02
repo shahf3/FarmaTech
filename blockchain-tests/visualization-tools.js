@@ -40,7 +40,6 @@ function findResultFiles(directory) {
   }
 }
 
-// Process a single result file
 function processResultFile(filePath) {
   try {
     const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -768,7 +767,6 @@ function generateSummaryReport(processedResults) {
 </body>
 </html>`;
 
-  // Write the HTML file
   fs.writeFileSync(reportFileName, html);
   console.log(`Generated summary report: ${reportFileName}`);
 
@@ -780,8 +778,6 @@ function main() {
   console.log("Blockchain Test Results Visualization Tool");
   const resultsDir = process.argv[2] || ".";
   console.log(`Looking for test results in: ${resultsDir}`);
-
-  // Find result files
   const resultFiles = findResultFiles(resultsDir);
   console.log(`Found ${resultFiles.length} test result files`);
 
@@ -790,7 +786,6 @@ function main() {
     return;
   }
 
-  // Process each file and generate individual reports
   const processedResults = [];
 
   resultFiles.forEach((file) => {
@@ -804,7 +799,6 @@ function main() {
     }
   });
 
-  // Generate summary report
   if (processedResults.length > 0) {
     generateSummaryReport(processedResults);
     console.log("\nAll reports generated successfully.");

@@ -22,8 +22,6 @@ function generateSecureQRCode(medicine, secretKey) {
   };
 
   const contentString = JSON.stringify(baseContent);
-
-  // Create HMAC signature
   const hmac = crypto
     .createHmac("sha256", secretKey)
     .update(contentString)
@@ -42,7 +40,6 @@ function verifyQRCode(qrContent, secretKey) {
 
     const { signature, ...baseContent } = data;
 
-    // Re-compute HMAC
     const contentString = JSON.stringify(baseContent);
     const expectedHmac = crypto
       .createHmac("sha256", secretKey)
@@ -64,7 +61,6 @@ function verifyQRCode(qrContent, secretKey) {
   }
 }
 
-// Helper function to determine if a user is authorized to scan a medicine
 function isAuthorizedScan(user, medicine) {
   // Regulators can scan any medicine
   if (user.role === 'regulator') {
@@ -76,7 +72,6 @@ function isAuthorizedScan(user, medicine) {
     return user.organization === medicine.manufacturer;
   }
 
-  // Distributors can scan medicines they own or that are in transit to them
   if (user.role === 'distributor') {
     return user.organization === medicine.currentOwner || 
            (medicine.status === 'In Transit' && 
@@ -411,7 +406,7 @@ router.post(
 
 // @route   POST api/medicines/:id/flag
 // @desc    Flag a medicine for issues
-// @access  Private/Any role
+// @access  Private
 router.post(
   '/:id/flag',
   [

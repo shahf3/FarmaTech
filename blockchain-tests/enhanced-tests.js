@@ -54,7 +54,6 @@ const TEST_PROFILES = {
     concurrency: 10,
   },
 
-  // Complex transaction mix - simulates real-world usage
   mixed: {
     name: "Mixed Workload Test",
     transactionMix: [
@@ -64,15 +63,14 @@ const TEST_PROFILES = {
       { function: "GetAllMedicines", weight: 10 },
       { function: "FlagMedicine", weight: 5 },
     ],
-    transactions: 200,
-    concurrency: 20,
+    transactions: 60000,
+    concurrency: 10000,
     preloadData: {
       enabled: true,
       count: 20,
     },
   },
 
-  // Endurance test - runs for a longer period
   endurance: {
     name: "Endurance Test",
     transactionMix: [
@@ -115,7 +113,6 @@ class TestResults {
     this.successful++;
     this.latencies.push(latency);
 
-    // Record throughput and latency history
     const timestamp = Date.now();
     this.throughputHistory.push({ timestamp, value: 1 });
     this.latencyHistory.push({ timestamp, value: latency });
@@ -436,7 +433,6 @@ class TransactionGenerator {
   }
 
   selectAppropriateId(txType) {
-    // For registration, prefer new IDs
     if (txType === "RegisterMedicine") {
       if (this.medicineIdPool.length === 0) {
         this.populateMedicineIdPool(20);
@@ -552,13 +548,11 @@ class TransactionGenerator {
       console.log(`Successfully updated supply chain for ${medicineId}`);
       return { status: "updated", id: medicineId, result };
     } catch (error) {
-      // If medicine doesn't exist, register it first
       if (error.message.includes("does not exist")) {
         console.log(`Medicine ${medicineId} not found, registering it first`);
         try {
           await this.registerMedicine(medicineId);
 
-          // Retry the supply chain update
           console.log(
             `Retrying UpdateSupplyChain for newly registered ${medicineId}`
           );
@@ -678,13 +672,11 @@ class TransactionGenerator {
 
   async flagMedicine(medicineId) {
     console.log(`Flagging medicine ${medicineId}`);
-    // Try to get an existing medicine first
     try {
       console.log(`Checking if medicine ${medicineId} exists before flagging`);
       await this.contract.evaluateTransaction("GetMedicine", medicineId);
     } catch (error) {
       if (error.message.includes("does not exist")) {
-        // Register the medicine first
         console.log(`Medicine ${medicineId} not found, registering it first`);
         await this.registerMedicine(medicineId);
       } else {
@@ -730,7 +722,6 @@ class TransactionGenerator {
       const batchPromises = [];
 
       for (let i = 0; i < batchSize && b * batchSize + i < count; i++) {
-        // Generate a new medicine ID outside of existing ranges
         const medicineId = `MED-${nextMedicineId++}`;
         attemptedMedicineIds.add(medicineId);
 
@@ -753,7 +744,6 @@ class TransactionGenerator {
                 registeredMedicineIds.add(medicineId);
                 return { status: "exists", id: medicineId };
               } catch (queryError) {
-                // If medicine doesn't exist, register it
                 if (queryError.message.includes("does not exist")) {
                   console.log(
                     `Registering medicine ${medicineId} during preload`
@@ -770,7 +760,6 @@ class TransactionGenerator {
                 }
               }
             } catch (error) {
-              // If it's a duplicate key error, still consider it registered
               if (error.message.includes("already exists")) {
                 console.log(
                   `Medicine ${medicineId} already exists (caught in error) during preload. Skipping.`
@@ -789,7 +778,6 @@ class TransactionGenerator {
         );
       }
 
-      // Wait for batch to complete
       console.log(`Waiting for batch ${b + 1} to complete`);
       await Promise.all(batchPromises);
 
@@ -851,7 +839,6 @@ class TestRunner {
       const wallet = await Wallets.newFileSystemWallet(walletPath);
       console.log("Wallet instance created");
 
-      // Check if identity exists
       console.log(`Checking if identity '${IDENTITY}' exists in wallet...`);
       const identity = await wallet.get(IDENTITY);
 
@@ -911,7 +898,6 @@ class TestRunner {
         throw connectError;
       }
 
-      // Get network and contract
       try {
         console.log(`Getting network: ${CHANNEL_NAME}`);
         const network = await this.gateway.getNetwork(CHANNEL_NAME);
@@ -928,7 +914,6 @@ class TestRunner {
         throw networkError;
       }
 
-      // Test contract by calling a simple query function
       try {
         console.log("Testing contract with GetAllMedicines query...");
         const result = await this.contract.evaluateTransaction(
@@ -998,12 +983,9 @@ class TestRunner {
       // Determine number of transactions
       const numTransactions = this.profile.transactions || 100;
       console.log(`Planning to execute ${numTransactions} transactions`);
-
-      // Determine concurrency
       const concurrency = this.profile.concurrency || 10;
       console.log(`Using concurrency level: ${concurrency}`);
 
-      // Execute transactions based on profile
       if (this.profile.rampUp && this.profile.rampUp.enabled) {
         console.log("Using ramp-up transaction pattern");
         await this.runRampUpTest(txGenerator, numTransactions);
@@ -1035,8 +1017,6 @@ class TestRunner {
         } seconds`
       );
       this.stopResourceMonitoring();
-
-      // Print results
       const stats = this.results.printResults();
       console.log("Results printed");
 
@@ -1058,7 +1038,6 @@ class TestRunner {
       console.log(`Results filename: ${filename}`);
       this.results.saveToFile(filename, this.profile);
 
-      // Create a backup copy of the results
       try {
         const backupFilename = path.join(
           OUTPUT_DIR,
@@ -1233,8 +1212,6 @@ class TestRunner {
     while (shouldContinue || running > 0) {
       while (running < concurrency && shouldContinue) {
         running++;
-
-        // Execute transaction asynchronously
         this.executeTransaction(txGenerator)
           .then(() => {
             running--;
@@ -1286,7 +1263,6 @@ class TestRunner {
       if (completed + running < numTransactions) {
         running++;
 
-        // Execute transaction asynchronously
         this.executeTransaction(txGenerator)
           .then(() => {
             running--;
@@ -1312,7 +1288,6 @@ class TestRunner {
           console.log(`Increased rate to ${currentRate} TPS`);
         }
 
-        // Delay based on the current rate
         await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1331,13 +1306,10 @@ class TestRunner {
 
       const endTime = Date.now();
       const latency = endTime - startTime;
-
-      // Record success
       this.results.recordSuccess(latency, result.txType);
 
       return result;
     } catch (error) {
-      // Record failure
       this.results.recordFailure(error, error.txType);
       throw error;
     }
@@ -1376,7 +1348,6 @@ async function main() {
   }
 }
 
-// Run main if called directly
 if (require.main === module) {
   main().catch((error) => {
     console.error(`Fatal error: ${error.message}`);
@@ -1385,7 +1356,6 @@ if (require.main === module) {
   });
 }
 
-// Export for use in other scripts
 module.exports = {
   TestRunner,
   TransactionGenerator,

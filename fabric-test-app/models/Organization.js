@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: 'manufacturer', // Default to manufacturer for new registrations
+    default: 'manufacturer',
     enum: ['manufacturer', 'distributor', 'regulator', 'enduser'], 
   },
   organization: {

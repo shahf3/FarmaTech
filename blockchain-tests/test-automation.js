@@ -47,7 +47,7 @@ function parseArgs() {
     }
   }
 
-  // If no specific profiles provided and not --all, default to mixed
+  // default to mixed
   if (profiles.length === 0 && !settings.runAll) {
     profiles = ["mixed"];
   }
@@ -90,7 +90,6 @@ function ensureOutputDir() {
   }
 }
 
-// Run a single test
 function runTest(profile) {
   return new Promise((resolve, reject) => {
     console.log(`\n========== RUNNING TEST: ${profile} ==========`);
@@ -115,10 +114,10 @@ function runTest(profile) {
       clearTimeout(timeoutId);
 
       if (code === 0) {
-        console.log(`\n✅ Test ${profile} completed successfully`);
+        console.log(`\n Test ${profile} completed successfully`);
         resolve();
       } else {
-        console.log(`\n❌ Test ${profile} failed with code ${code}`);
+        console.log(`\n Test ${profile} failed with code ${code}`);
         reject(new Error(`Test ${profile} failed with code ${code}`));
       }
     });
@@ -126,7 +125,7 @@ function runTest(profile) {
     // Handle errors
     test.on("error", (err) => {
       clearTimeout(timeoutId);
-      console.error(`\n❌ Error running test ${profile}: ${err.message}`);
+      console.error(`\n Error running test ${profile}: ${err.message}`);
       reject(err);
     });
   });
@@ -148,16 +147,16 @@ function generateReports() {
 
     reporter.on("close", (code) => {
       if (code === 0) {
-        console.log("\n✅ Reports generated successfully");
+        console.log("\n Reports generated successfully");
         resolve();
       } else {
-        console.log(`\n❌ Report generation failed with code ${code}`);
+        console.log(`\n Report generation failed with code ${code}`);
         reject(new Error("Report generation failed"));
       }
     });
 
     reporter.on("error", (err) => {
-      console.error(`\n❌ Error generating reports: ${err.message}`);
+      console.error(`\n Error generating reports: ${err.message}`);
       reject(err);
     });
   });

@@ -3,8 +3,8 @@ sgMail.setApiKey('SG.FHYb9AFPSJmRkkIvvGmagg.P04KL33cKGsiIeJl-nhtjc_nFmWSTWADCbma
 
 const testEmail = async () => {
   const msg = {
-    to: 'abhijitmahal2@gmail.com', // Replace with your email
-    from: 'farmatech20@gmail.com', // Your verified sender
+    to: 'abhijitmahal2@gmail.com',
+    from: 'farmatech20@gmail.com',
     subject: 'SendGrid Test',
     text: 'This is a test email.',
   };

@@ -1,4 +1,3 @@
-// registerUser.js
 'use strict';
 
 const { Wallets } = require('fabric-network');
@@ -32,8 +31,6 @@ async function main() {
             console.log('Run the enrollAdmin.js application before retrying');
             return;
         }
-
-        // Build a user object for authenticating with the CA
         const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
         const adminUser = await provider.getUserContext(adminIdentity, 'admin');
 

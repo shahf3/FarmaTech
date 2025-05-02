@@ -7,15 +7,15 @@ beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
 
-  process.env.MONGO_URI = uri; // 👈 Set this!
+  process.env.MONGO_URI = uri;
 
-  await mongoose.disconnect(); // Disconnect if already connected
+  await mongoose.disconnect(); 
   await mongoose.connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
 
-  console.log("✅ Connected to In-Memory MongoDB at", uri);
+  console.log("Connected to In-Memory MongoDB at", uri);
 });
 
 afterAll(async () => {

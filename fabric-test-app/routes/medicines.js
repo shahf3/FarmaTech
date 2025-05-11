@@ -278,7 +278,7 @@ router.post(
 );
 
 // @route   POST api/medicines/:id/update
-// @desc    Update medicine supply chain or compliance status
+// @desc    Update medicine supply chain
 // @access  Private/Distributor, Manufacturer, Regulator, Enduser
 router.post(
   '/:id/update',

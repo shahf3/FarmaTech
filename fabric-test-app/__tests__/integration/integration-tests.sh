@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ------------------------------------------
-# FarmaTech Full Integration Tests (Auto-Login)
+# FarmaTech Full Integration Tests
 # ------------------------------------------
 
 BASE_URL="http://localhost:3000"
@@ -63,21 +63,6 @@ if [ "$SUCCESS" != "true" ]; then
 else
   print_success "Medicine registered with QR code: $QR_CODE"
 fi
-
-# ------------------------------------------
-# Step 3: Assign distributor
-# ------------------------------------------
-#   echo "Assigning distributor (self)..."
-#   ASSIGN_RESPONSE=$(curl -s -X POST "$BASE_URL/api/medicines/MED-001/assign-distributors" \
-#   -H "Authorization: Bearer $TOKEN" \
-#   -H "Content-Type: application/json" \
-#   -d '{"distributors": ["TestOrganization"]}')
-
-#   if echo "$ASSIGN_RESPONSE" | grep -q 'assigned successfully'; then
-#   print_success "Distributor assigned successfully."
-#   else
-#   print_failure "Failed to assign distributor."
-#   fi
 
 # ------------------------------------------
 # Step 4: Fetch all medicines
